@@ -24,3 +24,14 @@ if (import.meta.hot) {
   // The hot module reloading API is not available in production.
   createRoot(elem).render(app);
 }
+
+import CommandInterpreter from "./CommandInterpreter";
+
+const elem_comandi = document.getElementById("comandi")!;
+const comandi = (
+  <StrictMode>
+    <CommandInterpreter />
+  </StrictMode>
+);
+
+// createRoot(elem_comandi).render(comandi);
