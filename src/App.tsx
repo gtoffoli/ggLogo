@@ -1,24 +1,32 @@
-import { APITester } from "./APITester"; 
-import "./index.css";
+import React from 'react';
+import "./index.css"; // (da installazione bundle Bum-React)
+import LogoShell from './LogoShell'; // Il tuo componente B (da Gemini)
+import Canvas from './Canvas'; // Il tuo componente A (da DeepSeek)
+import Editor from './Editor'; // Il tuo componente C (da DeepSeek)
+import "./style.css"; // (da Gemini)
 
-import logo from "./logo.svg";
-import reactLogo from "./react.svg";
-
-export function App() {
+const App: React.FC = () => {
+  console.log('App');
   return (
-    <div className="app">
-      <div className="logo-container">
-        <img src={logo} alt="Bun Logo" className="logo bun-logo" />
-        <img src={reactLogo} alt="React Logo" className="logo react-logo" />
+    // NOTA: I componenti React popolano i div con gli ID definiti nel CSS
+    <>
+      <div id="area-a">
+        <Canvas /> 
       </div>
-
-      <h1>Bun + React</h1>
-      <p>
-        Edit <code>src/App.tsx</code> and save to test HMR
-      </p>
-      <APITester />
-    </div>
+      <div id="area-destra">
+        <div id="area-b">
+          <LogoShell />
+        </div>
+        <div id="area-c">
+          <Editor />
+        </div>
+      </div>
+    </>
   );
-}
+};
 
-export default App;
+// AI Overview: come inserire in html un componente react definito in un modulo tsx
+import { createRoot } from 'react-dom/client';
+const container = document.getElementById('root');
+const root = createRoot(container);
+root.render(<App />);

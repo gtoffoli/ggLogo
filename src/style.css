@@ -1,0 +1,76 @@
+/* Stili di base per la finestra */
+html, body, #root {
+    margin: 0;
+    padding: 0;
+    height: 100vh; /* Occupa l'intera altezza del viewport */
+    width: 100vw;  /* Occupa l'intera larghezza del viewport */
+    box-sizing: border-box;
+}
+
+/* ---------------------------------------------------- */
+/* GRID LAYOUT PRINCIPALE */
+/* ---------------------------------------------------- */
+#root {
+    display: grid;
+    /* Definisce 2 colonne: 
+       1. Colonna A (Canvas): usa l'intera altezza (1fr, poi forzata a quadrato)
+       2. Colonna Destra (B e C): occupa lo spazio rimanente (1fr)
+    */
+    grid-template-columns: minmax(300px, 1fr) 1fr; /* Larghezza iniziale e proporzioni */
+    grid-template-rows: 100%; /* Una sola riga, occupa tutta l'altezza */
+    gap: 10px; /* Spazio tra i pannelli */
+    padding: 10px;
+}
+
+/* ---------------------------------------------------- */
+/* AREA DI SINISTRA: A (Canvas) */
+/* ---------------------------------------------------- */
+#area-a {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+    background-color: #f0f0f0; /* Placeholder per il Canvas */
+    border: 1px solid #ccc;
+    /* Per renderlo "approssimativamente quadrato" e mantenere 
+      le proporzioni, React o il Canvas stesso dovranno gestire 
+      la dimensione interna basandosi sulla sua altezza massima.
+      Qui lo facciamo riempire lo spazio disponibile.
+    */
+}
+
+/* ---------------------------------------------------- */
+/* CONTAINER DESTRA (B e C) */
+/* ---------------------------------------------------- */
+#area-destra {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+    display: flex; /* Usa Flexbox per dividere B e C verticalmente */
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ---------------------------------------------------- */
+/* AREA DI DESTRA SUPERIORE: B (Interprete/Console) - 40% */
+/* ---------------------------------------------------- */
+#area-b {
+    /* 40% dell'altezza disponibile nel container di destra */
+    flex-basis: 40%; 
+    background-color: #000033; /* Sfondo scuro per la console */
+    border: 1px solid #ccc;
+    /* La proprietà flex-grow: 0; assicura che mantenga il 40% */
+    flex-grow: 0; 
+    flex-shrink: 0;
+    min-height: 0; /* Importante per i contenitori flex/grid con overflow */
+}
+
+/* ---------------------------------------------------- */
+/* AREA DI DESTRA INFERIORE: C (Editor LOGO) - 60% */
+/* ---------------------------------------------------- */
+#area-c {
+    /* Il resto dell'altezza (60%) */
+    flex-basis: 60%; 
+    background-color: #ffffff; /* Sfondo chiaro per l'editor */
+    border: 1px solid #ccc;
+    /* Permette di occupare lo spazio rimanente */
+    flex-grow: 1; 
+    min-height: 0; /* Importante per i contenitori flex/grid con overflow */
+}
