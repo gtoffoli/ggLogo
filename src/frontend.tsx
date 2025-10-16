@@ -34,4 +34,4 @@ const comandi = (
   </StrictMode>
 );
 
-// createRoot(elem_comandi).render(comandi);
+createRoot(elem_comandi).render(comandi);
