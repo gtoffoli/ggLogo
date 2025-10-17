@@ -31,7 +31,7 @@ const menuB = [
     { label: 'Cancella Log', action: handleConsoleClear },
     { label: 'Esporta Log', action: () => console.log('Esporta log della console') },
   ]},
-  { label: 'Comandi', submenu: [
+  { label: 'Commands', submenu: [
     { label: 'Aiuto (F1)', action: () => alert('Mostra la guida comandi LOGO.') },
   ]},
 ];
@@ -43,7 +43,7 @@ const menuC = [
     { label: 'Carica...', action: handleEditorLoad },
     { label: 'Salva', action: handleEditorSave },
   ]},
-  { label: 'Esegui', submenu: [
+  { label: 'Run', submenu: [
     { label: 'Esegui Editor', action: () => alert('Esecuzione del codice nell\'Editor...') },
   ]},
 ];

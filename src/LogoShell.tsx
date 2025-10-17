@@ -27,9 +27,8 @@ const logoInterpreter = {
 
 const LogoShell: React.FC = () => {
   // Stato per l'history dei comandi e risultati
-  const [history, setHistory] = useState<Message[]>([
-    { type: 'output', text: "Benvenuto nell'Interprete LOGO TypeScript/React!" },
-    { type: 'output', text: "Digita 'print \"ciao mondo\"' o 'fd 100' (se il canvas fosse attivo)." },
+  const [history, setHistory] = useState<Message[]>([{ type: 'output', text: "Wellcome in the LOGO Interpreter TypeScript/React!" },
+    // { type: 'output', text: "Digita 'print \"ciao mondo\"' o 'fd 100' (se il canvas fosse attivo)." },
   ]);
 
   // Stato per l'input corrente
@@ -117,7 +116,7 @@ const LogoShell: React.FC = () => {
             outline: 'none', 
             fontFamily: 'monospace' 
           }}
-          placeholder="Digita il tuo comando LOGO..."
+          placeholder="Enter your LOGO command..."
         />
       </div>
     </div>
