@@ -1,25 +1,82 @@
 import React from 'react';
 import "./index.css"; // (da installazione bundle Bum-React)
+import PanelContainer from './PanelContainer';
 import LogoShell from './LogoShell'; // Il tuo componente B (da Gemini)
 import Canvas from './Canvas'; // Il tuo componente A (da DeepSeek)
 import Editor from './Editor'; // Il tuo componente C (da DeepSeek)
 import "./style.css"; // (da Gemini)
 
+// --- DEFINIZIONE DEI MENU (Hook per l'esecuzione dei comandi) ---
+
+const handleCanvasReset = () => { alert('Canvas Reset: La tartaruga verrà riportata a (0,0).'); };
+const handleConsoleClear = () => { alert('Console Clear: La cronologia B verrà cancellata.'); };
+const handleEditorLoad = () => { console.log('Caricamento file LOGO...'); };
+const handleEditorSave = () => { console.log('Salvataggio file LOGO...'); };
+
+// Menu per l'Area A (Canvas/Grafica)
+const menuA = [
+  { label: 'File', submenu: [
+    { label: 'Salva Immagine', action: () => alert('Salvataggio Canvas...') },
+    { label: 'Stampa', action: () => alert('Stampa Canvas...') },
+  ]},
+  { label: 'Turtle', submenu: [
+    { label: 'Reset Posizione', action: handleCanvasReset },
+    { label: 'Mostra/Nascondi', action: () => console.log('Toggle Turtle visibility') },
+  ]},
+];
+
+// Menu per l'Area B (Interprete/Console)
+const menuB = [
+  { label: 'History', submenu: [
+    { label: 'Cancella Log', action: handleConsoleClear },
+    { label: 'Esporta Log', action: () => console.log('Esporta log della console') },
+  ]},
+  { label: 'Comandi', submenu: [
+    { label: 'Aiuto (F1)', action: () => alert('Mostra la guida comandi LOGO.') },
+  ]},
+];
+
+// Menu per l'Area C (Editor LOGO)
+const menuC = [
+  { label: 'File', submenu: [
+    { label: 'Nuovo', action: () => console.log('Nuovo file') },
+    { label: 'Carica...', action: handleEditorLoad },
+    { label: 'Salva', action: handleEditorSave },
+  ]},
+  { label: 'Esegui', submenu: [
+    { label: 'Esegui Editor', action: () => alert('Esecuzione del codice nell\'Editor...') },
+  ]},
+];
+
 const App: React.FC = () => {
-  console.log('App');
   return (
     // NOTA: I componenti React popolano i div con gli ID definiti nel CSS
     <>
-      <div id="area-a">
-        <Canvas /> 
-      </div>
+      <PanelContainer
+        id="area-a"
+        title="Turtle Graphics"
+        borderColor="#007bff" // Blu
+        menuItems={menuA}
+      >
+        <Canvas />
+      </PanelContainer>
       <div id="area-destra">
-        <div id="area-b">
+        <PanelContainer
+          id="area-b"
+          title="Command Console"
+          borderColor="#28a745" // Verde
+          menuItems={menuB}
+        >
           <LogoShell />
-        </div>
-        <div id="area-c">
-          <Editor />
-        </div>
+        </PanelContainer>
+        <PanelContainer
+          id="area-c"
+          title="Procedure Editor"
+          borderColor="#ff8c00" // Arancione
+          menuItems={menuC}
+        >
+          <Editor /> 
+        </PanelContainer>
       </div>
     </>
   );

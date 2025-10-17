@@ -75,6 +75,7 @@ const PanelContainer: React.FC<PanelContainerProps> = ({ id, title, borderColor,
   const contentStyle: React.CSSProperties = {
     flexGrow: 1, // Occupa lo spazio restante
     minHeight: 0, // Permette ai componenti interni (es. CommandLog) di usare height: 100%
+    overflow: 'auto', // copiato dalla versione DeepSeek (Panel.tsx)
   }
 
   return (
