@@ -1,3 +1,6 @@
+// LogoShell.tsx
+// 251016 - new version with Gemini and DeepSeek
+
 import React from 'react';
 import "./index.css"; // (da installazione bundle Bum-React)
 import PanelContainer from './PanelContainer';

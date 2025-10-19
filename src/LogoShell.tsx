@@ -1,4 +1,9 @@
+// LogoShell.tsx
+// 251016 - 1st version with Gemini and DeepSeek
+
 import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
+import useLocalization from './UseLocalization';
+
 
 // Definisci il tipo per i messaggi di input/output (History)
 type Message = {

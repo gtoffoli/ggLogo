@@ -1,4 +1,6 @@
 // PanelContainer.tsx
+// 251017 - 1st version with Gemini
+
 
 import React, { useState, ReactNode } from 'react';
 

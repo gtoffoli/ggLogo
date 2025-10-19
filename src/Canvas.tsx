@@ -11,19 +11,41 @@ const Canvas: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Inizializza il canvas
+    // Inizializza il canvas con sfondo bianco
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-/*
-    // Iscrizione agli eventi dell'interprete per i comandi di disegno
-    // Per ora, non implementato, ma qui si gestiranno gli eventi di movimento della turtle
 
-    // Esempio: quando l'interprete emette 'turtleMove', aggiorna il canvas
-    const handleTurtleMove = (data: any) => {
-      // ... disegna in base al comando
+    // Posiziona la turtle al centro
+    ctx.fillStyle = 'red';
+    ctx.beginPath();
+    ctx.arc(canvas.width / 2, canvas.height / 2, 5, 0, 2 * Math.PI);
+    ctx.fill();
+
+	let xTurtle:number = 0;
+	let yTurtle:number = 0, dirTurtle:number = 0; // radians
+
+    // Iscrizione agli eventi dell'interprete per i comandi di disegno
+
+    const handleTurtleForward = (dist: number) => {
+	 	let dx:number = 0; // dist * Math.cos(dirTurtle);
+	  	let dy:number = 0; // dist * Math.sin(dirTurtle);
+      	ctx.lineTo (xTurtle + dx, yTurtle + dy);
+      	xTurtle = xTurtle + dx;
+      	yTurtle = yTurtle + dy;
     };
 
-    logoInterpreter.on('turtleMove', handleTurtleMove);
+    const handleTurtleRight = (angle: number) => {
+		let dirTurtle = dirTurtle + angle;
+    };
+
+    const handleTurtleLeft = (angle: number) => {
+		let dirTurtle = dirTurtle - angle;
+    };
+
+/*
+    logoInterpreter.on('turtleForward', handleTurtleForward);
+    logoInterpreter.on('turtleRight', handleTurtleRight);
+    logoInterpreter.on('turtleLeft', handleTurtleLeft);
 
     return () => {
       // Rimuovi l'event listener quando il componente viene smontato
