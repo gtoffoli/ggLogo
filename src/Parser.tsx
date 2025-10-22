@@ -1,3 +1,6 @@
+// Parser.tsx
+// 251022 - 1st version with Gemini
+
 // A. STATI DELLA FSM (Righe della matrice)
 enum State {
     START = 0,          // Stato iniziale (In attesa del primo carattere)
@@ -73,3 +76,92 @@ const FSM_MATRIX: Transition[][] = [
         [State.FINAL, Action.IGNORE]        // EOF -> Fine
     ]
 ];
+
+/**
+ * Classificatore Lessicale: Mappa un carattere alla sua classe.
+ */
+function getCharClass(char: string | undefined): CharClass {
+    if (char === undefined) return CharClass.END_OF_INPUT;
+    
+    // Lista di separatori tipici (non gestisce la logica avanzata di operatore/parentesi)
+    const separators = '()[]+-*/<=>,'; 
+
+    if (/\s/.test(char)) {
+        return CharClass.BLANK;
+    } else if (char === '"') {
+        return CharClass.QUOTE;
+    } else if (char === ';') {
+        return CharClass.COMMENT_START;
+    } else if (char === '\n' || char === '\r') {
+        return CharClass.NEWLINE;
+    } else if (separators.includes(char)) {
+        return CharClass.SEPARATOR;
+    } else {
+        return CharClass.OTHER;
+    }
+}
+
+/**
+ * Funzione Principale del Tokenizer
+ */
+export function logoTokenizerFSM(input: string): string[] {
+    const tokens: string[] = [];
+    let currentState: State = State.START;
+    let currentToken: string = '';
+    let i = 0;
+
+    // Aggiungiamo un terminatore implicito per gestire l'ultimo token
+    const fullInput = input + '\0'; 
+
+    while (currentState !== State.FINAL) {
+        const char = fullInput[i];
+        const charClass = getCharClass(char);
+        
+        // Cerca la transizione nella matrice
+        const transition = FSM_MATRIX[currentState][charClass];
+        if (!transition) {
+            console.error(`Errore di transizione non definita in stato ${currentState} con classe ${charClass}`);
+            break;
+        }
+
+        const [nextState, action] = transition;
+        
+        // Esecuzione dell'Azione (Side Effect)
+        switch (action) {
+            case Action.IGNORE:
+                // Non fa nulla con il carattere
+                break;
+            case Action.APPEND:
+                currentToken += char;
+                break;
+            case Action.FINALISE_TOKEN:
+                if (currentToken.length > 0) {
+                    tokens.push(currentToken);
+                }
+                currentToken = '';
+                // NOTA: il carattere corrente non è incluso nel token finalizzato.
+                // Deve essere ri-analizzato nel prossimo stato se è un SEPARATOR.
+                i--; // Torna indietro di un carattere per ri-analizzarlo nel nuovo stato
+                break;
+            case Action.NEW_TOKEN_APPEND:
+                if (currentToken.length > 0) {
+                    tokens.push(currentToken); // Finalizza il precedente
+                }
+                currentToken = char; // Inizia il nuovo token con il carattere corrente
+                break;
+            case Action.ERROR:
+                throw new Error(`Errore lessicale in stato ${currentState} al carattere ${i}: ${char}`);
+        }
+        
+        // Passaggio di Stato
+        currentState = nextState;
+        
+        // Avanzamento dell'Input
+        if (action !== Action.FINALISE_TOKEN) {
+             i++;
+        }
+       
+    }
+
+    return tokens;
+}
