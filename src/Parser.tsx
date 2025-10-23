@@ -1,5 +1,6 @@
 // Parser.tsx
 // 251022 - 1st version with Gemini
+// 251023 - fixed bugs in getCharClass (END_OF_INPUT), FSM matrix and logoTokenizerFSM (remove i--, actions)
 
 // A. STATI DELLA FSM (Righe della matrice)
 enum State {
@@ -38,8 +39,10 @@ const FSM_MATRIX: Transition[][] = [
     // [0]BLANK   [1]QUOTE   [2]SEPARATOR   [3]COMMENT [4]NEWLINE [5]OTHER  [6]EOF
     /* [0] START */ [
         [State.START, Action.IGNORE],       // BLANK -> Ignora, resta in START
-        [State.IN_LITERAL, Action.APPEND],  // QUOTE -> Entra in LITERAL, Append
-        [State.IN_TOKEN, Action.NEW_TOKEN_APPEND], // SEPARATOR -> Tokenizza e Append (separatore è un token)
+        // [State.IN_LITERAL, Action.APPEND],  // QUOTE -> Entra in LITERAL, Append
+        [State.IN_LITERAL, Action.NEW_TOKEN_APPEND],  // QUOTE -> Entra in LITERAL e Append (QUOTE è un token)
+        // [State.IN_TOKEN, Action.NEW_TOKEN_APPEND], // SEPARATOR -> Tokenizza e Append (separatore è un token)
+        [State.START, Action.NEW_TOKEN_APPEND], // SEPARATOR -> Tokenizza e Append (separatore è un token)
         [State.IN_COMMENT, Action.IGNORE],  // COMMENT -> Ignora, entra in COMMENT
         [State.START, Action.IGNORE],       // NEWLINE -> Ignora, resta in START
         [State.IN_TOKEN, Action.APPEND],    // OTHER -> Entra in TOKEN, Append
@@ -56,14 +59,18 @@ const FSM_MATRIX: Transition[][] = [
         [State.FINAL, Action.FINALISE_TOKEN]  // EOF -> Finalizza
     ],
     // [2] IN_LITERAL (Stringa tra virgolette)
+    // [2] IN_LITERAL (Stringa preceduta da virgolette)
     /* [2] IN_LITERAL */ [
-        [State.IN_LITERAL, Action.APPEND],  // BLANK -> Append (stringhe mantengono spazi)
-        [State.START, Action.FINALISE_TOKEN], // QUOTE -> Finalizza (la virgoletta non viene inclusa nel token, ma l'azione andrebbe modificata)
+        // [State.IN_LITERAL, Action.APPEND],  // BLANK -> Append (stringhe mantengono spazi)
+        [State.START, Action.FINALISE_TOKEN],  // BLANK -> Append (stringhe NON mantengono spazi)
+        // [State.START, Action.FINALISE_TOKEN], // QUOTE -> Finalizza (la virgoletta non viene inclusa nel token, ma l'azione andrebbe modificata)
+        [State.IN_LITERAL, Action.ERROR], // QUOTE -> Errore (In Iperlogo il QUOTE non va chiuso)
         [State.IN_LITERAL, Action.APPEND],  // SEPARATOR -> Append
         [State.IN_LITERAL, Action.APPEND],  // COMMENT -> Append
         [State.IN_LITERAL, Action.APPEND],  // NEWLINE -> Append (le stringhe LOGO possono estendersi su più righe)
-        [State.IN_LITERAL, Action.APPEND],  // OTHER -> Append
-        [State.FINAL, Action.ERROR]         // EOF -> Errore (stringa non chiusa)
+        [State.IN_LITERAL, Action.APPEND],  // OTHER -> Append, resta in LITERAL
+        // [State.FINAL, Action.ERROR]         // EOF -> Errore (stringa non chiusa)
+        [State.FINAL, Action.FINALISE_TOKEN]  // EOF -> Append (una stringa letterale può terminare insieme con l'input)
     ],
     // [3] IN_COMMENT
     /* [3] IN_COMMENT */ [
@@ -81,7 +88,8 @@ const FSM_MATRIX: Transition[][] = [
  * Classificatore Lessicale: Mappa un carattere alla sua classe.
  */
 function getCharClass(char: string | undefined): CharClass {
-    if (char === undefined) return CharClass.END_OF_INPUT;
+    // if (char === undefined) return CharClass.END_OF_INPUT;
+    if ((char === undefined) || (char.charCodeAt(0) === 0)) return CharClass.END_OF_INPUT;
     
     // Lista di separatori tipici (non gestisce la logica avanzata di operatore/parentesi)
     const separators = '()[]+-*/<=>,'; 
@@ -125,7 +133,8 @@ export function logoTokenizerFSM(input: string): string[] {
         }
 
         const [nextState, action] = transition;
-        
+ 
+        //console.log('car', currentState, fullInput.charCodeAt(i), charClass, nextState, action);       
         // Esecuzione dell'Azione (Side Effect)
         switch (action) {
             case Action.IGNORE:
@@ -141,13 +150,17 @@ export function logoTokenizerFSM(input: string): string[] {
                 currentToken = '';
                 // NOTA: il carattere corrente non è incluso nel token finalizzato.
                 // Deve essere ri-analizzato nel prossimo stato se è un SEPARATOR.
-                i--; // Torna indietro di un carattere per ri-analizzarlo nel nuovo stato
+                // i--; // Torna indietro di un carattere per ri-analizzarlo nel nuovo stato
                 break;
             case Action.NEW_TOKEN_APPEND:
                 if (currentToken.length > 0) {
                     tokens.push(currentToken); // Finalizza il precedente
                 }
                 currentToken = char; // Inizia il nuovo token con il carattere corrente
+                if ((charClass === CharClass.QUOTE) || (charClass === CharClass.SEPARATOR)){
+                    tokens.push(currentToken);
+                    currentToken = '';
+                }
                 break;
             case Action.ERROR:
                 throw new Error(`Errore lessicale in stato ${currentState} al carattere ${i}: ${char}`);

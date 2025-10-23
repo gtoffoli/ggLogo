@@ -2,7 +2,8 @@
 // 251016 - 1st version with Gemini and DeepSeek
 
 import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
-import useLocalization from './UseLocalization';
+import { useLocalization } from './UseLocalization';
+import { logoTokenizerFSM } from './Parser';
 
 
 // Definisci il tipo per i messaggi di input/output (History)
@@ -17,6 +18,7 @@ const logoInterpreter = {
   // Funzione fittizia per simulare l'esecuzione di un comando LOGO
   execute: (command: string): { output: string; error?: string } => {
     // QUI CI SARÀ L'INTERPRETE LOGO REALE
+    /*
     command = command.trim().toLowerCase();
     if (command.startsWith('print')) {
       return { output: command.substring(5).trim() };
@@ -25,6 +27,10 @@ const logoInterpreter = {
     } else if (command === 'errore') {
         return { output: "", error: "Errore: Comando non riconosciuto." };
     }
+    */
+    command = command.trim();
+    let tokens = logoTokenizerFSM(command);
+    console.log(tokens);
     return { output: `Comando "${command}" eseguito. (Nessun output testuale)` };
   },
 };
