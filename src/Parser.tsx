@@ -93,10 +93,12 @@ function getCharClass(char: string | undefined): CharClass {
     
     // Lista di separatori tipici (non gestisce la logica avanzata di operatore/parentesi)
     const separators = '()[]+-*/<=>,'; 
+    const quotes = '\":'; 
 
     if (/\s/.test(char)) {
         return CharClass.BLANK;
-    } else if (char === '"') {
+    // } else if (char === '"') {
+    } else if (quotes.includes(char)) {
         return CharClass.QUOTE;
     } else if (char === ';') {
         return CharClass.COMMENT_START;

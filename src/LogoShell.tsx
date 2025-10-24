@@ -17,7 +17,6 @@ type Message = {
 const logoInterpreter = {
   // Funzione fittizia per simulare l'esecuzione di un comando LOGO
   execute: (command: string): { output: string; error?: string } => {
-    // QUI CI SARÀ L'INTERPRETE LOGO REALE
     /*
     command = command.trim().toLowerCase();
     if (command.startsWith('print')) {
@@ -27,11 +26,12 @@ const logoInterpreter = {
     } else if (command === 'errore') {
         return { output: "", error: "Errore: Comando non riconosciuto." };
     }
+    return { output: `Comando "${command}" eseguito. (Nessun output testuale)` };
     */
+    // QUI CI SARÀ L'INTERPRETE LOGO REALE
     command = command.trim();
     let tokens = logoTokenizerFSM(command);
-    console.log(tokens);
-    return { output: `Comando "${command}" eseguito. (Nessun output testuale)` };
+    return { output: tokens.toString() };
   },
 };
 
