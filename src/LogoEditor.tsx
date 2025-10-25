@@ -1,3 +1,6 @@
+// LogoEditor.tsx
+// 251013 - 1st version with Gemini on 251013
+
 import React, { useState } from 'react';
 
 const Editor: React.FC = () => {

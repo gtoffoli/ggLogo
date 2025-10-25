@@ -1,0 +1,40 @@
+// LogoState.tsx
+// 251025 - 1st version: from logo-state.ts proposed by Gemini on 251021
+
+
+// 1. Definisce lo stato specifico di una Finestra Grafica (Canvas/Tartaruga)
+export interface TurtleState {
+  x: number;
+  y: number;
+  heading: number; // Direzione (0-359 gradi)
+  penDown: boolean;
+  penColor: string; // Basato sul parametro PENCOLOR
+  // ... altri stati grafici (es. fillcolor, turtleshape)
+}
+
+export interface GraphicWindowState {
+  windowId: string; // ID univoco, es. "TARTA" o "finestra2"
+  name: string;
+  isActive: boolean; // Indica se è la finestra correntemente in primo piano
+  turtleState: TurtleState;
+  // Qui si potrebbero aggiungere le chiamate di disegno effettuate, per il rendering.
+  drawingCommands: any[]; 
+}
+
+// 2. Definisce lo Stato Globale dell'Interprete
+export interface LogoGlobalState {
+  // Mappa di tutte le finestre grafiche
+  windows: Record<string, GraphicWindowState>; 
+  
+  // ID della finestra attualmente selezionata/in uso dall'interprete LOGO
+  activeWindowId: string; 
+  
+  // Definizioni di procedura create dall'utente (es. TO CASA)
+  userProcedures: Record<string, any>; 
+  
+  // Variabili globali LOGO
+  globalVariables: Record<string, any>; 
+  
+  // Parametri di configurazione (es. PENCOLOR) - vedi l'esempio precedente
+  configParams: Record<string, any>; 
+}

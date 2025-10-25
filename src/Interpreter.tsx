@@ -1,30 +1,110 @@
 // Interpreter.tsx
 // 251024 - 1st version: extracted logoInterpreter function from LogoShell.tsx
+// 251025 - as proposed by Gemini on 251024
 
+/*
 import { useLocalization } from './UseLocalization';
 import { logoTokenizerFSM } from './Parser';
 
-// ** Importa la logica dell'interprete, che inizialmente sarà un mock. **
-// Nel tuo progetto reale, questo sarebbe il modulo TypeScript dell'interprete.
 const logoInterpreter = {
   // Funzione fittizia per simulare l'esecuzione di un comando LOGO
   execute: (command: string): { output: string; error?: string } => {
-    /*
-    command = command.trim().toLowerCase();
-    if (command.startsWith('print')) {
-      return { output: command.substring(5).trim() };
-    } else if (command === 'clear') {
-        return { output: "Schermo pulito." };
-    } else if (command === 'errore') {
-        return { output: "", error: "Errore: Comando non riconosciuto." };
-    }
-    return { output: `Comando "${command}" eseguito. (Nessun output testuale)` };
-    */
     // QUI CI SARÀ L'INTERPRETE LOGO REALE
     command = command.trim();
     let tokens = logoTokenizerFSM(command);
     return { output: tokens.toString() };
   },
 };
+*/
 
-export default logoInterpreter;
+// Usiamo i tipi di risoluzione comando definiti in precedenza
+import { CORE_DEFINITIONS, CommandDef, CoreDefinitionKeys } from './CoreDefinitions';
+import { useLocalization } from './useLocalization';
+import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
+import { calculateForward, calculateRight } from './InterpreterCore'; 
+import { logoTokenizerFSM } from './Parser';
+
+// Presupponiamo di avere accesso allo stato globale (GET) e al dispatcher (SET)
+interface InterpreterProps {
+    globalState: LogoGlobalState;
+    dispatch: (action: any) => void; 
+}
+
+// L'interprete riceve la riga e lo stato/dispatcher
+/*
+export function logoInterpreter(line: string, { globalState, dispatch }: InterpreterProps): string
+{
+    // 1. Tokenizzazione (Qui userai la tua FSM aggiornata)
+    // const tokens = logoTokenizerFSM(line); // La tua funzione FSM
+    // Per ora, simuliamo il tokenizzatore semplice per testare
+    const tokens = line.trim().toUpperCase().split(/\s+/).filter(t => t.length > 0); 
+    
+    if (tokens.length === 0) return "";
+
+    const commandName = tokens[0];
+    const args = tokens.slice(1);
+    
+    // Per un'implementazione reale, dovresti usare useLocalization e CORE_DEFINITIONS
+    // Qui simuliamo la risoluzione interna per AVANTI/DESTRA
+    const commandMap: Record<string, CoreDefinitionKeys> = { 
+        "AVANTI": "FD", "DESTRA": "RT", 
+        "FORWARD": "FD", "RIGHT": "RT" 
+    };
+    const coreKey = commandMap[commandName];
+
+    if (!coreKey) {
+        return `ERRORE: Comando non riconosciuto: ${commandName}`;
+    }
+
+    // Estrazione e validazione dell'argomento numerico
+    const numericArg = parseFloat(args[0]);
+    if (isNaN(numericArg)) {
+        return `ERRORE: ${commandName} richiede un argomento numerico valido.`;
+    }
+
+    const activeWin = globalState.windows[globalState.activeWindowId];
+    if (!activeWin) return "ERRORE: Nessuna finestra grafica attiva.";
+
+    let newTurtleState: TurtleState = activeWin.turtleState;
+    let drawingCommand: DrawingCommand | null = null;
+    
+    // 2. Esecuzione del Comando Core
+    switch (coreKey) {
+        case "FD": // AVANTI
+            const { newState: fdState, command: fdCmd } = calculateForward(activeWin.turtleState, numericArg);
+            newTurtleState = fdState;
+            drawingCommand = fdCmd;
+            break;
+        case "RT": // DESTRA
+            newTurtleState = calculateRight(activeWin.turtleState, numericArg);
+            break;
+        default:
+            return `LOG: Comando ${commandName} riconosciuto ma non ancora implementato.`;
+    }
+
+    // 3. Dispatch (Aggiornamento dello Stato Globale)
+    dispatch({ 
+        type: 'UPDATE_TURTLE_STATE', 
+        windowId: globalState.activeWindowId,
+        newState: newTurtleState 
+    });
+    
+    if (drawingCommand) {
+         dispatch({ 
+            type: 'ADD_DRAWING_COMMAND', 
+            windowId: globalState.activeWindowId,
+            command: drawingCommand 
+        });
+    }
+
+    return `OK: Eseguito ${commandName} ${numericArg}.`;
+*/
+export function logoInterpreter (line: string): string
+{
+    let command = line.trim();
+    let tokens = logoTokenizerFSM(command);
+    return { output: tokens.toString() };
+}
+
+
+// export default logoInterpreter;

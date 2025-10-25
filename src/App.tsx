@@ -5,8 +5,8 @@ import React from 'react';
 import "./index.css"; // (da installazione bundle Bum-React)
 import PanelContainer from './PanelContainer';
 import LogoShell from './LogoShell'; // Il tuo componente B (da Gemini)
-import Canvas from './Canvas'; // Il tuo componente A (da DeepSeek)
-import Editor from './Editor'; // Il tuo componente C (da DeepSeek)
+import Canvas from './TurtleCanvas'; // Il tuo componente A (da DeepSeek)
+import Editor from './LogoEditor'; // Il tuo componente C (da DeepSeek)
 import "./style.css"; // (da Gemini)
 
 // --- DEFINIZIONE DEI MENU (Hook per l'esecuzione dei comandi) ---

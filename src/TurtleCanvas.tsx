@@ -1,5 +1,11 @@
+// TurtleCanvas.tsx
+// 251013 - 1st version with DeepSeek
+// 251018 - added some command handler
+// 251025 - adapted to the global architecture proposed by Gemini
+
 import React, { useEffect, useRef } from 'react';
 // import { logoInterpreter } from '../interpreter/LogoInterpreter';
+import { LogoStateProvider } from './LogoStateContext';
 
 const Canvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);

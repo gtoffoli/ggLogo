@@ -3,7 +3,7 @@
 // 251024 - moved logoInterpreter to module Interpreter
 
 import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
-import logoInterpreter from './Interpreter';
+import { logoInterpreter } from './Interpreter';
 
 // Definisci il tipo per i messaggi di input/output (History)
 type Message = {
@@ -36,7 +36,8 @@ const LogoShell: React.FC = () => {
     setHistory(prev => [...prev, { type: 'input', text: `> ${command}` }]);
 
     // 2. Esegui il comando tramite l'interprete
-    const result = logoInterpreter.execute(command);
+    // const result = logoInterpreter.execute(command);
+    const result = logoInterpreter(command);
     
     // Gestione speciale per 'clear' (pulisce la console)
     if (command.trim().toLowerCase() === 'clear') {
