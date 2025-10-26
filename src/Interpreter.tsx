@@ -35,9 +35,9 @@ interface InterpreterProps {
 export function logoInterpreter(line: string, { globalState, dispatch }: InterpreterProps): string
 {
     // 1. Tokenizzazione (Qui userai la tua FSM aggiornata)
-    // const tokens = logoTokenizerFSM(line); // La tua funzione FSM
     // Per ora, simuliamo il tokenizzatore semplice per testare
-    const tokens = line.trim().toUpperCase().split(/\s+/).filter(t => t.length > 0); 
+    // const tokens = line.trim().toUpperCase().split(/\s+/).filter(t => t.length > 0); 
+    const tokens = logoTokenizerFSM(line); // La tua funzione FSM
     
     if (tokens.length === 0) return "";
 
@@ -101,10 +101,6 @@ export function logoInterpreter(line: string, { globalState, dispatch }: Interpr
 */
 export function logoInterpreter (line: string): string
 {
-    let command = line.trim();
-    let tokens = logoTokenizerFSM(command);
+    const tokens = logoTokenizerFSM(line.trim()); // La tua funzione FSM
     return { output: tokens.toString() };
 }
-
-
-// export default logoInterpreter;

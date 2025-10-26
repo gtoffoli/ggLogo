@@ -11,7 +11,8 @@
   "dependencies": {
     "fabric": "^6.7.1",
     "react": "^19",
-    "react-dom": "^19"
+    "react-dom": "^19",
+    "redux": "^5.0.1"
   },
   "devDependencies": {
     "@types/react": "^19",
