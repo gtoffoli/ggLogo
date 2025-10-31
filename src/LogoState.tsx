@@ -19,6 +19,8 @@ export interface GraphicWindowState {
   turtleState: TurtleState;
   // Qui si potrebbero aggiungere le chiamate di disegno effettuate, per il rendering.
   drawingCommands: any[]; 
+  canvasContext: any; // Aggiunto per l'associazione al DOM (vedi punto 3)
+  canvasRef: any;     // Aggiunto per l'associazione al DOM (vedi punto 3)
 }
 
 // 2. Definisce lo Stato Globale dell'Interprete

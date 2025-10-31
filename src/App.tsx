@@ -51,18 +51,13 @@ const menuC = [
   ]},
 ];
 
+import { LogoStateProvider } from './LogoStateContext';
+
 const App: React.FC = () => {
   return (
     // NOTA: I componenti React popolano i div con gli ID definiti nel CSS
-    <>
-      <PanelContainer
-        id="area-a"
-        title="Turtle Graphics"
-        borderColor="#007bff" // Blu
-        menuItems={menuA}
-      >
-        <Canvas />
-      </PanelContainer>
+    <LogoStateProvider>
+     <>
       <div id="area-destra">
         <PanelContainer
           id="area-b"
@@ -81,7 +76,16 @@ const App: React.FC = () => {
           <Editor /> 
         </PanelContainer>
       </div>
-    </>
+      <PanelContainer
+        id="area-a"
+        title="Turtle Graphics"
+        borderColor="#007bff" // Blu
+        menuItems={menuA}
+      >
+        <Canvas windowId="TARTA" />
+      </PanelContainer>
+     </>
+    </LogoStateProvider>
   );
 };
 

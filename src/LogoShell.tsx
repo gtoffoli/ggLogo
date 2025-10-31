@@ -3,8 +3,9 @@
 // 251024 - moved logoInterpreter to module Interpreter
 
 import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
-import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
+// import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
 import { logoInterpreter } from './Interpreter';
+import { useLogoState, useLogoDispatch } from './LogoStateContext';
 
 // Definisci il tipo per i messaggi di input/output (History)
 type Message = {
@@ -13,6 +14,11 @@ type Message = {
 };
 
 const LogoShell: React.FC = () => {
+  // DA CommandInterpreter della versione 251026 di Gemini
+  // Ottieni lo stato e il dispatcher dal Context/Redux
+  const globalState = useLogoState();
+  const dispatch = useLogoDispatch();
+
   // Stato per l'history dei comandi e risultati
   const [history, setHistory] = useState<Message[]>([{ type: 'output', text: "Wellcome in the LOGO Interpreter TypeScript/React!" },
   ]);

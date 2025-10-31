@@ -2,28 +2,15 @@
 // 251024 - 1st version: extracted logoInterpreter function from LogoShell.tsx
 // 251025 - as proposed by Gemini on 251024
 
-/*
-import { useLocalization } from './UseLocalization';
-import { logoTokenizerFSM } from './Parser';
-
-const logoInterpreter = {
-  // Funzione fittizia per simulare l'esecuzione di un comando LOGO
-  execute: (command: string): { output: string; error?: string } => {
-    // QUI CI SARÀ L'INTERPRETE LOGO REALE
-    command = command.trim();
-    let tokens = logoTokenizerFSM(command);
-    return { output: tokens.toString() };
-  },
-};
-*/
 
 // Usiamo i tipi di risoluzione comando definiti in precedenza
-import { CORE_DEFINITIONS, CommandDef, CoreDefinitionKeys } from './CoreDefinitions';
-import { useLocalization } from './useLocalization';
-import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
-import { calculateForward, calculateRight } from './InterpreterCore'; 
+// import { CORE_DEFINITIONS, CommandDef, CoreDefinitionKeys } from './CoreDefinitions';
+// import { useLocalization } from './useLocalization';
+// import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
+// import { calculateForward, calculateRight } from './InterpreterCore'; 
 import { logoTokenizerFSM } from './Parser';
 
+/*
 // Presupponiamo di avere accesso allo stato globale (GET) e al dispatcher (SET)
 interface InterpreterProps {
     globalState: LogoGlobalState;
@@ -31,7 +18,6 @@ interface InterpreterProps {
 }
 
 // L'interprete riceve la riga e lo stato/dispatcher
-/*
 export function logoInterpreter(line: string, { globalState, dispatch }: InterpreterProps): string
 {
     // 1. Tokenizzazione (Qui userai la tua FSM aggiornata)

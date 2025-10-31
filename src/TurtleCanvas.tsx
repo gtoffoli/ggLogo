@@ -4,9 +4,88 @@
 // 251025 - adapted to the global architecture proposed by Gemini
 
 import React, { useEffect, useRef } from 'react';
-// import { logoInterpreter } from '../interpreter/LogoInterpreter';
-import { LogoStateProvider } from './LogoStateContext';
+import { useLogoDispatch, useLogoState } from './LogoStateContext';
+// import { LogoStateProvider } from './LogoStateContext';
+// ... importa DrawingCommand, GraphicWindowState, etc.
 
+interface TurtleCanvasProps {
+    windowId: string; // "TARTA"
+}
+
+// const TurtleCanvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
+const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const dispatch = useLogoDispatch();
+    const state = useLogoState();
+    
+    // Ottiene la finestra grafica specifica da Redux
+    const windowState = state.windows[windowId];
+    
+    // 1. REGISTRAZIONE DEL CONTESTO CANVASS NEL REDUX STATE
+    useEffect(() => {
+        if (canvasRef.current) {
+            const context = canvasRef.current.getContext('2d');
+            if (context) {
+                // Invia l'azione per registrare il contesto nello stato globale
+                dispatch({ 
+                    type: 'REGISTER_CANVAS', 
+                    windowId, 
+                    context,
+                    canvas: canvasRef.current
+                });
+                
+                // Imposta le dimensioni iniziali del Canvas (opzionale)
+                // canvasRef.current.width = canvasRef.current.offsetWidth;
+                // canvasRef.current.height = canvasRef.current.offsetHeight;
+            }
+        }
+    }, [dispatch, windowId]);
+
+    // 2. LOGICA DI DISEGNO BASATA SULLO STATO (MINIMALE)
+    useEffect(() => {
+        console.log(windowState);
+        if (!windowState || !windowState.canvasContext) return;
+        
+        const ctx = windowState.canvasContext;
+        const commands = windowState.drawingCommands;
+        console.log(commands);
+
+        // Esegui SOLO l'ultimo comando di disegno (per la fase di test)
+        if (commands.length > 0) {
+            const lastCommand = commands[commands.length - 1];
+            
+            // Simula l'esecuzione del comando di disegno
+            if (lastCommand.type === 'LINE_TO') {
+                const { x, y, color } = lastCommand;
+                const { x: prevX, y: prevY } = commands[commands.length - 2] as any || {x: 0, y: 0}; // Posizione precedente (simplificata)
+
+                // Disegna il segmento (per vedere qualcosa)
+                ctx.beginPath();
+                ctx.moveTo(prevX, prevY); 
+                ctx.lineTo(x, y);
+                ctx.strokeStyle = color;
+                ctx.stroke();
+                
+                console.log(`Canvas: Linea disegnata fino a (${x}, ${y})`);
+            }
+            // Aggiungere logica per MOVE_TO, CLEAR_CANVAS, ecc.
+        }
+
+    }, [windowState]); // Ridisegna ogni volta che lo stato della finestra cambia
+
+    return (
+        <canvas 
+            ref={canvasRef} 
+            style={{ width: '100%', height: '100%', display: 'block' }} 
+        />
+    );
+};
+
+// export default TurtleCanvas;
+export default Canvas;
+
+
+/*
 const Canvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -47,17 +126,6 @@ const Canvas: React.FC = () => {
     const handleTurtleLeft = (angle: number) => {
 		let dirTurtle = dirTurtle - angle;
     };
-
-/*
-    logoInterpreter.on('turtleForward', handleTurtleForward);
-    logoInterpreter.on('turtleRight', handleTurtleRight);
-    logoInterpreter.on('turtleLeft', handleTurtleLeft);
-
-    return () => {
-      // Rimuovi l'event listener quando il componente viene smontato
-      logoInterpreter.emit('removeListener', 'turtleMove', handleTurtleMove);
-    };
-*/
   }, []);
 
   return (
@@ -71,3 +139,5 @@ const Canvas: React.FC = () => {
 };
 
 export default Canvas;
+*/
+
