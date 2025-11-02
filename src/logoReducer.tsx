@@ -42,6 +42,7 @@ type LogoAction =
 export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlobalState {
     switch (action.type) {
         case 'UPDATE_TURTLE_STATE':
+            console.log('UPDATE_TURTLE_STATE', action.windowId);
             return {
                 ...state,
                 windows: {
@@ -57,6 +58,7 @@ export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlo
             };
         case 'ADD_DRAWING_COMMAND':
             const win = state.windows[action.windowId];
+            console.log('ADD_DRAWING_COMMAND', win);
             return {
                 ...state,
                 windows: {
@@ -68,6 +70,7 @@ export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlo
                 }
             };
         case 'REGISTER_CANVAS':
+            console.log('REGISTER_CANVAS');
             // Associa il riferimento al Canvas e il suo contesto 2D allo stato
             return {
                 ...state,

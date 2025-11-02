@@ -1,6 +1,13 @@
 // LogoState.tsx
 // 251025 - 1st version: from logo-state.ts proposed by Gemini on 251021
+// 251101 - 2nd version: added DrawingCommand according to Gemini 251024
 
+
+// Definisce un comando di disegno elementare
+export type DrawingCommand = 
+  | { type: 'MOVE_TO', x: number, y: number }
+  | { type: 'LINE_TO', x: number, y: number, color: string, thickness: number }
+  | { type: 'CLEAR_CANVAS' };
 
 // 1. Definisce lo stato specifico di una Finestra Grafica (Canvas/Tartaruga)
 export interface TurtleState {
@@ -18,7 +25,8 @@ export interface GraphicWindowState {
   isActive: boolean; // Indica se è la finestra correntemente in primo piano
   turtleState: TurtleState;
   // Qui si potrebbero aggiungere le chiamate di disegno effettuate, per il rendering.
-  drawingCommands: any[]; 
+  // drawingCommands: any[]; 
+  drawingCommands: DrawingCommand[]; // Ora è tipizzato 
   canvasContext: any; // Aggiunto per l'associazione al DOM (vedi punto 3)
   canvasRef: any;     // Aggiunto per l'associazione al DOM (vedi punto 3)
 }

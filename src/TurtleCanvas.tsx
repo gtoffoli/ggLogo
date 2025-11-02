@@ -43,7 +43,7 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
 
     // 2. LOGICA DI DISEGNO BASATA SULLO STATO (MINIMALE)
     useEffect(() => {
-        console.log(windowState);
+        console.log('TurtleCanvas', windowState);
         if (!windowState || !windowState.canvasContext) return;
         
         const ctx = windowState.canvasContext;
@@ -58,6 +58,7 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
             if (lastCommand.type === 'LINE_TO') {
                 const { x, y, color } = lastCommand;
                 const { x: prevX, y: prevY } = commands[commands.length - 2] as any || {x: 0, y: 0}; // Posizione precedente (simplificata)
+                console.log('TurtleCanvas', 'LINE_TO', x, y, prevX, prevY);
 
                 // Disegna il segmento (per vedere qualcosa)
                 ctx.beginPath();

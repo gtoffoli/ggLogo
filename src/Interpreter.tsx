@@ -4,13 +4,12 @@
 
 
 // Usiamo i tipi di risoluzione comando definiti in precedenza
-// import { CORE_DEFINITIONS, CommandDef, CoreDefinitionKeys } from './CoreDefinitions';
+import { CORE_DEFINITIONS, CommandDef, CoreDefinitionKeys } from './CoreDefinitions';
 // import { useLocalization } from './useLocalization';
-// import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
-// import { calculateForward, calculateRight } from './InterpreterCore'; 
+import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
+import { calculateForward, calculateRight } from './InterpreterCore'; 
 import { logoTokenizerFSM } from './Parser';
 
-/*
 // Presupponiamo di avere accesso allo stato globale (GET) e al dispatcher (SET)
 interface InterpreterProps {
     globalState: LogoGlobalState;
@@ -20,6 +19,7 @@ interface InterpreterProps {
 // L'interprete riceve la riga e lo stato/dispatcher
 export function logoInterpreter(line: string, { globalState, dispatch }: InterpreterProps): string
 {
+
     // 1. Tokenizzazione (Qui userai la tua FSM aggiornata)
     // Per ora, simuliamo il tokenizzatore semplice per testare
     // const tokens = line.trim().toUpperCase().split(/\s+/).filter(t => t.length > 0); 
@@ -29,7 +29,7 @@ export function logoInterpreter(line: string, { globalState, dispatch }: Interpr
 
     const commandName = tokens[0];
     const args = tokens.slice(1);
-    
+   
     // Per un'implementazione reale, dovresti usare useLocalization e CORE_DEFINITIONS
     // Qui simuliamo la risoluzione interna per AVANTI/DESTRA
     const commandMap: Record<string, CoreDefinitionKeys> = { 
@@ -84,9 +84,12 @@ export function logoInterpreter(line: string, { globalState, dispatch }: Interpr
     }
 
     return `OK: Eseguito ${commandName} ${numericArg}.`;
-*/
+}
+
+/*
 export function logoInterpreter (line: string): string
 {
     const tokens = logoTokenizerFSM(line.trim()); // La tua funzione FSM
     return { output: tokens.toString() };
 }
+*/

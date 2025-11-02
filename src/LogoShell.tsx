@@ -42,22 +42,29 @@ const LogoShell: React.FC = () => {
     setHistory(prev => [...prev, { type: 'input', text: `> ${command}` }]);
 
     // 2. Esegui il comando tramite l'interprete
-    const result = logoInterpreter(command);
-    
+    console.log(command);
+
+
+    // const result = logoInterpreter(command);
+    // Invoca l'interprete con lo stato e il dispatcher
+     const result = logoInterpreter(command, { globalState, dispatch });
+
+     // ... logica di visualizzazione del risultato (result) ...
+     console.log("Risultato interprete:", result);
+
     // Gestione speciale per 'clear' (pulisce la console)
     if (command.trim().toLowerCase() === 'clear') {
         setHistory([]); // Pulisce lo stato history
         return;
     }
-
+/*
     // 3. Aggiungi l'output (o l'errore) all'history
     if (result.error) {
         setHistory(prev => [...prev, { type: 'error', text: `ERRORE: ${result.error}` }]);
     } else if (result.output) {
         setHistory(prev => [...prev, { type: 'output', text: result.output }]);
     }
-    
-    // *Nota: Le chiamate grafiche (es. `fd 100`) gestiranno lo stato del `TurtleCanvas` separatamente.
+*/  
   };
 
   // Gestore per l'invio del comando (tasto INVIO)
