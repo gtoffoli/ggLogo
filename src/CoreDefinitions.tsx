@@ -27,6 +27,36 @@ export const CORE_DEFINITIONS = {
     args: [{ name: "distanza", type: 'number' }],
     semantics: (args) => console.log(`FD: Muovi ${args[0]} unità.`),
   } as CommandDef,
+  BD: {
+    description: "Muove la tartaruga all'indietro.",
+    syntax: "BD <distanza>",
+    args: [{ name: "distanza", type: 'number' }],
+    semantics: (args) => console.log(`BD: Muovi ${args[0]} unità.`),
+  } as CommandDef,
+  RT: {
+    description: "Ruota la tartaruga a destra.",
+    syntax: "RT <angolo>",
+    args: [{ name: "angolo", type: 'number' }],
+    semantics: (args) => console.log(`RT: Ruota di ${args[0]} radianti.`),
+  } as CommandDef,
+  LT: {
+    description: "Ruota la tartaruga a sinistra.",
+    syntax: "LT <angolo>",
+    args: [{ name: "angolo", type: 'number' }],
+    semantics: (args) => console.log(`LT: Ruota di ${args[0]} radianti.`),
+  } as CommandDef,
+  CS: {
+    description: "Pulisce lo schermo.",
+    syntax: "CS",
+    args: [],
+    semantics: () => console.log(`CS: Pulisci lo schermo.`),
+  } as CommandDef,
+  SET: {
+    description: "Assegna valore a nome.",
+    syntax: "SET <nome> <valore>",
+    args: [{ name: "nome", type: 'string' } { name: "valore", type: 'any' }],
+    semantics: () => console.log(`SET: assegna il valore ${args[1] a ${args[0].`),
+  } as CommandDef,
   PRINT: {
     description: "Visualizza un valore nella console.",
     syntax: "PRINT <valore>",

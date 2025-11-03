@@ -24,19 +24,26 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
     // 1. REGISTRAZIONE DEL CONTESTO CANVASS NEL REDUX STATE
     useEffect(() => {
         if (canvasRef.current) {
-            const context = canvasRef.current.getContext('2d');
-            if (context) {
+            if (canvasRef.current) {
+                const ctx = canvasRef.current.getContext('2d');
                 // Invia l'azione per registrare il contesto nello stato globale
                 dispatch({ 
                     type: 'REGISTER_CANVAS', 
-                    windowId, 
-                    context,
+                    windowId: windowId,
+                    context: ctx,
                     canvas: canvasRef.current
                 });
-                
+
                 // Imposta le dimensioni iniziali del Canvas (opzionale)
-                // canvasRef.current.width = canvasRef.current.offsetWidth;
-                // canvasRef.current.height = canvasRef.current.offsetHeight;
+                canvasRef.current.width = canvasRef.current.offsetWidth;
+                canvasRef.current.height = canvasRef.current.offsetHeight;
+
+                const canvas = canvasRef.current;
+                // Posiziona la turtle al centro
+                ctx.fillStyle = 'red';
+                ctx.beginPath();
+                ctx.arc(canvas.width / 2, canvas.height / 2, 1, 0, 2 * Math.PI);
+                ctx.fill();
             }
         }
     }, [dispatch, windowId]);
@@ -46,9 +53,10 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
         console.log('TurtleCanvas', windowState);
         if (!windowState || !windowState.canvasContext) return;
         
+        const canvas = windowState.canvasRef;
         const ctx = windowState.canvasContext;
         const commands = windowState.drawingCommands;
-        console.log(commands);
+        console.log('comandi', ctx, commands);
 
         // Esegui SOLO l'ultimo comando di disegno (per la fase di test)
         if (commands.length > 0) {
@@ -62,8 +70,9 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
 
                 // Disegna il segmento (per vedere qualcosa)
                 ctx.beginPath();
-                ctx.moveTo(prevX, prevY); 
-                ctx.lineTo(x, y);
+                ctx.moveTo(prevX + canvas.width / 2, canvas.height / 2 + prevY); 
+                ctx.lineTo(x + canvas.width / 2, canvas.height / 2 + y);
+                ctx.lineWidth = 1;
                 ctx.strokeStyle = color;
                 ctx.stroke();
                 
@@ -84,61 +93,3 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
 
 // export default TurtleCanvas;
 export default Canvas;
-
-
-/*
-const Canvas: React.FC = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Inizializza il canvas con sfondo bianco
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Posiziona la turtle al centro
-    ctx.fillStyle = 'red';
-    ctx.beginPath();
-    ctx.arc(canvas.width / 2, canvas.height / 2, 5, 0, 2 * Math.PI);
-    ctx.fill();
-
-	let xTurtle:number = 0;
-	let yTurtle:number = 0, dirTurtle:number = 0; // radians
-
-    // Iscrizione agli eventi dell'interprete per i comandi di disegno
-
-    const handleTurtleForward = (dist: number) => {
-	 	let dx:number = 0; // dist * Math.cos(dirTurtle);
-	  	let dy:number = 0; // dist * Math.sin(dirTurtle);
-      	ctx.lineTo (xTurtle + dx, yTurtle + dy);
-      	xTurtle = xTurtle + dx;
-      	yTurtle = yTurtle + dy;
-    };
-
-    const handleTurtleRight = (angle: number) => {
-		let dirTurtle = dirTurtle + angle;
-    };
-
-    const handleTurtleLeft = (angle: number) => {
-		let dirTurtle = dirTurtle - angle;
-    };
-  }, []);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      width={800}
-      height={800}
-      style={{ width: '100%', height: '100%' }}
-    />
-  );
-};
-
-export default Canvas;
-*/
-

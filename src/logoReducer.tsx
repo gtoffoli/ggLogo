@@ -6,9 +6,9 @@ import {
 } from './LogoState'; // Presumiamo che i tipi siano qui
 
 // Stato Iniziale Minimale
-const initialTurtleState: TurtleState = {
+export const initialTurtleState: TurtleState = {
     x: 0, 
-    y: 0, 
+    y: 0,
     heading: 0, 
     penDown: true, 
     penColor: '#000000'

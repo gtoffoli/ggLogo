@@ -7,6 +7,7 @@
 import { CORE_DEFINITIONS, CommandDef, CoreDefinitionKeys } from './CoreDefinitions';
 // import { useLocalization } from './useLocalization';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
+import { initialTurtleState } from './logoReducer';
 import { calculateForward, calculateRight } from './InterpreterCore'; 
 import { logoTokenizerFSM } from './Parser';
 
@@ -33,8 +34,18 @@ export function logoInterpreter(line: string, { globalState, dispatch }: Interpr
     // Per un'implementazione reale, dovresti usare useLocalization e CORE_DEFINITIONS
     // Qui simuliamo la risoluzione interna per AVANTI/DESTRA
     const commandMap: Record<string, CoreDefinitionKeys> = { 
-        "AVANTI": "FD", "DESTRA": "RT", 
-        "FORWARD": "FD", "RIGHT": "RT" 
+        "FORWARD": "FD",
+        "FD": "FD",
+        "AVANTI": "FD",
+        "A": "FD",
+        "RIGHT": "RT",
+        "RT": "RT",
+        "DESTRA": "RT", 
+        "D": "RT",
+        "CLEARSCREEN": "CS",
+        "CS": "CS",
+        "PULISCISCHERMO": "CS",
+        "PS": "CS"
     };
     const coreKey = commandMap[commandName];
 
@@ -63,6 +74,9 @@ export function logoInterpreter(line: string, { globalState, dispatch }: Interpr
             break;
         case "RT": // DESTRA
             newTurtleState = calculateRight(activeWin.turtleState, numericArg);
+            break;
+        case "CS": // PULISCISCHERMO
+            newTurtleState = initialTurtleState;
             break;
         default:
             return `LOG: Comando ${commandName} riconosciuto ma non ancora implementato.`;
