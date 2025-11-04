@@ -1,5 +1,6 @@
 // UseLocalization.tsx
 // 251019 - 1st version with Gemini
+// 251104 - resolveCommand returns command key in place of command definition
 
 import React, { useState, useMemo } from 'react';
 import { CORE_DEFINITIONS, CommandDef, ParamDef } from './CoreDefinitions';
@@ -36,7 +37,8 @@ export const useLocalization = (initialLang: LanguageCode = 'it'): InterpreterCo
 
     if (coreKey && CORE_DEFINITIONS[coreKey]) {
         // 2. Se trovato, ritorna la definizione funzionale
-        return CORE_DEFINITIONS[coreKey];
+        // return CORE_DEFINITIONS[coreKey];
+        return coreKey;
     }
     
     // Se non trovato, potrebbe essere un comando non tradotto o non valido

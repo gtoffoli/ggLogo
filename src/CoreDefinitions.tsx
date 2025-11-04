@@ -54,8 +54,14 @@ export const CORE_DEFINITIONS = {
   SET: {
     description: "Assegna valore a nome.",
     syntax: "SET <nome> <valore>",
-    args: [{ name: "nome", type: 'string' } { name: "valore", type: 'any' }],
-    semantics: () => console.log(`SET: assegna il valore ${args[1] a ${args[0].`),
+    args: [{ name: "nome", type: 'string' }, { name: "valore", type: 'any'}],
+    semantics: (args) => console.log(`SET: Assegna il valore ${args[1]} a ${args[0]}.`),
+  } as CommandDef,
+  REPEAT: {
+    description: "Ripete una lista di comandi.",
+    syntax: "REPEAT <volte> <comandi>",
+    args: [{ name: "volte", type: 'number' }, { name: "comandi", type: 'list'}],
+    semantics: (args) => console.log(`SET: Assegna il valore ${args[1]} a ${args[0]}.`),
   } as CommandDef,
   PRINT: {
     description: "Visualizza un valore nella console.",

@@ -1,9 +1,11 @@
 // LogoShell.tsx
 // 251016 - 1st version with Gemini and DeepSeek
 // 251024 - moved logoInterpreter to module Interpreter
+// 251104 - call to useLocalization; executeCommand passes activeLang and resolveCommand to logoInterpreter
 
 import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
 // import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
+import { useLocalization } from './UseLocalization';
 import { logoInterpreter } from './Interpreter';
 import { useLogoState, useLogoDispatch } from './LogoStateContext';
 
@@ -29,6 +31,8 @@ const LogoShell: React.FC = () => {
   // Riferimento per scrollare automaticamente in basso
   const endOfHistoryRef = useRef<HTMLDivElement>(null);
 
+  const { activeLang, activeMap, setLanguage, resolveCommand } = useLocalization('it'); 
+
   // Auto-scroll alla fine ogni volta che l'history cambia
   useEffect(() => {
     endOfHistoryRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -47,10 +51,11 @@ const LogoShell: React.FC = () => {
 
     // const result = logoInterpreter(command);
     // Invoca l'interprete con lo stato e il dispatcher
-     const result = logoInterpreter(command, { globalState, dispatch });
+    // const result = logoInterpreter(command, { globalState, dispatch, activeLang, resolveCommand });
+    const result = logoInterpreter(command, { globalState, dispatch, activeLang, resolveCommand });
 
-     // ... logica di visualizzazione del risultato (result) ...
-     console.log("Risultato interprete:", result);
+    // ... logica di visualizzazione del risultato (result) ...
+    console.log("Risultato interprete:", result);
 
     // Gestione speciale per 'clear' (pulisce la console)
     if (command.trim().toLowerCase() === 'clear') {
