@@ -2,15 +2,17 @@
 // 251024 - 1st version: extracted logoInterpreter function from LogoShell.tsx
 // 251025 - as proposed by Gemini on 251024
 // 251104 - logoInterpreter gets command definitions (not used yet) and localization thanks to additional arguments 
+// 251107 - started extension of Parser
 
 
 // Usiamo i tipi di risoluzione comando definiti in precedenza
-import { CORE_DEFINITIONS, CommandDef, CoreDefinitionKeys } from './CoreDefinitions';
+import { CellType, Cell, CORE_DEFINITIONS, CommandDef, CoreDefinitionKeys } from './CoreDefinitions';
 import { LanguageCode } from './UseLocalization';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
 import { initialTurtleState } from './logoReducer';
 import { calculateForward, calculateRight } from './InterpreterCore'; 
-import { logoTokenizerFSM } from './Parser';
+// import { logoTokenizerFSM } from './Parser';
+import { Parse } from './Parser';
 
 // Presupponiamo di avere accesso allo stato globale (GET) e al dispatcher (SET)
 interface InterpreterProps {
@@ -26,11 +28,20 @@ interface InterpreterProps {
 export function logoInterpreter(line: string, { globalState, dispatch, activeLang, resolveCommand }: InterpreterProps): string
 {
     // 1. Tokenizzazione
-    const tokens = logoTokenizerFSM(line); // La tua funzione FSM
+    // const tokens = logoTokenizerFSM(line); // La tua funzione FSM
+    const tokens = Parse(line); // La tua funzione di tokenizzazione e analisi
+    console.log('tokens:', tokens);
     
     if (tokens.length === 0) return "";
 
-    const commandName = tokens[0];
+    else if (tokens.length === 1) {
+	    if (Array.isArray(tokens[0]))
+		    return tokens[0];
+		else (tokens[0].type === CellType.WORD)
+		    return tokens[0].val;
+	}
+
+    const commandName = tokens[0].val;
     const args = tokens.slice(1);
 
     // Risolvi il comando nella lingua attiva
@@ -42,7 +53,7 @@ export function logoInterpreter(line: string, { globalState, dispatch, activeLan
     console.log(coreKey, definition);
  
     // Estrazione e validazione dell'argomento numerico
-    const numericArg = parseFloat(args[0]);
+    const numericArg = parseFloat(args[0].val);
     if (isNaN(numericArg)) {
         return `ERRORE: ${commandName} richiede un argomento numerico valido.`;
     }
@@ -86,4 +97,5 @@ export function logoInterpreter(line: string, { globalState, dispatch, activeLan
     }
 
     return `OK: Eseguito ${commandName} ${numericArg}.`;
+
 }

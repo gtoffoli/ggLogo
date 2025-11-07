@@ -13,8 +13,8 @@ export const IT_MAP: LanguageMap = {
   // Puoi includere sia i nomi abbreviati che quelli completi se vuoi
   "AVANTI": "FD",
   "A": "FD",
-  "INDIETRO": "BD",
-  "I": "BD",
+  "INDIETRO": "BK",
+  "I": "BK",
   "DESTRA": "RT",
   "D": "RT",
   "SINISTRA": "LT",
@@ -35,8 +35,8 @@ export const IT_MAP: LanguageMap = {
 export const EN_MAP: LanguageMap = {
   "FORWARD": "FD",
   "FD": "FD",
-  "BACKWARD": "BD",
-  "BD": "BD",
+  "BACK": "BK",
+  "BK": "BK",
   "RIGHT": "RT",
   "RT": "RT",
   "LEFT": "LT",

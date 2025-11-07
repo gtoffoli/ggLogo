@@ -1,6 +1,22 @@
 // CoreDefinitions.tsx
 // 251019 - 1st version with Gemini
 
+
+export enum CellType {
+	OPERATOR = 0, // operatore
+	NUMBER = 1, // numero
+	WORD = 2, // parola Logo
+	VAR = 3, // variabile Logo
+	SFUN = 4, // funzione primitiva
+	UFUN = 5, // funzione di utente (procedura)
+}
+
+// Token tipizzati all'uscita del Parser
+export type Cell = {
+  type: number;
+  val: any;
+};
+
 // Tipi per i comandi
 export type CommandDef = {
   description: string;
@@ -27,11 +43,11 @@ export const CORE_DEFINITIONS = {
     args: [{ name: "distanza", type: 'number' }],
     semantics: (args) => console.log(`FD: Muovi ${args[0]} unità.`),
   } as CommandDef,
-  BD: {
-    description: "Muove la tartaruga all'indietro.",
-    syntax: "BD <distanza>",
+  BK: {
+    description: "Muove la tartaruga all'indietro (back).",
+    syntax: "BK <distanza>",
     args: [{ name: "distanza", type: 'number' }],
-    semantics: (args) => console.log(`BD: Muovi ${args[0]} unità.`),
+    semantics: (args) => console.log(`BK: Muovi ${args[0]} unità.`),
   } as CommandDef,
   RT: {
     description: "Ruota la tartaruga a destra.",
