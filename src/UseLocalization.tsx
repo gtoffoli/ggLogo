@@ -16,7 +16,7 @@ type InterpreterContext = {
   // Funzione per commutare la lingua
   setLanguage: (lang: LanguageCode) => void;
   // Funzione per risolvere un comando
-  resolveCommand: (commandName: string) => CommandDef | ParamDef | undefined;
+  resolveCommand: (commandName: string) => CoreDefinitionKeys| undefined;
 };
 
 export const useLocalization = (initialLang: LanguageCode = 'it'): InterpreterContext => {
@@ -29,7 +29,8 @@ export const useLocalization = (initialLang: LanguageCode = 'it'): InterpreterCo
 
   // 2. Funzione di Risoluzione del Comando
   // Questa è la chiave per l'interprete dei comandi.
-  const resolveCommand = (commandName: string): CommandDef | ParamDef | undefined => {
+  // const resolveCommand = (commandName: string): CommandDef | ParamDef | undefined => {
+  const resolveCommand = (commandName: string): CoreDefinitionKeys => {
     const canonicalName = commandName.toUpperCase(); // Prepara il nome per la ricerca
 
     // 1. Cerca il nome utente all'interno della mappa linguistica attiva

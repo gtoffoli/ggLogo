@@ -6,7 +6,7 @@
 import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
 // import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
 import { useLocalization } from './UseLocalization';
-import { logoInterpreter } from './Interpreter';
+import { logoInterpreter, ini_main, ini_exec } from './Interpreter';
 import { useLogoState, useLogoDispatch } from './LogoStateContext';
 
 // Definisci il tipo per i messaggi di input/output (History)
@@ -33,6 +33,9 @@ const LogoShell: React.FC = () => {
 
   const { activeLang, activeMap, setLanguage, resolveCommand } = useLocalization('it'); 
 
+  ini_main();
+  ini_exec();
+
   // Auto-scroll alla fine ogni volta che l'history cambia
   useEffect(() => {
     endOfHistoryRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -51,7 +54,6 @@ const LogoShell: React.FC = () => {
 
     // const result = logoInterpreter(command);
     // Invoca l'interprete con lo stato e il dispatcher
-    // const result = logoInterpreter(command, { globalState, dispatch, activeLang, resolveCommand });
     const result = logoInterpreter(command, { globalState, dispatch, activeLang, resolveCommand });
 
     // ... logica di visualizzazione del risultato (result) ...
