@@ -7,11 +7,33 @@
 
 // Usiamo i tipi di risoluzione comando definiti in precedenza
 import { ModParola, CellType, Cell, Context, CORE_DEFINITIONS, CommandDef, ParamDef, CoreDefinitionKeys } from './CoreDefinitions';
-import { LanguageCode, resolveCommand } from './UseLocalization';
+import { LANGUAGE_MAPS } from './LocalizationMaps';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
 import { initialTurtleState } from './logoReducer';
 import { calculateForward, calculateRight } from './InterpreterCore'; 
-import { Parse } from './Parser';
+import { Parse, getCharClass, CharClass } from './Parser';
+
+var contesti: Context[];
+var liv_contesto: number; /* livello di nidificazione dei contesti */
+var mod_parola: ModParola;		/* modalita' di esecuzione di una parola LOGO */
+var is_interprete: boolean;		/* input e' richiesto da interprete dei comandi */
+var is_analisi: boolean;		/* input e' richiesto tramite analisi */
+var is_prima_linea: boolean;	/* e' prima linea di input */
+var liv_analisi: number;		/* parentesi non chiuse */
+var is_stop: boolean;			/* incontrata fine di procedura */
+var is_finito: boolean;			/* finito esecuzione di lista di istruzioni */
+var is_nestedExec: boolean;
+var is_errore: boolean;					/* incontrato e ancora non gestito errore */
+var is_ciao: boolean;						/* eseguito comando "ciao" */
+
+var tipo_token: number;	// tipo del token corrente
+var val_token: any; 	//
+var prev_token: Cell;	// eventuale token precedente
+var next_token: Cell;	// eventuale token successivo
+// var	next_val: any;		// valore di eventuale token succesivo
+
+var p_stack: any[] = [];
+var v_stack: any[] = [];
 
 // Presupponiamo di avere accesso allo stato globale (GET) e al dispatcher (SET)
 interface InterpreterProps {
@@ -19,28 +41,42 @@ interface InterpreterProps {
     dispatch: (action: any) => void;
     activeLang: LanguageCode;
     // Funzione per risolvere un comando
-    resolveCommand: (commandName: string) => CoreDefinitionKeys| undefined;
+    resolveCommand: (commandName: string) => CoreDefinitionKeys | undefined;
 }
 
 // L'interprete riceve la riga e lo stato/dispatcher
 // export function logoInterpreter(line: string, { globalState, dispatch }: InterpreterProps): string
 export function logoInterpreter(line: string, { globalState, dispatch, activeLang, resolveCommand }: InterpreterProps): string | any[]
 {
-    // 1. Tokenizzazione
-    const tokens = Parse(line); // La tua funzione di tokenizzazione e analisi
-    console.log('tokens:', tokens);
-    
-    if (tokens.length === 0) return "";
-
-    else if (tokens.length === 1) {
-	    if (Array.isArray(tokens[0]))
-		    return tokens[0];
-		else (tokens[0].type === CellType.WORD)
-		    return tokens[0].val;
+	console.log('logoInterpreter', activeLang, resolveCommand); 
+	// from Ilmain.execute()
+	if (liv_analisi > 0) {
+		ini_exec ();
+		return 'parentesi non chiuse';
 	}
 
-    const commandName = tokens[0].val;
-    const args = tokens.slice(1);
+    // 1. Tokenizzazione
+    const cells = Parse(line); // La tua funzione di tokenizzazione e analisi
+    console.log('cells:', cells);
+    
+    if (cells.length === 0) return "";
+
+    if (cells.length === 1) {
+	    if (Array.isArray(cells[0]))
+		    return cells[0];
+		else (cells[0].type === CellType.WORD)
+		    return cells[0].val;
+	}
+
+	contesti[liv_contesto].linea_com = cells;
+	console.log('CALL main_loop', contesti[liv_contesto].linea_com.length);
+	if (contesti[liv_contesto].linea_com.length > 0) {
+		console.log('CALL main_loop');
+		main_loop();
+	}
+
+    const commandName = cells[0].val;
+    const args = cells.slice(1);
 
     // Risolvi il comando nella lingua attiva
     // const coreKey: CoreDefinitionKeys = resolveCommand(commandName);
@@ -98,23 +134,6 @@ export function logoInterpreter(line: string, { globalState, dispatch, activeLan
     return `OK: Eseguito ${commandName} ${numericArg}.`;
 }
 
-var contesti: Context[];
-var liv_contesto: number;/* livello di nidificazione dei contesti */
-
-export function ini_main (): void {
-	contesti = [];
-	liv_contesto = -1;
-}
-
-var	mod_parola: ModParola;		/* modalita' di esecuzione di una parola LOGO */
-var	is_interprete: boolean;		/* input e' richiesto da interprete dei comandi */
-var is_analisi: boolean;		/* input e' richiesto tramite analisi */
-var	is_prima_linea: boolean;	/* e' prima linea di input */
-var liv_analisi: number;		/* parentesi non chiuse */
-var is_stop: boolean;			/* incontrata fine di procedura */
-var is_finito: boolean;			/* finito esecuzione di lista di istruzioni */
-var	is_nestedExec: boolean;
-
 // inizializzazione parziale di Commander (NestedExec)
 function ini_valuta (ctx: Context): void {			
 	ctx.funzione = null;	/* nessuna funzione incontrata */
@@ -126,6 +145,11 @@ function ini_valuta (ctx: Context): void {
 	is_stop = false;		/* se vero e' terminata esecuz. procedura corrente */
 	mod_parola = ModParola.VERBO;		/* parola non preceduta da modificatore*/
 	is_finito = false;		/* se vero ritorna al toploop */
+}
+
+export function ini_main (): void {
+	contesti = [];
+	liv_contesto = -1;
 }
 
 // inizializzazione quasi totale di Commander
@@ -161,8 +185,96 @@ export function ini_exec(): void {
 	is_nestedExec = false;
 }
 
-function valuta_token(initialContextLevel: number) {
+function main_loop(): void {
+	console.log('main_loop'); 
+	const ini_liv_contesto = liv_contesto;// locale a min_loop
+	const l_linea = contesti[liv_contesto].linea_com.length
+	var i_cell = 0;
+	i_cell = valuta_token (i_cell, l_linea);
+	while (! is_ciao) {					// finche' non esegue il comando "ciao"
+    	mod_parola = ModParola.VERBO;		// parola non preceduta da modificatore
+    	is_finito = false;					// se vero ritorna al toploop
+		while (! is_finito) {
+			i_cell = valuta_token (i_cell, l_linea);	// eseguito per ogni token
+			if (is_errore)
+				return;
+		}
+		contesti[liv_contesto].linea_com = [];
+		// leggi nuova linea di comando
+		return;
+	}
 }
 
-function evaluationLoop(): void {
+function valuta_token(i_cell: number, l_linea: number): number {
+	console.log('valuta_token', i_cell);
+	var locale: number;
+	var numeric: number;
+	var arg: Cell;
+    var coreKey: CoreDefinitionKeys;
+    var definition: CommandDef;
+
+	if (i_cell >= l_linea) {
+		is_finito = true;
+	} else {
+		gettok(i_cell, l_linea);
+		i_cell+= 1;
+	    switch (tipo_token) {
+			case CellType.WORD:
+				if (mod_parola === ModParola.VERBO) {
+					numeric = parseFloat(val_token);
+					if (! isNaN(numeric)) {
+						arg = {type: CellType.NUMBER, val: numeric};
+						push_arg(arg);
+					}
+					else {
+						coreKey = resolveCommand(val_token);
+					    if (coreKey) {
+					        definition = CORE_DEFINITIONS[coreKey];
+    					}
+					}
+				}
+				locale = mod_parola;
+				mod_parola = ModParola.VERBO;
+				break;
+			case CellType.LIST:
+				break;
+		}
+	}
+	return i_cell;
+}
+
+// analizza un token ed il token successivo; non modifica il token corrente ma ne estrae il contenuto
+// e punta al token successivo (se esiste, scavalcando eventuale finelinea? NO)
+function gettok(i_cell: number): void {
+	var token = contesti[liv_contesto].linea_com[i_cell];
+	console.log('gettok', token);
+	if (Array.isArray(token))
+		tipo_token = CellType.LIST;
+	else
+		tipo_token = token.type;
+		val_token = token.val;
+}
+
+function push_arg(arg: any): void {
+	const ctx = contesti[liv_contesto];
+    ctx.n_arg_trovati += 1;
+    p_stack.push(arg);
+    ctx.p_sv += 1;
+}
+
+// questa funzione duplica una funzione interna a UseLocalization.useLocalization
+function resolveCommand(commandName: string): CoreDefinitionKeys | undefined {
+    const canonicalName = commandName.toUpperCase(); // Prepara il nome per la ricerca
+
+    // 1. Cerca il nome utente all'interno della mappa linguistica attiva
+    const coreKey: CoreDefinitionKeys | undefined = LANGUAGE_MAPS["it"][canonicalName];
+
+    if (coreKey && CORE_DEFINITIONS[coreKey]) {
+        // 2. Se trovato, ritorna la definizione funzionale
+        // return CORE_DEFINITIONS[coreKey];
+        return coreKey;
+    }
+    
+    // Se non trovato, potrebbe essere un comando non tradotto o non valido
+    return undefined;
 }

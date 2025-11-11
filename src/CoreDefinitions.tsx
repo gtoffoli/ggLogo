@@ -8,12 +8,13 @@ export enum ModParola {
 	VALORE = 3,		// parola non preceduta da COLON
 }
 export enum CellType {
-	OPERATOR = 0, // operatore
-	NUMBER = 1, // numero
-	WORD = 2, // parola Logo
-	VAR = 3, // variabile Logo
-	SFUN = 4, // funzione primitiva
-	UFUN = 5, // funzione di utente (procedura)
+	LIST = 0,
+	OPERATOR = 1, // operatore
+	NUMBER = 2, // numero
+	WORD = 3, // parola Logo
+	VAR = 4, // variabile Logo
+	SFUN = 5, // funzione primitiva
+	UFUN = 6, // funzione di utente (procedura)
 }
 
 // typed token in the Parser output

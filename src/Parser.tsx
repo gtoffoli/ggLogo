@@ -17,7 +17,7 @@ enum State {
 }
 
 // B. CLASSI LESSICALI (Colonne della matrice)
-enum CharClass {
+export enum CharClass {
     BLANKSPACE = 0,     // Spazio, Tab (\s)
     QUOTE = 1,          // Doppio apice (") e duepunti (:)
     SEPARATOR = 2,      // Delimitatori di parola (es. , = < > + - * / ( ) [ ] )
@@ -92,7 +92,7 @@ const FSM_MATRIX: Transition[][] = [
 /**
  * Classificatore Lessicale: Mappa un carattere alla sua classe.
  */
-function getCharClass(char: string | undefined): CharClass {
+export function getCharClass(char: string | undefined): CharClass {
     // if (char === undefined) return CharClass.END_OF_INPUT;
     if ((char === undefined) || (char.charCodeAt(0) === 0)) return CharClass.END_OF_INPUT;
     
