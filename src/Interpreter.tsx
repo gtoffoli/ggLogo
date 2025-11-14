@@ -3,10 +3,11 @@
 // 251025 - as proposed by Gemini on 251024
 // 251104 - logoInterpreter gets command definitions (not used yet) and localization thanks to additional arguments 
 // 251107 - started extension of Parser
+// 251114 - dry command execution in auxiliary functions of Intepreter
 
 
 // Usiamo i tipi di risoluzione comando definiti in precedenza
-import { ModParola, CellType, Cell, Context, CORE_DEFINITIONS, CommandDef, ParamDef, CoreDefinitionKeys } from './CoreDefinitions';
+import { ModParola, CellType, Cell, Context, CORE_DEFINITIONS, CommandDef, ParamDef, CoreDefinitionKeys, SystemFunction } from './CoreDefinitions';
 import { LANGUAGE_MAPS } from './LocalizationMaps';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
 import { initialTurtleState } from './logoReducer';
@@ -188,14 +189,15 @@ export function ini_exec(): void {
 function main_loop(): void {
 	console.log('main_loop'); 
 	const ini_liv_contesto = liv_contesto;// locale a min_loop
-	const l_linea = contesti[liv_contesto].linea_com.length
+	const ctx: Context = contesti[liv_contesto];
+	const l_linea: number = ctx.linea_com.length
 	var i_cell = 0;
-	i_cell = valuta_token (i_cell, l_linea);
+	i_cell = valuta_token (ctx, i_cell);
 	while (! is_ciao) {					// finche' non esegue il comando "ciao"
     	mod_parola = ModParola.VERBO;		// parola non preceduta da modificatore
     	is_finito = false;					// se vero ritorna al toploop
 		while (! is_finito) {
-			i_cell = valuta_token (i_cell, l_linea);	// eseguito per ogni token
+			i_cell = valuta_token (ctx, i_cell);	// eseguito per ogni token
 			if (is_errore)
 				return;
 		}
@@ -205,13 +207,15 @@ function main_loop(): void {
 	}
 }
 
-function valuta_token(i_cell: number, l_linea: number): number {
+function valuta_token(ctx: Context, i_cell: number): number {
 	console.log('valuta_token', i_cell);
+	const l_linea: number = ctx.linea_com.length;
 	var locale: number;
 	var numeric: number;
-	var arg: Cell;
+	var values: any[] = [];
     var coreKey: CoreDefinitionKeys;
     var definition: CommandDef;
+    var definition_args: any[];
 
 	if (i_cell >= l_linea) {
 		is_finito = true;
@@ -223,13 +227,16 @@ function valuta_token(i_cell: number, l_linea: number): number {
 				if (mod_parola === ModParola.VERBO) {
 					numeric = parseFloat(val_token);
 					if (! isNaN(numeric)) {
-						arg = {type: CellType.NUMBER, val: numeric};
-						push_arg(arg);
+						push_arg({type: CellType.NUMBER, val: numeric});
 					}
 					else {
 						coreKey = resolveCommand(val_token);
 					    if (coreKey) {
 					        definition = CORE_DEFINITIONS[coreKey];
+					        ctx.funzione = { coreKey: coreKey, definition: definition};
+					        ctx.liv_funzione += 1;
+					        console.log(coreKey, definition);
+					        ctx.n_arg_attesi = definition.args.length;
     					}
 					}
 				}
@@ -238,6 +245,17 @@ function valuta_token(i_cell: number, l_linea: number): number {
 				break;
 			case CellType.LIST:
 				break;
+		}
+		if ((ctx.parentesi < ctx.liv_funzione) && (ctx.n_arg_trovati === ctx.n_arg_attesi)) {
+			// console.log('eseguo FUNZIONE', ctx.funzione);
+			for (var i=0; i<ctx.n_arg_trovati; i++) {
+				values.push(v_stack.pop().val);
+				values.reverse();
+			}
+			console.log('VALUES', values);
+			ctx.funzione.definition.semantics(values);
+			ctx.liv_funzione -= 1;
+			ctx.n_arg_trovati = 0;
 		}
 	}
 	return i_cell;
@@ -258,7 +276,7 @@ function gettok(i_cell: number): void {
 function push_arg(arg: any): void {
 	const ctx = contesti[liv_contesto];
     ctx.n_arg_trovati += 1;
-    p_stack.push(arg);
+    v_stack.push(arg);
     ctx.p_sv += 1;
 }
 
