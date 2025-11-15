@@ -2,6 +2,7 @@
 // 251013 - 1st version with DeepSeek
 // 251018 - added some command handler
 // 251025 - adapted to the global architecture proposed by Gemini
+// 251115 - implemented MOVE_TO and CLEAR_CANVAS
 
 import React, { useEffect, useRef } from 'react';
 import { useLogoDispatch, useLogoState } from './LogoStateContext';
@@ -62,23 +63,34 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
         if (commands.length > 0) {
             const lastCommand = commands[commands.length - 1];
             
-            // Simula l'esecuzione del comando di disegno
-            if (lastCommand.type === 'LINE_TO') {
-                const { x, y, color } = lastCommand;
-                const { x: prevX, y: prevY } = commands[commands.length - 2] as any || {x: 0, y: 0}; // Posizione precedente (simplificata)
-                console.log('TurtleCanvas', 'LINE_TO', x, y, prevX, prevY);
-
-                // Disegna il segmento (per vedere qualcosa)
-                ctx.beginPath();
-                ctx.moveTo(prevX + canvas.width / 2, canvas.height / 2 + prevY); 
-                ctx.lineTo(x + canvas.width / 2, canvas.height / 2 + y);
-                ctx.lineWidth = 1;
-                ctx.strokeStyle = color;
-                ctx.stroke();
-                
-                console.log(`Canvas: Linea disegnata fino a (${x}, ${y})`);
+            // if (lastCommand.type === 'LINE_TO') {
+		    switch (lastCommand.type) {
+		        case 'MOVE_TO':
+		        case 'LINE_TO':
+	                const { x, y, color } = lastCommand;
+	                const { x: prevX, y: prevY } = commands[commands.length - 2] as any || {x: 0, y: 0}; // Posizione precedente (simplificata)
+	                console.log('TurtleCanvas', 'LINE_TO', x, y, prevX, prevY);
+	
+	                // Disegna il segmento (per vedere qualcosa)
+	                if (lastCommand.type === 'LINE_TO') {
+		                ctx.beginPath();
+		                ctx.moveTo(prevX + canvas.width / 2, canvas.height / 2 + prevY); 
+	                	ctx.lineTo(x + canvas.width / 2, canvas.height / 2 + y);
+		                ctx.lineWidth = 1;
+		                ctx.strokeStyle = color;
+		                ctx.stroke();      
+	                	console.log(`Canvas: Linea disegnata fino a (${x}, ${y})`);
+	                } else {
+	                	ctx.moveTo(x + canvas.width / 2, canvas.height / 2 + y);
+	                	console.log(`Canvas: Posizione aggiornata a (${x}, ${y})`);
+					}      
+	                break;
+		        case 'CLEAR_CANVAS':
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+	                console.log(`Canvas: fully cleared`);
+					break;
             }
-            // Aggiungere logica per MOVE_TO, CLEAR_CANVAS, ecc.
+            // Aggiungere logica per altri comandi
         }
 
     }, [windowState]); // Ridisegna ogni volta che lo stato della finestra cambia

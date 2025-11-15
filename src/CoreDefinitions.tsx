@@ -1,6 +1,8 @@
 // CoreDefinitions.tsx
 // 251019 - 1st version with Gemini
+// 251115 - added FunClass; added ref field to CommandDef
 
+import { _CS, _FD, _BK, _RT, _LT, _NOP} from './InterpreterCore';
 
 export enum ModParola {
 	VERBO = 1,		// parola non preceduta da modificatore
@@ -57,10 +59,12 @@ export type SystemFunction = {
 
 // Tipi per i comandi
 export type CommandDef = {
+  classes: number;
   description: string;
   syntax: string;
   args: { name: string; type: 'number' | 'string' | 'boolean' }[];
   semantics: (args: any[]) => any; // La funzione che esegue il comando
+  ref: (args: any) => any; // La funzione che esegue il comando
 };
 
 // Tipi per i parametri di configurazione
@@ -72,56 +76,94 @@ export type ParamDef = {
   max?: number;
 };
 
+/*
+#define N_NOMINALE	(descr_sf.descr & 0x0F)
+#define N_MINIMO	((descr_sf.descr >> 4) & 0x0F)
+#define N_MASSIMO	((descr_sf.descr >> 8) & 0x0F)	// 980709
+// #define N_ILLIMITATO	(descr_sf.classi & 0x40)
+// #define IS_PR_FUNZIONE	(descr_sf.classi & 0x80)
+#define N_ILLIMITATO	(descr_sf.descr & 0x1000)
+#define IS_PR_FUNZIONE	(descr_sf.descr & 0x2000)
+*/
+
+/* codifica di classi di primitiva */
+export enum FunClass {
+	TURT = 1,	// IS_PR_TARTA: turtle function
+	EDIT = 2,	// IS_PR_FOGLIO: edit function
+	TOPL = 4,	// IS_PR_TOP: can be executed only at top level
+	PROC = 8,	// IS_PR_PROC: can be executed only inside a procedure
+	TXOU = 16,	// IS_PR_SCRIVI: writes on screen
+	EXEC = 32,	// IS_PR_ESEGUI: execution control
+	PGUI = 64,	// IS_PR_GUI: graphic UI building
+	PMCI = 128	// IS_PR_MM: not used?
+}
+
 // Mappa che contiene tutte le definizioni (la LOGICA del tuo interprete)
 export const CORE_DEFINITIONS = {
   // --- Comandi LOGO ---
   FD: {
+    classes: FunClass.TURT,
     description: "Muove la tartaruga in avanti.",
     syntax: "FD <distanza>",
     args: [{ name: "distanza", type: 'number' }],
     semantics: (args) => console.log(`FD: Muovi ${args[0]} unità.`),
+    ref: _FD,
   } as CommandDef,
   BK: {
+    classes: FunClass.TURT,
     description: "Muove la tartaruga all'indietro (back).",
     syntax: "BK <distanza>",
     args: [{ name: "distanza", type: 'number' }],
     semantics: (args) => console.log(`BK: Muovi ${args[0]} unità.`),
+    ref: _BK,
   } as CommandDef,
   RT: {
+    classes: FunClass.TURT,
     description: "Ruota la tartaruga a destra.",
     syntax: "RT <angolo>",
     args: [{ name: "angolo", type: 'number' }],
     semantics: (args) => console.log(`RT: Ruota di ${args[0]} radianti.`),
+    ref: _RT,
   } as CommandDef,
   LT: {
+    classes: FunClass.TURT,
     description: "Ruota la tartaruga a sinistra.",
     syntax: "LT <angolo>",
     args: [{ name: "angolo", type: 'number' }],
     semantics: (args) => console.log(`LT: Ruota di ${args[0]} radianti.`),
+    ref: _LT,
   } as CommandDef,
   CS: {
+    classes: FunClass.TURT,
     description: "Pulisce lo schermo.",
     syntax: "CS",
     args: [],
     semantics: () => console.log(`CS: Pulisci lo schermo.`),
+    ref: _CS,
   } as CommandDef,
   SET: {
+    classes: 0,
     description: "Assegna valore a nome.",
     syntax: "SET <nome> <valore>",
     args: [{ name: "nome", type: 'string' }, { name: "valore", type: 'any'}],
     semantics: (args) => console.log(`SET: Assegna il valore ${args[1]} a ${args[0]}.`),
+    ref: _NOP,
   } as CommandDef,
   REPEAT: {
+    classes: FunClass.EXEC,
     description: "Ripete una lista di comandi.",
     syntax: "REPEAT <volte> <comandi>",
     args: [{ name: "volte", type: 'number' }, { name: "comandi", type: 'list'}],
     semantics: (args) => console.log(`SET: Assegna il valore ${args[1]} a ${args[0]}.`),
+    ref: _NOP,
   } as CommandDef,
   PRINT: {
+    classes: FunClass.TXOU,
     description: "Visualizza un valore nella console.",
     syntax: "PRINT <valore>",
     args: [{ name: "valore", type: 'string' }],
     semantics: (args) => console.log(`Output: ${args[0]}`),
+    ref: _NOP,
   } as CommandDef,
 
   // --- Parametri di Configurazione ---
