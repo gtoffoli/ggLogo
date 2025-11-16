@@ -7,9 +7,6 @@ import { TurtleState, DrawingCommand } from './LogoState';
 import { initialTurtleState } from './logoReducer';
 
 
-export function _NOP(): void  {
-}
-
 export function _CS(definition: CommandDef, values: any[], state: TurtleState): { newState: TurtleState | null, command: DrawingCommand | null } {
 	console.log('function _CS');
     return { newState: initialTurtleState, command: { type: 'CLEAR_CANVAS' }};
@@ -17,6 +14,7 @@ export function _CS(definition: CommandDef, values: any[], state: TurtleState): 
 
 export function _FD(definition: CommandDef, values: any[], state: TurtleState): { newState: TurtleState | null, command: DrawingCommand | null } {
 	const distance: number = values[0];
+	console.log('function _FD', distance);
 	return calculateForward(state, distance);
 }
 
@@ -27,6 +25,7 @@ export function _BK(definition: CommandDef, values: any[], state: TurtleState): 
 
 export function _RT(definition: CommandDef, values: any[], state: TurtleState): { newState: TurtleState | null, command: DrawingCommand | null } {
 	const angle: number = values[0];
+	console.log('function _RT', angle);
 	return calculateRight(state, angle);
 }
 
@@ -67,7 +66,7 @@ export function calculateForward(state: TurtleState, distance: number): { newSta
         };
     }
     
-    return { newState, command: drawingCommand };
+    return { newState: newState, command: drawingCommand };
 }
 
 /**
@@ -80,5 +79,5 @@ export function calculateRight(state: TurtleState, angle: number): { newState: T
         ...state, 
         heading: newHeading < 0 ? newHeading + 360 : newHeading
     };
-    return { newState, command: null };
+    return { newState: newState, command: null };
 }

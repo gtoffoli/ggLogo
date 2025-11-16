@@ -2,7 +2,8 @@
 // 251019 - 1st version with Gemini
 // 251115 - added FunClass; added ref field to CommandDef
 
-import { _CS, _FD, _BK, _RT, _LT, _NOP} from './InterpreterCore';
+import { _NOP, _REPEAT } from './LogoControl';
+import { _CS, _FD, _BK, _RT, _LT} from './InterpreterCore';
 
 export enum ModParola {
 	VERBO = 1,		// parola non preceduta da modificatore
@@ -33,7 +34,7 @@ export type Context = {
 	in_liv_proc: number; // val. in. liv_procedura in PAUSA/RECUPERA
 	liv_funzione: number; // nest globale delle funzioni
 	in_liv_funzione: number; // val. in. liv_funzione in PAUSA/RECUPERA
-	funzione: SystemFunction; // command key + command definition
+	funzione: SystemFunction | null; // command key + command definition
 	liv_esecuzione: number; // nest dei blocchi in proc. corrente
 	val_verifica: boolean | null; // valore ultima condizione verificata
 	conto_esegui: number;
@@ -154,8 +155,8 @@ export const CORE_DEFINITIONS = {
     description: "Ripete una lista di comandi.",
     syntax: "REPEAT <volte> <comandi>",
     args: [{ name: "volte", type: 'number' }, { name: "comandi", type: 'list'}],
-    semantics: (args) => console.log(`SET: Assegna il valore ${args[1]} a ${args[0]}.`),
-    ref: _NOP,
+    semantics: (args) => console.log(`_REPEAT: Ripete ${args[0]} volte una lista di comandi.`),
+    ref: _REPEAT,
   } as CommandDef,
   PRINT: {
     classes: FunClass.TXOU,

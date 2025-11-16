@@ -2,12 +2,17 @@
 // 251016 - 1st version with Gemini and DeepSeek
 // 251024 - moved logoInterpreter to module Interpreter
 // 251104 - call to useLocalization; executeCommand passes activeLang and resolveCommand to logoInterpreter
+// 251116 - shared and exported some const retrieved through React-specific functions
 
 import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
-// import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
-import { useLocalization } from './UseLocalization';
-import { logoInterpreter, ini_main, ini_exec } from './Interpreter';
+import { LogoGlobalState } from './LogoState';
+import { useLocalization, LanguageCode } from './UseLocalization';
+import { logoInterpreter } from './Interpreter';
 import { useLogoState, useLogoDispatch } from './LogoStateContext';
+import { ini_main, ini_exec } from './LogoControl';
+
+export var shared_globalState: LogoGlobalState;
+export var shared_dispatch: (action: any) => void;
 
 // Definisci il tipo per i messaggi di input/output (History)
 type Message = {
@@ -19,7 +24,9 @@ const LogoShell: React.FC = () => {
   // DA CommandInterpreter della versione 251026 di Gemini
   // Ottieni lo stato e il dispatcher dal Context/Redux
   const globalState = useLogoState();
+  shared_globalState = globalState;
   const dispatch = useLogoDispatch();
+  shared_dispatch = dispatch;
 
   // Stato per l'history dei comandi e risultati
   const [history, setHistory] = useState<Message[]>([{ type: 'output', text: "Wellcome in the LOGO Interpreter TypeScript/React!" },
@@ -54,7 +61,7 @@ const LogoShell: React.FC = () => {
 
     // const result = logoInterpreter(command);
     // Invoca l'interprete con lo stato e il dispatcher
-    const result = logoInterpreter(command, { globalState, dispatch, activeLang, resolveCommand });
+    const result = logoInterpreter(command, { resolveCommand });
 
     // ... logica di visualizzazione del risultato (result) ...
     console.log("Risultato interprete:", result);
