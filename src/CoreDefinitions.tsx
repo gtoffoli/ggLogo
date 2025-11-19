@@ -3,7 +3,32 @@
 // 251115 - added FunClass; added ref field to CommandDef
 
 import { _NOP, _REPEAT } from './LogoControl';
-import { _CS, _FD, _BK, _RT, _LT} from './InterpreterCore';
+import { _CS, _FD, _BK, _RT, _LT, _UP, _DOWN} from './InterpreterCore';
+
+
+// codifica dei device MLOGO
+export enum devCode {
+	MIN_DEV = 6, 	// minimo codice di device non preallocato
+	CONSOLE = 0,	// codice di console
+	STAMPANTE = 1,	// codice di stampante
+	FOGLIO = 2,		// codice di device del foglio di editor
+	TARTALFA = 3,	// codice di schermo TARTA usato per output alfanum.
+	COM1 = 4,		// codice di porta comunicazione n. 1
+}
+
+// codifica dei bit di stato MLOGO (_stato) per file C
+export enum devType {
+	NULL_DEV = -1,
+	O_BINARIO = 1,	// file aperto in modalita' binario
+					// 2 riservato futuri usi per file 
+					// 4 riservato futuri usi per file
+	O_FINESTRA = 8,	// device corrispondente a viewport del GFX
+	O_TARTA = 16,	// finestra di tipo tarta
+	O_FOGLIO = 32,	// finestra di tipo foglio
+	O_ARCHIVIO = 64,// device di tipo archivio
+	O_PLAYER = 128,	// player MCI
+	O_BROWSER = 256,// browser HTML
+}
 
 export enum ModParola {
 	VERBO = 1,		// parola non preceduta da modificatore
@@ -22,9 +47,17 @@ export enum CellType {
 
 // typed token in the Parser output
 export type Cell = {
-  type: number;
+  type: cellType;
   val: any;
 } | null;
+
+// codifica dei tipi di contesto (id_contesto)
+export enum contextType {
+	CT_TOP = 0,			// contesto iniziale (top_level)
+	CT_PAUSA = 1,		// contesto attivato da PAUSA
+	CT_RECUPERA = 2,	// contesto attivato da RECUPERA
+	CT_EVENT = 3,
+}
 
 // see contesti in Contesti.h of il32
 export type Context = {
@@ -40,8 +73,10 @@ export type Context = {
 	conto_esegui: number;
 	RepCount: number;
 	RepTotal: number;
-	token: Cell | null;
-	ini_token: number;
+	// token: Cell | null;
+	// ini_token:  Cell | null;
+	token: number | null;
+	ini_token:  number | null;
 	n_arg_attesi: number; // numero di parametri atteso dalla funzione corrente
 	n_arg_trovati: number; // numero di oggetti sullo stack per la fun corrente
 	parentesi: number; // = liv_funzione se sfun corr. e' preceduta da "("
@@ -99,6 +134,8 @@ export enum FunClass {
 	PMCI = 128	// IS_PR_MM: not used?
 }
 
+export const turtleStrokes = ['_CS', 'FD', 'BK',];
+
 // Mappa che contiene tutte le definizioni (la LOGICA del tuo interprete)
 export const CORE_DEFINITIONS = {
   // --- Comandi LOGO ---
@@ -133,6 +170,22 @@ export const CORE_DEFINITIONS = {
     args: [{ name: "angolo", type: 'number' }],
     semantics: (args) => console.log(`LT: Ruota di ${args[0]} radianti.`),
     ref: _LT,
+  } as CommandDef,
+  UP: {
+    classes: FunClass.TURT,
+    description: "Solleva la penna.",
+    syntax: "UP",
+    args: [],
+    semantics: (args) => console.log(`UP: Solleva la penna.`),
+    ref: _UP,
+  } as CommandDef,
+  DOWN: {
+    classes: FunClass.TURT,
+    description: "Abbassa la penna.",
+    syntax: "_DOWN",
+    args: [],
+    semantics: (args) => console.log(`DOWN: Abbassa la penna.`),
+    ref: _DOWN,
   } as CommandDef,
   CS: {
     classes: FunClass.TURT,

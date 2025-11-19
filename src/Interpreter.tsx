@@ -8,7 +8,7 @@
 // 251116 - imported some shared values retrieved by LogoShell through React-specific functions
 
 
-import { ModParola, CellType, Cell, Context, CORE_DEFINITIONS, CommandDef, ParamDef, CoreDefinitionKeys, SystemFunction, FunClass } from './CoreDefinitions';
+import { ModParola, CellType, Cell, Context, CORE_DEFINITIONS, CommandDef, ParamDef, CoreDefinitionKeys, SystemFunction, FunClass, turtleStrokes } from './CoreDefinitions';
 import { LANGUAGE_MAPS } from './LocalizationMaps';
 import { LanguageCode } from './UseLocalization';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
@@ -84,21 +84,23 @@ export function valuta_token(ctx: Context, i_cell: number): number {
     var coreKey: CoreDefinitionKeys;
     var definition: CommandDef;
     var definition_args: any[];
+    var cell;
 
 	if (i_cell >= l_linea) {
 		is_finito = true;
 	} else {
-		gettok(i_cell);
+		// gettok(i_cell);
+		cell = ctx.linea_com[i_cell];
 		i_cell+= 1;
-	    switch (tipo_token) {
+	    switch (cell.type) {
 			case CellType.WORD:
 				if (mod_parola === ModParola.VERBO) {
-					numeric = parseFloat(val_token);
+					numeric = parseFloat(cell.val);
 					if (! isNaN(numeric)) {
 						push_arg({type: CellType.NUMBER, val: numeric});
 					}
 					else {
-						coreKey = resolveCommand(val_token);
+						coreKey = resolveCommand(cell.val);
 					    if (coreKey) {
 					        definition = CORE_DEFINITIONS[coreKey];
 					        ctx.funzione = { coreKey: coreKey, definition: definition};
@@ -113,8 +115,10 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 				mod_parola = ModParola.VERBO;
 				break;
 			case CellType.LIST:
+				push_arg(cell);
 				break;
 		}
+		console.log(ctx.parentesi, ctx.liv_funzione, ctx.n_arg_trovati, ctx.n_arg_attesi);
 		if ((ctx.parentesi < ctx.liv_funzione) && (ctx.n_arg_trovati === ctx.n_arg_attesi)) {
 			console.log('eseguo FUNZIONE', ctx.funzione);
 			for (var i=0; i<ctx.n_arg_trovati; i++) {
@@ -124,13 +128,25 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 			console.log('VALUES', values);
 			definition = ctx.funzione.definition;
 			if (definition.classes & FunClass.EXEC) {
-				definition.ref(values, ctx);
+				definition.ref(ctx, values);
 			}
 			else if (definition.classes & FunClass.TURT) {
 			    const activeWin = shared_globalState.windows[shared_globalState.activeWindowId];
 			    if (!activeWin)
 					console.log("ERRORE: Nessuna finestra grafica attiva.");
-				let { newState: newTurtleState, command: drawingCommand } = definition.ref(definition, values, activeWin.turtleState);
+
+				let turtleStroke: boolean = (turtleStrokes.includes(ctx.funzione.coreKey));
+				var newTurtleState: TurtleState;
+				var drawingCommand: DrawingCommand;
+
+				if (turtleStroke) {
+					[ newTurtleState, drawingCommand ] = definition.ref(definition, values, activeWin.turtleState);
+					console.log('turtleStroke', newTurtleState, drawingCommand);
+				} else {
+					newTurtleState = definition.ref(definition, values, activeWin.turtleState);
+					console.log('No turtleStroke',newTurtleState);
+				}
+				console.log('NEWSTATE', newTurtleState);
 
 			    // 3. Dispatch (Aggiornamento dello Stato Globale)
 			    shared_dispatch({ 
@@ -139,13 +155,16 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 			        newState: newTurtleState 
 			    });
 			    
-			    if (drawingCommand) {
+			    if (turtleStroke) {
+					 console.log('drawingCommand', drawingCommand);
 			         shared_dispatch({ 
 			            type: 'ADD_DRAWING_COMMAND', 
 			            windowId: shared_globalState.activeWindowId,
 			            command: drawingCommand 
 			        });
 			    }
+				activeWin.turtleState = newTurtleState;
+
 			}
 			else
 				definition.semantics(values);
@@ -155,18 +174,6 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 		}
 	}
 	return i_cell;
-}
-
-// analizza un token ed il token successivo; non modifica il token corrente ma ne estrae il contenuto
-// e punta al token successivo (se esiste, scavalcando eventuale finelinea? NO)
-function gettok(i_cell: number): void {
-	var token = contesti[liv_contesto].linea_com[i_cell];
-	console.log('gettok', token);
-	if (Array.isArray(token))
-		tipo_token = CellType.LIST;
-	else
-		tipo_token = token.type;
-		val_token = token.val;
 }
 
 // questa funzione duplica una funzione interna a UseLocalization.useLocalization

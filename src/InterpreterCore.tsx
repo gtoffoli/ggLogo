@@ -23,15 +23,23 @@ export function _BK(definition: CommandDef, values: any[], state: TurtleState): 
 	return calculateForward(state, distance);
 }
 
-export function _RT(definition: CommandDef, values: any[], state: TurtleState): { newState: TurtleState | null, command: DrawingCommand | null } {
+export function _RT(definition: CommandDef, values: any[], state: TurtleState): TurtleState | null {
 	const angle: number = values[0];
 	console.log('function _RT', angle);
 	return calculateRight(state, angle);
 }
 
-export function _LT(definition: CommandDef, values: any[], state: TurtleState): TurtleState | null  {
+export function _LT(definition: CommandDef, values: any[], state: TurtleState): TurtleState | null {
 	const angle: number = -values[0];
 	return calculateRight(state, angle);
+}
+
+export function _UP(definition: CommandDef, values: any[], state: TurtleState): TurtleState | null {
+	return null;
+}
+
+export function _DOWN(definition: CommandDef, values: any[], state: TurtleState): TurtleState | null {
+	return null;
 }
 
 /**
@@ -66,7 +74,7 @@ export function calculateForward(state: TurtleState, distance: number): { newSta
         };
     }
     
-    return { newState: newState, command: drawingCommand };
+    return [ newState, drawingCommand ];
 }
 
 /**
@@ -79,5 +87,5 @@ export function calculateRight(state: TurtleState, angle: number): { newState: T
         ...state, 
         heading: newHeading < 0 ? newHeading + 360 : newHeading
     };
-    return { newState: newState, command: null };
+    return newState;
 }

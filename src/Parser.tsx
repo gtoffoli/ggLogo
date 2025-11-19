@@ -200,7 +200,7 @@ export function Parse(input: string): any[] {
 	var token = null;
 	var cell: Cell | any[];
 	var token_type;
-	var cell_type;
+	var cell_type: CellType;
 	for (var i = 0; i < tokens.length; i++) {
 		token = tokens[i];
 		if (token === '[') {
@@ -209,7 +209,7 @@ export function Parse(input: string): any[] {
 			parsed = [];
 		} else if (token === ']') {
 			if (parse_level > 0) {
-				cell = parsed;
+				cell = {type: CellType.LIST, val: parsed};
 				parsed = parse_stack.pop();
 				parsed.push(cell);
 				parse_level -= 1;
@@ -220,7 +220,7 @@ export function Parse(input: string): any[] {
 				cell_type = (token_type === CharClass.OTHER) ? CellType.WORD : CellType.OPERATOR;
 			} else
 				cell_type = CellType.WORD;
-			parsed.push({ 'type': cell_type, 'val': token});
+			parsed.push({'type': cell_type, 'val': token});
 		}
 	}
 	return parsed;
