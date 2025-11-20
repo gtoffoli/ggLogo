@@ -2,8 +2,10 @@
 // 251019 - 1st version with Gemini
 // 251115 - added FunClass; added ref field to CommandDef
 
+
+import { _SET } from './LogoDefine';
 import { _NOP, _REPEAT } from './LogoControl';
-import { _CS, _FD, _BK, _RT, _LT, _UP, _DOWN} from './InterpreterCore';
+import { _CS, _FD, _BK, _RT, _LT, _UP, _DOWN, _PENCOLOR, _SETPENCOLOR } from './InterpreterCore';
 
 
 // codifica dei device MLOGO
@@ -31,23 +33,24 @@ export enum devType {
 }
 
 export enum ModParola {
-	VERBO = 1,		// parola non preceduta da modificatore
-	LETTERALE = 2,	// parola non preceduta da QUOTE
-	VALORE = 3,		// parola non preceduta da COLON
+	VERB = 1,		// parola non preceduta da modificatore
+	LITERAL = 2,	// parola non preceduta da QUOTE
+	VARIABLE = 3,	// parola non preceduta da COLON
 }
 export enum CellType {
 	LIST = 0,
-	OPERATOR = 1, // operatore
-	NUMBER = 2, // numero
-	WORD = 3, // parola Logo
-	VAR = 4, // variabile Logo
-	SFUN = 5, // funzione primitiva
-	UFUN = 6, // funzione di utente (procedura)
+	QUOTE = 1,
+	OPERATOR = 2,	// operatore
+	NUMBER = 3, 	// numero
+	WORD = 4, 		// parola Logo
+	VAR = 5, 		// variabile Logo
+	SFUN = 6,		// funzione primitiva
+	UFUN = 7,		// funzione di utente (procedura)
 }
 
 // typed token in the Parser output
 export type Cell = {
-  type: cellType;
+  type: CellType;
   val: any;
 } | null;
 
@@ -96,10 +99,11 @@ export type SystemFunction = {
 // Tipi per i comandi
 export type CommandDef = {
   classes: number;
-  description: string;
-  syntax: string;
+  signature?: number;
+  description?: string;
+  syntax?: string;
   args: { name: string; type: 'number' | 'string' | 'boolean' }[];
-  semantics: (args: any[]) => any; // La funzione che esegue il comando
+  semantics?: (args: any[]) => any; // La funzione che esegue il comando
   ref: (args: any) => any; // La funzione che esegue il comando
 };
 
@@ -121,6 +125,9 @@ export type ParamDef = {
 #define N_ILLIMITATO	(descr_sf.descr & 0x1000)
 #define IS_PR_FUNZIONE	(descr_sf.descr & 0x2000)
 */
+export enum FunSignature {
+	FUNCT = 1,
+}
 
 /* codifica di classi di primitiva */
 export enum FunClass {
@@ -171,12 +178,29 @@ export const CORE_DEFINITIONS = {
     semantics: (args) => console.log(`LT: Ruota di ${args[0]} radianti.`),
     ref: _LT,
   } as CommandDef,
+  PENCOLOR: {
+    classes: FunClass.TURT,
+    signature: FunSignature.FUNCT,
+    description: "Riporta il colore della penna.",
+    syntax: "PENCOLOR",
+    args: [],
+    semantics: () => console.log(`PENCOLOR: Riporta il colore della penna.`),
+    ref: _PENCOLOR,
+  } as CommandDef,
+  SETPENCOLOR: {
+    classes: FunClass.TURT,
+    description: "Assegna il colore della penna.",
+    syntax: "SETPENCOLOR <colore>",
+    args: [{ name: "colore", type: 'string' }],
+    semantics: (args) => console.log(`SETPENCOLOR: Assegna alla penna il colore ${args[0]}.`),
+    ref: _SETPENCOLOR,
+  } as CommandDef,
   UP: {
     classes: FunClass.TURT,
     description: "Solleva la penna.",
     syntax: "UP",
     args: [],
-    semantics: (args) => console.log(`UP: Solleva la penna.`),
+    semantics: () => console.log(`UP: Solleva la penna.`),
     ref: _UP,
   } as CommandDef,
   DOWN: {
@@ -184,7 +208,7 @@ export const CORE_DEFINITIONS = {
     description: "Abbassa la penna.",
     syntax: "_DOWN",
     args: [],
-    semantics: (args) => console.log(`DOWN: Abbassa la penna.`),
+    semantics: () => console.log(`DOWN: Abbassa la penna.`),
     ref: _DOWN,
   } as CommandDef,
   CS: {
@@ -201,7 +225,7 @@ export const CORE_DEFINITIONS = {
     syntax: "SET <nome> <valore>",
     args: [{ name: "nome", type: 'string' }, { name: "valore", type: 'any'}],
     semantics: (args) => console.log(`SET: Assegna il valore ${args[1]} a ${args[0]}.`),
-    ref: _NOP,
+    ref: _SET,
   } as CommandDef,
   REPEAT: {
     classes: FunClass.EXEC,
@@ -219,7 +243,7 @@ export const CORE_DEFINITIONS = {
     semantics: (args) => console.log(`Output: ${args[0]}`),
     ref: _NOP,
   } as CommandDef,
-
+/*
   // --- Parametri di Configurazione ---
   PENCOLOR: {
     type: 'color',
@@ -233,6 +257,7 @@ export const CORE_DEFINITIONS = {
     min: 5,
     max: 50,
   } as ParamDef,
+*/
 };
 
 // Tipo di supporto per le definizioni (per inferenza)

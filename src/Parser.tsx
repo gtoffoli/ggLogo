@@ -217,8 +217,20 @@ export function Parse(input: string): any[] {
 		} else {
 			if (token.length === 1) {
 				token_type = getCharClass(token);
-				cell_type = (token_type === CharClass.OTHER) ? CellType.WORD : CellType.OPERATOR;
-			} else
+				// cell_type = (token_type === CharClass.OTHER) ? CellType.WORD : CellType.OPERATOR;
+        		switch (token_type) {
+            		case CharClass.QUOTE:
+						cell_type = CellType.QUOTE;
+						break;
+            		case CharClass.SEPARATOR:
+						cell_type = CellType.OPERATOR;
+						break;
+            		case CharClass.OTHER:
+						cell_type = CellType.WORD;
+						break;
+				}
+			}
+			else
 				cell_type = CellType.WORD;
 			parsed.push({'type': cell_type, 'val': token});
 		}

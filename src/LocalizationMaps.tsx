@@ -11,6 +11,10 @@ export type LanguageMap = Record<string, CoreDefinitionKeys>;
 // Mappa per l'Italiano
 export const IT_MAP: LanguageMap = {
   // Puoi includere sia i nomi abbreviati che quelli completi se vuoi
+  "PULISCISCHERMO": "CS",
+  "PS": "CS",
+  "SU": "UP",
+  "GIU": "DOWN",
   "AVANTI": "FD",
   "A": "FD",
   "INDIETRO": "BK",
@@ -19,8 +23,6 @@ export const IT_MAP: LanguageMap = {
   "D": "RT",
   "SINISTRA": "LT",
   "S": "LT",
-  "PULISCISCHERMO": "CS",
-  "PS": "CS",
   "ASSEGNA": "SET",
   "AS": "SET",
   "RIPETI": "REPEAT",
@@ -28,11 +30,16 @@ export const IT_MAP: LanguageMap = {
   "COLOREPENNA": "PENCOLOR",
   "COLORE": "PENCOLOR",
   "COLPENNA": "PENCOLOR",
+  "ASCOLPENNA": "SETPENCOLOR",
   "DIMENSIONETARTARUGA": "TURTLESIZE",
 };
 
 // Mappa per l'Inglese
 export const EN_MAP: LanguageMap = {
+  "CLEARSCREEN": "CS",
+  "CS": "CS",
+  "UP": "UP",
+  "DOWN": "DOWN",
   "FORWARD": "FD",
   "FD": "FD",
   "BACK": "BK",
@@ -41,8 +48,6 @@ export const EN_MAP: LanguageMap = {
   "RT": "RT",
   "LEFT": "LT",
   "LT": "LT",
-  "CLEARSCREEN": "CS",
-  "CS": "CS",
   "SET": "SET",
   "REPEAT": "REPEAT",
   "PRINT": "PRINT",

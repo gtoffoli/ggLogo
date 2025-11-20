@@ -8,7 +8,7 @@
 // 251116 - imported some shared values retrieved by LogoShell through React-specific functions
 
 
-import { ModParola, CellType, Cell, Context, CORE_DEFINITIONS, CommandDef, ParamDef, CoreDefinitionKeys, SystemFunction, FunClass, turtleStrokes } from './CoreDefinitions';
+import { ModParola, CellType, Cell, Context, CORE_DEFINITIONS, CommandDef, ParamDef, CoreDefinitionKeys, SystemFunction, FunClass, FunSignature, turtleStrokes } from './CoreDefinitions';
 import { LANGUAGE_MAPS } from './LocalizationMaps';
 import { LanguageCode } from './UseLocalization';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
@@ -30,6 +30,10 @@ var val_token: any; 	//
 var prev_token: Cell;	// eventuale token precedente
 var next_token: Cell;	// eventuale token successivo
 // var	next_val: any;		// valore di eventuale token succesivo
+
+export var LogoVoc = {
+	'colore': 'red',
+};
 
 // Presupponiamo di avere accesso allo stato globale (GET) e al dispatcher (SET)
 interface InterpreterProps {
@@ -60,7 +64,7 @@ export function logoInterpreter(line: string, { resolveCommand }: InterpreterPro
 
 // function main_loop(): void {
 	var i_cell = 0;
-	mod_parola = ModParola.VERBO;		// parola non preceduta da modificatore
+	mod_parola = ModParola.VERB;		// parola non preceduta da modificatore
 	console.log('MAIN_LOOP', i_cell, is_finito);
     is_finito = false;					// se vero ritorna al toploop
 	while (! is_finito) {
@@ -70,7 +74,10 @@ export function logoInterpreter(line: string, { resolveCommand }: InterpreterPro
 	// return;
 	// }
 //}
-    return `OK: Eseguito riga di comando.`;
+	if (v_stack.length)
+		return v_stack;
+	else
+    	return `OK: Eseguito riga di comando.`;
 }
 
 // function valuta_token(ctx: Context, i_cell: number): number {
@@ -84,6 +91,8 @@ export function valuta_token(ctx: Context, i_cell: number): number {
     var coreKey: CoreDefinitionKeys;
     var definition: CommandDef;
     var definition_args: any[];
+    var signature: number;
+    var result = null;
     var cell;
 
 	if (i_cell >= l_linea) {
@@ -93,8 +102,22 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 		cell = ctx.linea_com[i_cell];
 		i_cell+= 1;
 	    switch (cell.type) {
+			case CellType.QUOTE:
+				if (cell.val === '"')
+					mod_parola = ModParola.LITERAL;
+				else // cell.val === ':'
+					mod_parola = ModParola.VARIABLE;
+				break;
 			case CellType.WORD:
-				if (mod_parola === ModParola.VERBO) {
+				if (mod_parola === ModParola.LITERAL) {
+					push_arg(cell);
+				}
+				else if (mod_parola === ModParola.VARIABLE) {
+					cell = {type: CellType.WORD, val: LogoVoc[cell.val]};
+					console.log('VARIABILE', cell);
+					push_arg(cell);
+				}
+				else if (mod_parola === ModParola.VERB) {
 					numeric = parseFloat(cell.val);
 					if (! isNaN(numeric)) {
 						push_arg({type: CellType.NUMBER, val: numeric});
@@ -112,14 +135,14 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 					}
 				}
 				locale = mod_parola;
-				mod_parola = ModParola.VERBO;
+				mod_parola = ModParola.VERB;
 				break;
 			case CellType.LIST:
 				push_arg(cell);
 				break;
 		}
 		console.log(ctx.parentesi, ctx.liv_funzione, ctx.n_arg_trovati, ctx.n_arg_attesi);
-		if ((ctx.parentesi < ctx.liv_funzione) && (ctx.n_arg_trovati === ctx.n_arg_attesi)) {
+		if ((ctx.funzione) && (ctx.parentesi < ctx.liv_funzione) && (ctx.n_arg_trovati === ctx.n_arg_attesi)) {
 			console.log('eseguo FUNZIONE', ctx.funzione);
 			for (var i=0; i<ctx.n_arg_trovati; i++) {
 				values.push(v_stack.pop().val);
@@ -127,6 +150,8 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 			}
 			console.log('VALUES', values);
 			definition = ctx.funzione.definition;
+			signature = definition.signature;
+			var is_function = (signature !== undefined) && (signature || FunSignature.FUNCT);
 			if (definition.classes & FunClass.EXEC) {
 				definition.ref(ctx, values);
 			}
@@ -143,17 +168,24 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 					[ newTurtleState, drawingCommand ] = definition.ref(definition, values, activeWin.turtleState);
 					console.log('turtleStroke', newTurtleState, drawingCommand);
 				} else {
-					newTurtleState = definition.ref(definition, values, activeWin.turtleState);
-					console.log('No turtleStroke',newTurtleState);
+					if (is_function) {
+						result = definition.ref(values, activeWin.turtleState);
+					}
+					else {
+						newTurtleState = definition.ref(definition, values, activeWin.turtleState);
+						console.log('No turtleStroke', newTurtleState);
+					}
 				}
-				console.log('NEWSTATE', newTurtleState);
 
 			    // 3. Dispatch (Aggiornamento dello Stato Globale)
-			    shared_dispatch({ 
-			        type: 'UPDATE_TURTLE_STATE', 
-			        windowId: shared_globalState.activeWindowId,
-			        newState: newTurtleState 
-			    });
+			    if (newTurtleState !== undefined) {
+					console.log('NEWSTATE', newTurtleState);
+				    shared_dispatch({ 
+				        type: 'UPDATE_TURTLE_STATE', 
+				        windowId: shared_globalState.activeWindowId,
+				        newState: newTurtleState 
+				    });
+				}
 			    
 			    if (turtleStroke) {
 					 console.log('drawingCommand', drawingCommand);
@@ -166,11 +198,17 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 				activeWin.turtleState = newTurtleState;
 
 			}
-			else
-				definition.semantics(values);
+			else {
+				if (is_function)
+					result = definition.ref(values);
+				else
+					definition.ref(values);
+			}
 			sf_out(ctx);
-			// ctx.liv_funzione -= 1;
-			ctx.n_arg_trovati = 0;
+			if (result !== null) {
+				push_arg(result);
+				ctx.n_arg_trovati += 1;
+			}
 		}
 	}
 	return i_cell;
@@ -199,6 +237,6 @@ export function ini_valuta (ctx: Context): void {
  	ctx.parentesi = -1;		/* = liv_funzione se sfun corr. e' preceduta da "("*/
 
 	is_stop = false;		/* se vero e' terminata esecuz. procedura corrente */
-	mod_parola = ModParola.VERBO;		/* parola non preceduta da modificatore*/
+	mod_parola = ModParola.VERB;		/* parola non preceduta da modificatore*/
 	is_finito = false;		/* se vero ritorna al toploop */
 }
