@@ -12,6 +12,15 @@ export function _CS(definition: CommandDef, values: any[], state: TurtleState): 
     return { newState: initialTurtleState, command: { type: 'CLEAR_CANVAS' }};
 }
 
+export function _HOME(definition: CommandDef, values: any[], state: TurtleState): TurtleState {
+    return { 
+        ...state, 
+        x: 0,
+        y: 0,
+        heading:0
+    };
+}
+
 export function _FD(definition: CommandDef, values: any[], state: TurtleState): TurtleState {
 	const distance: number = values[0];
 	console.log('function _FD', distance);
@@ -34,14 +43,14 @@ export function _LT(definition: CommandDef, values: any[], state: TurtleState): 
 	return calculateRight(state, angle);
 }
 
-export function _UP(definition: CommandDef, values: any[], state: TurtleState): TurtleState {
+export function _PENUP(definition: CommandDef, values: any[], state: TurtleState): TurtleState {
     return { 
         ...state, 
         penDown: false
     };
 }
 
-export function _DOWN(definition: CommandDef, values: any[], state: TurtleState): TurtleState {
+export function _PENDOWN(definition: CommandDef, values: any[], state: TurtleState): TurtleState {
     return { 
         ...state, 
         penDown: true

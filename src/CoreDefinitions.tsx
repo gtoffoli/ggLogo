@@ -3,9 +3,9 @@
 // 251115 - added FunClass; added ref field to CommandDef
 
 
-import { _SET } from './LogoDefine';
+import { _SET, _DEFINE, _TO, _END } from './LogoDefine';
 import { _NOP, _REPEAT } from './LogoControl';
-import { _CS, _FD, _BK, _RT, _LT, _UP, _DOWN, _PENCOLOR, _SETPENCOLOR } from './InterpreterCore';
+import { _HOME, _CS, _FD, _BK, _RT, _LT, _PENUP, _PENDOWN, _PENCOLOR, _SETPENCOLOR } from './InterpreterCore';
 
 
 // codifica dei device MLOGO
@@ -146,6 +146,14 @@ export const turtleStrokes = ['_CS', 'FD', 'BK',];
 // Mappa che contiene tutte le definizioni (la LOGICA del tuo interprete)
 export const CORE_DEFINITIONS = {
   // --- Comandi LOGO ---
+  HOME: {
+    classes: FunClass.TURT,
+    description: "Resetta posizione e direzione della tartaruga.",
+    syntax: "HOME",
+    args: [],
+    semantics: () => console.log(`HOME: Reseta posizione e direzione della tartaruga.`),
+    ref: _HOME,
+  } as CommandDef,
   FD: {
     classes: FunClass.TURT,
     description: "Muove la tartaruga in avanti.",
@@ -195,21 +203,21 @@ export const CORE_DEFINITIONS = {
     semantics: (args) => console.log(`SETPENCOLOR: Assegna alla penna il colore ${args[0]}.`),
     ref: _SETPENCOLOR,
   } as CommandDef,
-  UP: {
+  PENUP: {
     classes: FunClass.TURT,
     description: "Solleva la penna.",
-    syntax: "UP",
+    syntax: "PENUP",
     args: [],
-    semantics: () => console.log(`UP: Solleva la penna.`),
-    ref: _UP,
+    semantics: () => console.log(`PENUP: Solleva la penna.`),
+    ref: _PENUP,
   } as CommandDef,
-  DOWN: {
+  PENDOWN: {
     classes: FunClass.TURT,
     description: "Abbassa la penna.",
-    syntax: "_DOWN",
+    syntax: "_PENDOWN",
     args: [],
-    semantics: () => console.log(`DOWN: Abbassa la penna.`),
-    ref: _DOWN,
+    semantics: () => console.log(`PENDOWN: Abbassa la penna.`),
+    ref: _PENDOWN,
   } as CommandDef,
   CS: {
     classes: FunClass.TURT,
@@ -226,6 +234,30 @@ export const CORE_DEFINITIONS = {
     args: [{ name: "nome", type: 'string' }, { name: "valore", type: 'any'}],
     semantics: (args) => console.log(`SET: Assegna il valore ${args[1]} a ${args[0]}.`),
     ref: _SET,
+  } as CommandDef,
+  DEFINE: {
+    classes: 0,
+    description: "Assegna valore a nome di procedura.",
+    syntax: "DEFINE <nome> <valore>",
+    args: [{ name: "nome", type: 'string' }, { name: "valore", type: 'any'}],
+    semantics: (args) => console.log(`DEFINE: Assegna il valore ${args[1]} a ${args[0]}.`),
+    ref: _DEFINE,
+  } as CommandDef,
+  TO: {
+    classes: 0,
+    description: "Inizializza la definizione di una procedura.",
+    syntax: "TO <nome>",
+    args: [{ name: "nome", type: 'string' }],
+    semantics: (args) => console.log(`TO: Inizializza la definizione della procedura ${args[0]}.`),
+    ref: _TO,
+  } as CommandDef,
+  END: {
+    classes: 0,
+    description: "Termina la definizione di una procedura.",
+    syntax: "END",
+    args: [],
+    semantics: () => console.log(`END: Termina la definizione di una procedura.`),
+    ref: _END,
   } as CommandDef,
   REPEAT: {
     classes: FunClass.EXEC,

@@ -3,6 +3,11 @@
 
 import { CoreDefinitionKeys } from './CoreDefinitions';
 
+export const languageVoc = {
+	'en': 'english',
+	'it': 'italiano',
+}
+
 // Tipo che definisce la Mappa di una lingua:
 // Chiave: Nome visualizzato (es. "AVANTI" o "FORWARD")
 // Valore: ID interno (es. "FD")
@@ -13,8 +18,9 @@ export const IT_MAP: LanguageMap = {
   // Puoi includere sia i nomi abbreviati che quelli completi se vuoi
   "PULISCISCHERMO": "CS",
   "PS": "CS",
-  "SU": "UP",
-  "GIU": "DOWN",
+  "TANA": "HOME",
+  "SU": "PENUP",
+  "GIU": "PENDOWN",
   "AVANTI": "FD",
   "A": "FD",
   "INDIETRO": "BK",
@@ -25,6 +31,9 @@ export const IT_MAP: LanguageMap = {
   "S": "LT",
   "ASSEGNA": "SET",
   "AS": "SET",
+  "DEFINISCI": "DEFINE",
+  "PER": "TO",
+  "FINE": "END",
   "RIPETI": "REPEAT",
   "STAMPA": "PRINT",
   "COLOREPENNA": "PENCOLOR",
@@ -38,8 +47,11 @@ export const IT_MAP: LanguageMap = {
 export const EN_MAP: LanguageMap = {
   "CLEARSCREEN": "CS",
   "CS": "CS",
-  "UP": "UP",
-  "DOWN": "DOWN",
+  "HOME": "HOME",
+  "PENUP": "PENUP",
+  "PU": "PENUP",
+  "PENDOWN": "PENDOWN",
+  "PD": "PENDOWN",
   "FORWARD": "FD",
   "FD": "FD",
   "BACK": "BK",
@@ -49,6 +61,9 @@ export const EN_MAP: LanguageMap = {
   "LEFT": "LT",
   "LT": "LT",
   "SET": "SET",
+  "DEFINE": "DEFINE",
+  "TO": "TO",
+  "END": "END",
   "REPEAT": "REPEAT",
   "PRINT": "PRINT",
   "PENCOLOR": "PENCOLOR",

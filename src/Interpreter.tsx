@@ -31,9 +31,14 @@ var prev_token: Cell;	// eventuale token precedente
 var next_token: Cell;	// eventuale token successivo
 // var	next_val: any;		// valore di eventuale token succesivo
 
-export var LogoVoc = {
+export var VarVoc = {
 	'colore': 'red',
 };
+
+export var ProcVoc = {
+	'quadrato': '[] [ripeti 4 [a 100 d 90]]',
+};
+
 
 // Presupponiamo di avere accesso allo stato globale (GET) e al dispatcher (SET)
 interface InterpreterProps {
@@ -113,7 +118,7 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 					push_arg(cell);
 				}
 				else if (mod_parola === ModParola.VARIABLE) {
-					cell = {type: CellType.WORD, val: LogoVoc[cell.val]};
+					cell = {type: CellType.WORD, val: VarVoc[cell.val]};
 					console.log('VARIABILE', cell);
 					push_arg(cell);
 				}
