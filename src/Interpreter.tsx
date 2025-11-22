@@ -8,7 +8,7 @@
 // 251116 - imported some shared values retrieved by LogoShell through React-specific functions
 
 
-import { ModParola, CellType, Cell, Context, CORE_DEFINITIONS, CommandDef, ParamDef, CoreDefinitionKeys, SystemFunction, FunClass, FunSignature, turtleStrokes } from './CoreDefinitions';
+import { ModParola, CellType, Cell, Context, CORE_DEFINITIONS, CommandDef, ParamDef, CoreDefinitionKeys, TO, SystemFunction, FunClass, FunSignature, turtleStrokes } from './CoreDefinitions';
 import { LANGUAGE_MAPS } from './LocalizationMaps';
 import { LanguageCode } from './UseLocalization';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
@@ -20,8 +20,9 @@ export var mod_parola: ModParola;		/* modalita' di esecuzione di una parola LOGO
 var is_interprete: boolean;		/* input e' richiesto da interprete dei comandi */
 var is_analisi: boolean;		/* input e' richiesto tramite analisi */
 var is_prima_linea: boolean;	/* e' prima linea di input */
-export var is_stop: boolean;			/* incontrata fine di procedura */
-export var is_finito: boolean;			/* finito esecuzione di lista di istruzioni */
+export var isProcedureDefinition: boolean;	/* in corso definizione di procedura */
+export var is_stop: boolean;	/* incontrata fine di procedura */
+export var is_finito: boolean;	/* finito esecuzione di lista di istruzioni */
 var is_errore: boolean;			/* incontrato e ancora non gestito errore */
 var is_ciao: boolean;			/* eseguito comando "ciao" */
 
@@ -156,8 +157,11 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 			console.log('VALUES', values);
 			definition = ctx.funzione.definition;
 			signature = definition.signature;
-			var is_function = (signature !== undefined) && (signature || FunSignature.FUNCT);
-			if (definition.classes & FunClass.EXEC) {
+			var is_function = ((signature !== undefined) && (signature || FunSignature.FUNCT));
+			if (ctx.funzione.coreKey === TO) {
+				definition.ref(ctx, values, i_cell);
+			}
+			else if ((definition.classes & FunClass.EXEC) || (definition.classes & FunClass.DEF)) {
 				definition.ref(ctx, values);
 			}
 			else if (definition.classes & FunClass.TURT) {

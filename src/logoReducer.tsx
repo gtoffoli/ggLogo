@@ -36,7 +36,9 @@ export const initialLogoState: LogoGlobalState = {
 type LogoAction = 
     | { type: 'UPDATE_TURTLE_STATE', windowId: string, newState: Partial<TurtleState> }
     | { type: 'ADD_DRAWING_COMMAND', windowId: string, command: DrawingCommand }
-    | { type: 'REGISTER_CANVAS', windowId: string, context: CanvasRenderingContext2D, canvas: HTMLCanvasElement };
+    | { type: 'REGISTER_CANVAS', windowId: string, context: CanvasRenderingContext2D, canvas: HTMLCanvasElement }
+    | { type: 'WAIT_FOR_INPUT', waiter: InputWaiter }
+    | { type: 'CLEAR_WAITER' };
 
 
 export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlobalState {
@@ -83,6 +85,13 @@ export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlo
                     }
                 }
             };
+        case 'WAIT_FOR_INPUT':
+            // Imposta il gestore di attesa e il nuovo prompt
+            return { ...state, inputWaiter: action.waiter };
+        case 'CLEAR_WAITER':
+            // Rimuove il gestore di attesa e torna alla modalità normale
+            return { ...state, inputWaiter: null };
+
         default:
             return state;
     }

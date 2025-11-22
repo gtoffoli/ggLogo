@@ -9,7 +9,8 @@ import { initialTurtleState } from './logoReducer';
 
 export function _CS(definition: CommandDef, values: any[], state: TurtleState): { newState: TurtleState | null, command: DrawingCommand | null } {
 	console.log('function _CS');
-    return { newState: initialTurtleState, command: { type: 'CLEAR_CANVAS' }};
+    // return { newState: initialTurtleState, command: { type: 'CLEAR_CANVAS' }};
+    return [ initialTurtleState, { type: 'CLEAR_CANVAS' }];
 }
 
 export function _HOME(definition: CommandDef, values: any[], state: TurtleState): TurtleState {
@@ -116,4 +117,25 @@ export function calculateRight(state: TurtleState, angle: number): TurtleState {
         heading: newHeading < 0 ? newHeading + 360 : newHeading
     };
     return newState;
+}
+
+// La funzione getLine sarà accessibile solo se forniamo un dispatcher
+interface InterpreterDispatch {
+    dispatch: (action: any) => void;
+}
+
+/**
+ * Funzione asincrona che l'interprete (es. la primitiva TO) può chiamare 
+ * per ottenere la prossima riga di input in modo non bloccante.
+ */
+export function getLine(prompt: string, dispatch: InterpreterDispatch['dispatch']): Promise<string> {
+    return new Promise((resolve, reject) => {
+        // 1. Istruisce lo stato globale a mettersi in attesa
+        dispatch({
+            type: 'WAIT_FOR_INPUT',
+            waiter: { resolve, reject, prompt }
+        });
+        
+        // La Promise è ora sospesa, in attesa che l'azione venga gestita dal LogoShell.
+    });
 }

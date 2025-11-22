@@ -333,8 +333,8 @@ export function ini_main(): void {
 // inizializzazione quasi totale di Commander
 export function ini_exec(): void {
 	var ctx: Context = {
-		'id_contesto': CT_TOP,
-		'dev_recupera': 0,
+		'id_contesto': contextType.CT_TOP,
+		'dev_recupera': devCode.CONSOLE,
 		'liv_procedura': 0,
 		'in_liv_proc': 0,
 		'liv_funzione': 0,

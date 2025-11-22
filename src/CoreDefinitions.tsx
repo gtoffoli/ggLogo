@@ -10,12 +10,12 @@ import { _HOME, _CS, _FD, _BK, _RT, _LT, _PENUP, _PENDOWN, _PENCOLOR, _SETPENCOL
 
 // codifica dei device MLOGO
 export enum devCode {
-	MIN_DEV = 6, 	// minimo codice di device non preallocato
 	CONSOLE = 0,	// codice di console
 	STAMPANTE = 1,	// codice di stampante
 	FOGLIO = 2,		// codice di device del foglio di editor
 	TARTALFA = 3,	// codice di schermo TARTA usato per output alfanum.
 	COM1 = 4,		// codice di porta comunicazione n. 1
+	MIN_DEV = 6, 	// minimo codice di device non preallocato
 }
 
 // codifica dei bit di stato MLOGO (_stato) per file C
@@ -137,11 +137,12 @@ export enum FunClass {
 	PROC = 8,	// IS_PR_PROC: can be executed only inside a procedure
 	TXOU = 16,	// IS_PR_SCRIVI: writes on screen
 	EXEC = 32,	// IS_PR_ESEGUI: execution control
-	PGUI = 64,	// IS_PR_GUI: graphic UI building
-	PMCI = 128	// IS_PR_MM: not used?
+	DEF = 64,	// IS_PR_DEF: Variable or ptocedure definition
+	PGUI = 128,	// IS_PR_GUI: graphic UI building
+	PMCI = 256	// IS_PR_MM: not used?
 }
 
-export const turtleStrokes = ['_CS', 'FD', 'BK',];
+export const turtleStrokes = ['CS', 'FD', 'BK',];
 
 // Mappa che contiene tutte le definizioni (la LOGICA del tuo interprete)
 export const CORE_DEFINITIONS = {
@@ -153,6 +154,14 @@ export const CORE_DEFINITIONS = {
     args: [],
     semantics: () => console.log(`HOME: Reseta posizione e direzione della tartaruga.`),
     ref: _HOME,
+  } as CommandDef,
+  CS: {
+    classes: FunClass.TURT,
+    description: "Pulisce lo schermo.",
+    syntax: "CS",
+    args: [],
+    semantics: () => console.log(`CS: Pulisci lo schermo.`),
+    ref: _CS,
   } as CommandDef,
   FD: {
     classes: FunClass.TURT,
@@ -219,16 +228,8 @@ export const CORE_DEFINITIONS = {
     semantics: () => console.log(`PENDOWN: Abbassa la penna.`),
     ref: _PENDOWN,
   } as CommandDef,
-  CS: {
-    classes: FunClass.TURT,
-    description: "Pulisce lo schermo.",
-    syntax: "CS",
-    args: [],
-    semantics: () => console.log(`CS: Pulisci lo schermo.`),
-    ref: _CS,
-  } as CommandDef,
   SET: {
-    classes: 0,
+    classes: FunClass.DEF,
     description: "Assegna valore a nome.",
     syntax: "SET <nome> <valore>",
     args: [{ name: "nome", type: 'string' }, { name: "valore", type: 'any'}],
@@ -236,7 +237,7 @@ export const CORE_DEFINITIONS = {
     ref: _SET,
   } as CommandDef,
   DEFINE: {
-    classes: 0,
+    classes: FunClass.DEF,
     description: "Assegna valore a nome di procedura.",
     syntax: "DEFINE <nome> <valore>",
     args: [{ name: "nome", type: 'string' }, { name: "valore", type: 'any'}],
@@ -244,7 +245,7 @@ export const CORE_DEFINITIONS = {
     ref: _DEFINE,
   } as CommandDef,
   TO: {
-    classes: 0,
+    classes: FunClass.DEF,
     description: "Inizializza la definizione di una procedura.",
     syntax: "TO <nome>",
     args: [{ name: "nome", type: 'string' }],
@@ -252,7 +253,7 @@ export const CORE_DEFINITIONS = {
     ref: _TO,
   } as CommandDef,
   END: {
-    classes: 0,
+    classes: FunClass.DEF,
     description: "Termina la definizione di una procedura.",
     syntax: "END",
     args: [],

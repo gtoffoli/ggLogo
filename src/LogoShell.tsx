@@ -7,12 +7,15 @@
 import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { LogoGlobalState } from './LogoState';
 import { useLocalization, LanguageCode } from './UseLocalization';
-import { logoInterpreter } from './Interpreter';
+import { logoInterpreter, isProcedureDefinition } from './Interpreter';
 import { useLogoState, useLogoDispatch } from './LogoStateContext';
 import { ini_main, ini_exec } from './LogoControl';
 
 export var shared_globalState: LogoGlobalState;
 export var shared_dispatch: (action: any) => void;
+
+export var inputString: string = '';
+
 
 // Definisci il tipo per i messaggi di input/output (History)
 type Message = {
@@ -50,27 +53,53 @@ const LogoShell: React.FC = () => {
 
   // Funzione per eseguire il comando
   const executeCommand = (command: string) => {
-    if (!command.trim()) return;
 
-    // 1. Aggiungi il comando all'history come 'input'
-    setHistory(prev => [...prev, { type: 'input', text: `> ${command}` }]);
+    if (globalState.inputWaiter) {
+        
+	    // 1. Modalità: C'è qualcuno in attesa (es. la primitiva TO)?
 
-    // 2. Esegui il comando tramite l'interprete
-    console.log(command);
+        // Verifica la condizione di terminazione del corpo procedura (END)
+        // if (trimmedCommand.toUpperCase() === 'END') {
+        if (command.toUpperCase() === 'END') {
+            // Risolvi la Promise con la riga "END"
+            globalState.inputWaiter.resolve(command);
+            // Pulisci il waiter (torna al Command Mode)
+            dispatch({ type: 'CLEAR_WAITER' });
+        } else {
+            // Risolvi la Promise con la riga di comando LOGO
+            globalState.inputWaiter.resolve(command);
+            // NOTA: Non puliamo il waiter qui! La primitiva TO chiamerà getLine() di nuovo 
+            // per aspettare la riga successiva, mantenendo la modalità attiva.
+        }
+        
+        // Aggiungi la riga all'history locale per feedback
+        // (La logica di esecuzione è gestita all'interno della Promise risolta)
+        // ... logica per mostrare ">" o il prompt nell'history ...
+        
+    } else {
 
+		// 2. Modalità: Esecuzione standard del comando
 
-    // const result = logoInterpreter(command);
-    // Invoca l'interprete con lo stato e il dispatcher
-    const result = logoInterpreter(command, { resolveCommand });
+	    if (!command.trim()) return;
+	
+	    // 1. Aggiungi il comando all'history come 'input'
+	    setHistory(prev => [...prev, { type: 'input', text: `> ${command}` }]);
+	
+	    // 2. Esegui il comando tramite l'interprete
+	    console.log(command);
 
-    // ... logica di visualizzazione del risultato (result) ...
-    console.log("Risultato interprete:", result);
-
-    // Gestione speciale per 'clear' (pulisce la console)
-    if (command.trim().toLowerCase() === 'clear') {
-        setHistory([]); // Pulisce lo stato history
-        return;
-    }
+	    // const result = logoInterpreter(command);
+	    // Invoca l'interprete con lo stato e il dispatcher
+	    const result = logoInterpreter(command, { resolveCommand });
+	
+	    // ... logica di visualizzazione del risultato (result) ...
+	    console.log("Risultato interprete:", result);
+	
+	    // Gestione speciale per 'clear' (pulisce la console)
+	    if (command.trim().toLowerCase() === 'clear') {
+	        setHistory([]); // Pulisce lo stato history
+	        return;
+	    }
 /*
     // 3. Aggiungi l'output (o l'errore) all'history
     if (result.error) {
@@ -79,6 +108,8 @@ const LogoShell: React.FC = () => {
         setHistory(prev => [...prev, { type: 'output', text: result.output }]);
     }
 */  
+
+    }
   };
 
   // Gestore per l'invio del comando (tasto INVIO)
@@ -86,7 +117,7 @@ const LogoShell: React.FC = () => {
     if (event.key === 'Enter') {
       event.preventDefault(); // Impedisce il submit standard del form
       executeCommand(currentCommand);
-      setCurrentCommand(''); // Pulisce l'input dopo l'invio
+	  setCurrentCommand(''); // Pulisce l'input dopo l'invio
     }
   };
 

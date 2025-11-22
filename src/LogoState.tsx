@@ -31,6 +31,16 @@ export interface GraphicWindowState {
   canvasRef: any;     // Aggiunto per l'associazione al DOM (vedi punto 3)
 }
 
+// Definisce l'interfaccia per il gestore di input in sospeso
+export type InputWaiter = {
+    // La funzione 'resolve' della Promise che verrà chiamata con l'input dell'utente
+    resolve: (line: string) => void; 
+    // La funzione 'reject' (per errori o interruzione)
+    reject: (error: Error) => void;
+    // Un prompt di feedback per l'utente, es. "TO>" o "?"
+    prompt: string; 
+};
+
 // 2. Definisce lo Stato Globale dell'Interprete
 export interface LogoGlobalState {
   // Mappa di tutte le finestre grafiche
@@ -47,4 +57,7 @@ export interface LogoGlobalState {
   
   // Parametri di configurazione (es. PENCOLOR) - vedi l'esempio precedente
   configParams: Record<string, any>; 
+
+  // NUOVO CAMPO: Gestisce l'attesa asincrona
+  inputWaiter: InputWaiter | null;
 }
