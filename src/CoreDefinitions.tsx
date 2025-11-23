@@ -52,7 +52,7 @@ export enum CellType {
 export type Cell = {
   type: CellType;
   val: any;
-} | null;
+} // | null;
 
 // codifica dei tipi di contesto (id_contesto)
 export enum contextType {

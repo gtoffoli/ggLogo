@@ -2,7 +2,8 @@ import {
     LogoGlobalState, 
     GraphicWindowState, 
     TurtleState, 
-    DrawingCommand 
+    DrawingCommand,
+    InputWaiter
 } from './LogoState'; // Presumiamo che i tipi siano qui
 
 // Stato Iniziale Minimale

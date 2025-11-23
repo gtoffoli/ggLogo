@@ -20,7 +20,6 @@ export var mod_parola: ModParola;		/* modalita' di esecuzione di una parola LOGO
 var is_interprete: boolean;		/* input e' richiesto da interprete dei comandi */
 var is_analisi: boolean;		/* input e' richiesto tramite analisi */
 var is_prima_linea: boolean;	/* e' prima linea di input */
-export var isProcedureDefinition: boolean;	/* in corso definizione di procedura */
 export var is_stop: boolean;	/* incontrata fine di procedura */
 export var is_finito: boolean;	/* finito esecuzione di lista di istruzioni */
 var is_errore: boolean;			/* incontrato e ancora non gestito errore */

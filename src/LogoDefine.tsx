@@ -1,8 +1,14 @@
 // LogoDefine.tsx
 // 2511120 - 1st version: inspired to Ildef.cpp of IperLogo
 
-import { cellType, Cell, Context } from './CoreDefinitions';
-import { VarVoc, ProcVoc, is_proc_def } from './Interpreter';
+import { shared_globalState, shared_dispatch } from './LogoShell';
+import { CellType, Cell, Context } from './CoreDefinitions';
+import { Parse } from './Parser';
+import { VarVoc, ProcVoc } from './Interpreter';
+import { getLine } from './InterpreterCore';
+
+
+export var isProcedureDefinition: boolean;	/* in corso definizione di procedura */
 
 
 export function _SET(ctx: Context, values: any[]): void {
@@ -19,24 +25,30 @@ export function _DEFINE(ctx: Context, values: any[]): void {
 	ProcVoc[name] = value;
 }
 
+// La funzione getLine sarà accessibile solo se forniamo un dispatcher
+interface InterpreterDispatch {
+    dispatch: (action: any) => void;
+}
+
 // 
-export function _TO(ctx: Context, values: any[], i_cell: number): void {
+export async function _TO(ctx: Context, values: any[], i_cell: number): void {
 	console.log('function _TO', values[0]);
-	const name = values[0]; // procedure name
-	const linea_com = ctx.linea_com;
-	const l_linea: number = linea_com.length;
+
+	const procedureName = values[0]; // procedure name
+	const lineaCom = ctx.linea_com;
+	const l_linea: number = lineaCom.length;
 	var cell: Cell;
 	var parameter_expected: boolean = false;
-	var parameters: string[] = []; // list of parameter names
-	var s: string = ''; // input string for procedure body
-	var body_lines: Cell[][] = [];  // list of parsed input strings for procedure body
-	var parsed_line: Cell[] = []
+	var parameters: string[] = []; 		// list of parameter names
+	var s: string = ''; 				// input string for procedure body
+	var procedureBody: Cell[][] = [];  // list of parsed input strings for procedure body
+	var parsedLine: Cell[] = []
 
 	// check that name is not a reserved string
 	// ..
 	// look for the parameters in the already parsed command line
 	while (i_cell < l_linea) {
-		cell = linea_com[i_cell];
+		cell = lineaCom[i_cell];
 		i_cell+= 1;
 		if ((!parameter_expected) && (cell.type === CellType.QUOTE) && (cell.val === ':')) {
 			parameter_expected = true;
@@ -50,14 +62,25 @@ export function _TO(ctx: Context, values: any[], i_cell: number): void {
 		console.log('procedure declaration error');
 
 	isProcedureDefinition = true;
-	var is_end = false;
-	while (!is_end) {
-		// s = ...
-		parsed_line = Parse(s);
-		is_end = ((parsed_line.length === 1) && (parsed_line[0].type === CellType.WORD) && (parsed_line[0].val === 'END'))
-		if (!is_end)
-			body_lines.push(parsed_line);
-	}
+    // Entra nel loop di lettura asincrona del procedure body
+    do {
+        // La chiamata ASINCRONA SOSPENDE l'esecuzione qui
+        s = await getLine('TO> ', shared_dispatch); 
+        if (s.toUpperCase() !== 'END') {
+			parsedLine = Parse(s);
+            procedureBody.push(parsedLine);
+        }
+
+    } while (s.toUpperCase() !== 'END');
+	isProcedureDefinition = false;
+    
+    // Una volta usciti dal loop (trovato END), la Promise è finita.
+    
+    // Procedi con l'analisi lessicale/sintattica del corpo (procedureBody)
+    // e memorizza la procedura (nome, parametri, body) in globalState.userProcedures
+    console.log(`Procedura ${procedureName} definita con corpo:`, procedureBody);
+    
+    // L'azione CLEAR_WAITER è stata gestita nel CommandInterpreter per END.
 }
 
 export function _END(ctx: Context, values: any[]): void {

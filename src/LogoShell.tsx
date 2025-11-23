@@ -6,8 +6,8 @@
 
 import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { LogoGlobalState } from './LogoState';
-import { useLocalization, LanguageCode } from './UseLocalization';
-import { logoInterpreter, isProcedureDefinition } from './Interpreter';
+import { useLocalization } from './UseLocalization';
+import { logoInterpreter } from './Interpreter';
 import { useLogoState, useLogoDispatch } from './LogoStateContext';
 import { ini_main, ini_exec } from './LogoControl';
 
