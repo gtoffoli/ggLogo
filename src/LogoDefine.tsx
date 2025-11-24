@@ -2,10 +2,11 @@
 // 2511120 - 1st version: inspired to Ildef.cpp of IperLogo
 
 import { shared_globalState, shared_dispatch } from './LogoShell';
-import { CellType, Cell, Context } from './CoreDefinitions';
+import { CellType, Cell, Context, ProcedureDef } from './CoreDefinitions';
 import { Parse } from './Parser';
-import { VarVoc, ProcVoc } from './Interpreter';
+import { globalVariables, userProcedures } from './Interpreter';
 import { getLine } from './InterpreterCore';
+import { sf_out } from './LogoControl';
 
 
 export var isProcedureDefinition: boolean;	/* in corso definizione di procedura */
@@ -15,14 +16,14 @@ export function _SET(ctx: Context, values: any[]): void {
 	console.log('function _SET', values[0],values[1]);
 	var name = values[0];
 	var value = values[1];
-	VarVoc[name] = value;
+	globalVariables[name] = value;
 }
 
 export function _DEFINE(ctx: Context, values: any[]): void {
 	console.log('function _DEFINE', values[0],values[1]);
 	var name = values[0];
 	var value = values[1];
-	ProcVoc[name] = value;
+	userProcedures[name] = value;
 }
 
 // La funzione getLine sarà accessibile solo se forniamo un dispatcher
@@ -30,10 +31,10 @@ interface InterpreterDispatch {
     dispatch: (action: any) => void;
 }
 
-// 
+// per "quadrato :lato
+// ripeti 4 [a :lato d 90]
+// end
 export async function _TO(ctx: Context, values: any[], i_cell: number): void {
-	console.log('function _TO', values[0]);
-
 	const procedureName = values[0]; // procedure name
 	const lineaCom = ctx.linea_com;
 	const l_linea: number = lineaCom.length;
@@ -55,7 +56,7 @@ export async function _TO(ctx: Context, values: any[], i_cell: number): void {
 		}
 		else if ((parameter_expected) && (cell.type === CellType.WORD)) {
 			parameter_expected = false;
-			parameters.push(cell.value);
+			parameters.push(cell.val);
 		}
 	}
 	if (parameter_expected)
@@ -72,14 +73,13 @@ export async function _TO(ctx: Context, values: any[], i_cell: number): void {
         }
 
     } while (s.toUpperCase() !== 'END');
+    var procedureDef = {parameters: parameters, body: procedureBody};
+	userProcedures[procedureName] = procedureDef;
 	isProcedureDefinition = false;
+	sf_out(ctx);    
+	console.log(`Procedura ${procedureName} definita come`, procedureDef);
     
     // Una volta usciti dal loop (trovato END), la Promise è finita.
-    
-    // Procedi con l'analisi lessicale/sintattica del corpo (procedureBody)
-    // e memorizza la procedura (nome, parametri, body) in globalState.userProcedures
-    console.log(`Procedura ${procedureName} definita con corpo:`, procedureBody);
-    
     // L'azione CLEAR_WAITER è stata gestita nel CommandInterpreter per END.
 }
 
@@ -88,4 +88,11 @@ export function _END(ctx: Context, values: any[]): void {
 	if (isProcedureDefinition)
 		console.log('procedure declaration error');
 	isProcedureDefinition = false;
+}
+
+export function _TEXT(ctx: Context, values: any[]): ProcedureDef {
+	const procedureName = values[0];
+	const procedureDef = userProcedures[procedureName];
+	console.log('TESTO DI', procedureName, ' : ', procedureDef);
+	return procedureDef;
 }

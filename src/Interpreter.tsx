@@ -14,7 +14,7 @@ import { LanguageCode } from './UseLocalization';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
 import { shared_globalState, shared_dispatch } from './LogoShell';
 import { Parse, getCharClass, CharClass } from './Parser';
-import { contesti, liv_contesto, liv_analisi, v_stack, push_arg, ini_exec, sf_in, sf_out } from './LogoControl';
+import { contesti, liv_contesto, liv_analisi, v_stack, push_arg, ini_exec, sf_in, sf_out, isProcedureDefinition } from './LogoControl';
 
 export var mod_parola: ModParola;		/* modalita' di esecuzione di una parola LOGO */
 var is_interprete: boolean;		/* input e' richiesto da interprete dei comandi */
@@ -31,14 +31,15 @@ var prev_token: Cell;	// eventuale token precedente
 var next_token: Cell;	// eventuale token successivo
 // var	next_val: any;		// valore di eventuale token succesivo
 
-export var VarVoc = {
+export var globalVariables = {
 	'colore': 'red',
 };
-
-export var ProcVoc = {
-	'quadrato': '[] [ripeti 4 [a 100 d 90]]',
+/*
+export var userProcedures = {
+	'quadrato': { parameters: ['lato'], 'body': [Parse('ripeti 4 [a :lato d 90]')]}
 };
-
+*/
+export var userProcedures: Record<string, any> = {};
 
 // Presupponiamo di avere accesso allo stato globale (GET) e al dispatcher (SET)
 interface InterpreterProps {
@@ -67,26 +68,19 @@ export function logoInterpreter(line: string, { resolveCommand }: InterpreterPro
     if (cells.length === 0) return "";
 	ctx.linea_com = cells;
 
-// function main_loop(): void {
 	var i_cell = 0;
 	mod_parola = ModParola.VERB;		// parola non preceduta da modificatore
-	console.log('MAIN_LOOP', i_cell, is_finito);
     is_finito = false;					// se vero ritorna al toploop
-	while (! is_finito) {
+	while ((! is_finito) && (!isProcedureDefinition)) {
 		i_cell = valuta_token(ctx, i_cell);	// eseguito per ogni token
 	}
-	// leggi nuova linea di comando
-	// return;
-	// }
-//}
+
 	if (v_stack.length)
 		return v_stack;
 	else
     	return `OK: Eseguito riga di comando.`;
 }
 
-// function valuta_token(ctx: Context, i_cell: number): number {
-// export function valuta_token(globalState: LogoGlobalState, dispatch: (action: any) => void, ctx: Context, i_cell: number): number {
 export function valuta_token(ctx: Context, i_cell: number): number {
 	console.log('valuta_token', i_cell);
 	const l_linea: number = ctx.linea_com.length;
@@ -103,7 +97,6 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 	if (i_cell >= l_linea) {
 		is_finito = true;
 	} else {
-		// gettok(i_cell);
 		cell = ctx.linea_com[i_cell];
 		i_cell+= 1;
 	    switch (cell.type) {
@@ -118,7 +111,7 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 					push_arg(cell);
 				}
 				else if (mod_parola === ModParola.VARIABLE) {
-					cell = {type: CellType.WORD, val: VarVoc[cell.val]};
+					cell = {type: CellType.WORD, val: globalVariables[cell.val]};
 					console.log('VARIABILE', cell);
 					push_arg(cell);
 				}
@@ -157,8 +150,10 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 			definition = ctx.funzione.definition;
 			signature = definition.signature;
 			var is_function = ((signature !== undefined) && (signature || FunSignature.FUNCT));
-			if (ctx.funzione.coreKey === TO) {
-				definition.ref(ctx, values, i_cell);
+			if (ctx.funzione.coreKey === 'TO') {
+				definition.ref(ctx, values, i_cell-1);
+				is_finito = true;
+				i_cell = 100;
 			}
 			else if ((definition.classes & FunClass.EXEC) || (definition.classes & FunClass.DEF)) {
 				definition.ref(ctx, values);
@@ -212,7 +207,8 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 				else
 					definition.ref(values);
 			}
-			sf_out(ctx);
+			if (!isProcedureDefinition)
+				sf_out(ctx);
 			if (result !== null) {
 				push_arg(result);
 				ctx.n_arg_trovati += 1;

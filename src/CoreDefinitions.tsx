@@ -3,7 +3,7 @@
 // 251115 - added FunClass; added ref field to CommandDef
 
 
-import { _SET, _DEFINE, _TO, _END } from './LogoDefine';
+import { _SET, _DEFINE, _TO, _END, _TEXT } from './LogoDefine';
 import { _NOP, _REPEAT } from './LogoControl';
 import { _HOME, _CS, _FD, _BK, _RT, _LT, _PENUP, _PENDOWN, _PENCOLOR, _SETPENCOLOR } from './InterpreterCore';
 
@@ -42,7 +42,7 @@ export enum CellType {
 	QUOTE = 1,
 	OPERATOR = 2,	// operatore
 	NUMBER = 3, 	// numero
-	WORD = 4, 		// parola Logo
+	WORD = 4,		// parola Logo
 	VAR = 5, 		// variabile Logo
 	SFUN = 6,		// funzione primitiva
 	UFUN = 7,		// funzione di utente (procedura)
@@ -106,6 +106,11 @@ export type CommandDef = {
   semantics?: (args: any[]) => any; // La funzione che esegue il comando
   ref: (args: any) => any; // La funzione che esegue il comando
 };
+
+export type ProcedureDef = {
+	parameters: string[];
+	body: any[][]
+}
 
 // Tipi per i parametri di configurazione
 export type ParamDef = {
@@ -259,6 +264,15 @@ export const CORE_DEFINITIONS = {
     args: [],
     semantics: () => console.log(`END: Termina la definizione di una procedura.`),
     ref: _END,
+  } as CommandDef,
+  TEXT: {
+    classes: FunClass.DEF,
+    signature: FunSignature.FUNCT,
+    description: "Riporta la definizione di una procedura.",
+    syntax: "TEXT <nome>",
+    args: [{ name: "nome", type: 'string' }],
+    semantics: (args) => console.log(`TEXT: Riporta la definizione della procedura ${args[0]}.`),
+    ref: _TEXT,
   } as CommandDef,
   REPEAT: {
     classes: FunClass.EXEC,
