@@ -8,38 +8,37 @@
 // 251116 - imported some shared values retrieved by LogoShell through React-specific functions
 
 
-import { ModParola, CellType, Cell, Context, CORE_DEFINITIONS, CommandDef, ParamDef, CoreDefinitionKeys, TO, SystemFunction, FunClass, FunSignature, turtleStrokes } from './CoreDefinitions';
+import { ModParola, CellType, Cell, Context, ParamDef } from './CoreDefinitions';
+import { SystemFunction, CORE_DEFINITIONS, CommandDef, CoreDefinitionKeys, FunClass, FunSignature, turtleStrokes } from './CoreDefinitions';
+import { UserFunction, ProcedureDef } from './CoreDefinitions';
 import { LANGUAGE_MAPS } from './LocalizationMaps';
 import { LanguageCode } from './UseLocalization';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
 import { shared_globalState, shared_dispatch } from './LogoShell';
 import { Parse, getCharClass, CharClass } from './Parser';
-import { contesti, liv_contesto, liv_analisi, v_stack, push_arg, ini_exec, sf_in, sf_out, isProcedureDefinition } from './LogoControl';
+import { contesti, liv_contesto, liv_analisi, v_stack, push_arg, ini_exec, sf_in, sf_out } from './LogoControl';
+import { isProcedureDefinition } from './LogoDefine';
 
-export var mod_parola: ModParola;		/* modalita' di esecuzione di una parola LOGO */
+export var mod_parola: ModParola;// modalita' di esecuzione di una parola LOGO
+var is_riporta: boolean;		// procedura termina con RIPORTA
 var is_interprete: boolean;		/* input e' richiesto da interprete dei comandi */
 var is_analisi: boolean;		/* input e' richiesto tramite analisi */
 var is_prima_linea: boolean;	/* e' prima linea di input */
-export var is_stop: boolean;	/* incontrata fine di procedura */
-export var is_finito: boolean;	/* finito esecuzione di lista di istruzioni */
 var is_errore: boolean;			/* incontrato e ancora non gestito errore */
 var is_ciao: boolean;			/* eseguito comando "ciao" */
 
-var tipo_token: number;	// tipo del token corrente
-var val_token: any; 	//
-var prev_token: Cell;	// eventuale token precedente
-var next_token: Cell;	// eventuale token successivo
+// var tipo_token: number;	// tipo del token corrente
+// var val_token: any; 	//
+// var prev_token: Cell;	// eventuale token precedente
+// var next_token: Cell;	// eventuale token successivo
 // var	next_val: any;		// valore di eventuale token succesivo
 
-export var globalVariables = {
-	'colore': 'red',
+export var globalVariables: Record<string, any> = {
+//	'colore': 'red',
 };
-/*
-export var userProcedures = {
-	'quadrato': { parameters: ['lato'], 'body': [Parse('ripeti 4 [a :lato d 90]')]}
+export var userProcedures: Record<string, any> = {
+//	'quadrato': { parameters: ['lato'], 'body': [Parse('ripeti 4 [a :lato d 90]')]}
 };
-*/
-export var userProcedures: Record<string, any> = {};
 
 // Presupponiamo di avere accesso allo stato globale (GET) e al dispatcher (SET)
 interface InterpreterProps {
@@ -57,6 +56,7 @@ export function logoInterpreter(line: string, { resolveCommand }: InterpreterPro
 	// from Ilmain.execute()
 	if (liv_analisi > 0) {
 		ini_exec ();
+		mod_parola = ModParola.VERB;		/* parola non preceduta da modificatore*/
 		return 'parentesi non chiuse';
 	}
 
@@ -64,14 +64,14 @@ export function logoInterpreter(line: string, { resolveCommand }: InterpreterPro
 
     // 1. Tokenizzazione
     const cells = Parse(line); // La tua funzione di tokenizzazione e analisi
+	const l_linea = cells.length;
     console.log('cells:', cells);
     if (cells.length === 0) return "";
 	ctx.linea_com = cells;
 
 	var i_cell = 0;
 	mod_parola = ModParola.VERB;		// parola non preceduta da modificatore
-    is_finito = false;					// se vero ritorna al toploop
-	while ((! is_finito) && (!isProcedureDefinition)) {
+	while ((i_cell < l_linea) && (!isProcedureDefinition)) {
 		i_cell = valuta_token(ctx, i_cell);	// eseguito per ogni token
 	}
 
@@ -88,15 +88,15 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 	var numeric: number;
 	var values: any[] = [];
     var coreKey: CoreDefinitionKeys;
-    var definition: CommandDef;
+    var definition: CommandDef | ProcedureDef;
     var definition_args: any[];
     var signature: number;
     var result = null;
     var cell;
 
-	if (i_cell >= l_linea) {
-		is_finito = true;
-	} else {
+	// if (i_cell >= l_linea) {
+	//	is_finito = true;
+	// } else {
 		cell = ctx.linea_com[i_cell];
 		i_cell+= 1;
 	    switch (cell.type) {
@@ -121,16 +121,22 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 						push_arg({type: CellType.NUMBER, val: numeric});
 					}
 					else {
-						coreKey = resolveCommand(cell.val);
+						var verb = cell.val;
+						coreKey = resolveCommand(verb);
 					    if (coreKey) {
 					        definition = CORE_DEFINITIONS[coreKey];
-					        ctx.funzione = { coreKey: coreKey, definition: definition};
+					        ctx.funzione = { type: CellType.SFUN, coreKey: coreKey, definition: definition};
 					        console.log(coreKey, definition);
 					        // ctx.liv_funzione += 1;
 					        // ctx.n_arg_attesi = definition.args.length;
 							sf_in(ctx, definition);
     					}
-					}
+    					else if (verb in userProcedures.keys) {
+							var definition = userProcedures[verb];
+							ctx.funzione = { type: CellType.UFUN, name: verb, definition: definition}; 
+							uf_in(ctx, definition);
+						}
+					} 
 				}
 				locale = mod_parola;
 				mod_parola = ModParola.VERB;
@@ -140,7 +146,8 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 				break;
 		}
 		console.log(ctx.parentesi, ctx.liv_funzione, ctx.n_arg_trovati, ctx.n_arg_attesi);
-		if ((ctx.funzione) && (ctx.parentesi < ctx.liv_funzione) && (ctx.n_arg_trovati === ctx.n_arg_attesi)) {
+		if ((ctx.funzione) && (ctx.parentesi < ctx.liv_funzione) && (ctx.n_arg_trovati === ctx.n_arg_attesi))
+		  if (ctx.funzione.type === CellType.SFUN) {
 			console.log('eseguo FUNZIONE', ctx.funzione);
 			for (var i=0; i<ctx.n_arg_trovati; i++) {
 				values.push(v_stack.pop().val);
@@ -152,8 +159,9 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 			var is_function = ((signature !== undefined) && (signature || FunSignature.FUNCT));
 			if (ctx.funzione.coreKey === 'TO') {
 				definition.ref(ctx, values, i_cell-1);
-				is_finito = true;
-				i_cell = 100;
+				//is_finito = true;
+				// i_cell = 100;
+				return 1000;	// a number bigger than any command length
 			}
 			else if ((definition.classes & FunClass.EXEC) || (definition.classes & FunClass.DEF)) {
 				definition.ref(ctx, values);
@@ -214,7 +222,10 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 				ctx.n_arg_trovati += 1;
 			}
 		}
-	}
+		else if (ctx.funzione.type === CellType.UFUN) {
+			uf_call(ctx);
+		}
+	// }
 	return i_cell;
 }
 
@@ -230,17 +241,4 @@ function resolveCommand(commandName: string): CoreDefinitionKeys | undefined {
     }
     // Se non trovato, potrebbe essere un comando non tradotto o non valido
     return undefined;
-}
-
-// inizializzazione parziale di Commander (NestedExec)
-export function ini_valuta (ctx: Context): void {			
-	ctx.funzione = null;	/* nessuna funzione incontrata */
-	ctx.n_arg_attesi = 0;	/* numero di parametri atteso dalla funzione corrente*/
-	ctx.n_arg_trovati = 0;	/* numero di oggetti sullo stack per la fun corrente*/
-	ctx.conto_parentesi = 0;
- 	ctx.parentesi = -1;		/* = liv_funzione se sfun corr. e' preceduta da "("*/
-
-	is_stop = false;		/* se vero e' terminata esecuz. procedura corrente */
-	mod_parola = ModParola.VERB;		/* parola non preceduta da modificatore*/
-	is_finito = false;		/* se vero ritorna al toploop */
 }

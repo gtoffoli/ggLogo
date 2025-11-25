@@ -1,8 +1,8 @@
 // LogoControl.tsx
 // 251116 - 1st version: inspired to Ilcontro.cpp of IperLogo
 
-import { devCode, devType, contextType, Context, cellType, Cell, CommandDef, ModParola } from './CoreDefinitions';
-import { mod_parola, is_stop, is_finito, ini_valuta, valuta_token } from './Interpreter';
+import { devCode, devType, contextType, Context, Cell, CommandDef, ModParola, ProcedureDef } from './CoreDefinitions';
+import { valuta_token, globalVariables, userProcedures } from './Interpreter';
 
 // codifica dei tipi di contesto (id_contesto)
 const CT_TOP = 0;			// contesto iniziale (top_level)
@@ -27,9 +27,13 @@ var	n_locali: number;				// numero variabili locali nella procedura
 var n_argomenti: number;			// numero argomenti della procedura
 var is_vai: boolean = false;		// appena incontrato comando VAI
 var risultato: any;					// risultato della primitiva corrente
+var is_riporta: boolean;			// procedura termina con RIPORTA
+var is_stop: boolean;				// incontrata fine di valutazione di procedura (UFUN)
 
 var c_stack: any[] = [];
 export var v_stack: any[] = [];
+var stk_funzioni: any[] = [];		// stack di nest procedure attive dur. esecuzione
+var stk_livelli: any[] = [];		// stack di camm. att. dur.esecuz. (blocchi) ?? */
 
 
 export function _NOP(): void  {
@@ -52,12 +56,15 @@ function _esegui(ctx: Context, blocco: Cell[]): void {
 	// push_sc (token);
 	// token = blocco;
 	// blk_in (ha_blocco_valore && (n_arg_attesi > 0));
+
 	push_contesto(ctx, CT_TOP);
 	ctx = contesti[liv_contesto];
 	ini_valuta(ctx);
 	ctx.linea_com = blocco;
+	const l_blocco = blocco.length;
   	var i_cell = 0;
-	while (! is_finito) {
+	// while (! is_finito) {
+	while (i_cell < l_blocco) {
 		console.log('_esegui', i_cell, ctx.linea_com);
 		i_cell = valuta_token(ctx, i_cell);	// eseguito per ogni token
 	}
@@ -143,7 +150,7 @@ function popco(ctx: Context): void {
 }
 
 // azioni comuni al riconoscimento di un token funzione (sfun o ufun)
-function f_in(ctx: Context, def: CommandDef): void {
+function f_in(ctx: Context): void {
   AssertContesto();
   push_sc(ctx.funzione);
   pushco (ctx);
@@ -172,7 +179,7 @@ function f_out (ctx: Context): void {
 
 // ingresso nella valutazione di una System Function
 export function sf_in(ctx: Context, def: CommandDef): void {
-	f_in (ctx, def);
+	f_in(ctx);
 /*
 	get_sf (funzione);
 	if (IS_PR_MM)
@@ -191,26 +198,130 @@ export function sf_out(ctx: Context, def: CommandDef): void {
 	f_out(ctx);
 }
 
+// ingresso nella valutazione di una User Function
+export function uf_in(ctx: Context, definition: ProcedureDef): void {
+	f_in(ctx);
+	ctx.n_arg_attesi = definition.arguments.length;
+}
+
+// inizia l' esecuzione di una procedura LOGO con push di uno stack-frame
+export function uf_call(ctx: Context): void {
+  	// int i;
+  	// int locale;
+	// get_uf (&lista_arg, &corpo, funzione);
+	// n_argomenti = lstlen (lista_arg);
+	var parameters = ctx.funzione.definition.parameters;
+	n_argomenti = parameters.length;
+	/*riconosce eventuale ricorsione di coda :*/
+	/* e proc. da attivare coincide con proc.attiva */
+    // push_sc (ini_token);
+    // push_sc (token);		/* 1" elemento di STACK-FRAME */
+    push_sc(ctx.conto_esegui);	/******************************/
+	push_sc(ctx.RepCount);
+	push_sc(ctx.RepTotal);
+    push_sc(ctx.val_verifica);		/* 2 */
+    push_sc(ctx.liv_esecuzione);	/* 3 */
+    push_sc(n_locali);				/* 4: salva conto esterno variabili locali */
+    n_locali = 0;       			/* reinizializza conto variabili locali */
+    push_sc(n_argomenti);			/* 5: ultimo elemento di STACK-FRAME */
+                    /* binding di argomenti con salvataggio vecchio binding */
+    for (var i=1; i <= n_argomenti; ++i) push_sc(pop_sv()); /* temporary inverted stack */
+    for (var i=1; i <= n_argomenti; ++i)
+		pushloc(parameters[i], pop_sc());
+    // tr_comando();		/* ATTENZIONE : usa oltre top di c_stack */
+    stk_funzioni[++ctx.liv_procedura] = ctx.funzione;
+    stk_livelli[ctx.liv_procedura] = ctx.liv_funzione;
+	// err_token = ini_token =
+	// token = corpo; 
+	is_stop = false;
+	ctx.liv_esecuzione = 0;
+	ctx.n_arg_attesi = ctx.n_arg_trovati = 0;
+	ctx.parentesi = -1;
+	ctx.conto_parentesi = 0;
+	ctx.conto_esegui = 0;
+	ctx.RepCount = 0;
+	ctx.RepTotal = 0;
+	ctx.val_verifica = false;
+	ctx.funzione = null;
+}
+
+// finalizza l' esecuzione di una procedura LOGO con pop di uno stack-frame
+function uf_ret(ctx: Context): void {
+  var procedura;
+  // var loc_1, loc_2;
+  // loc_1 = err_token;
+  // loc_2 = token;
+  is_funzione = is_riporta;
+  is_riporta = false;
+  procedura = stk_funzioni[ctx.liv_procedura--];
+  while (ctx.liv_esecuzione > 0) {
+    if (ctx.conto_parentesi > 0) break;
+    blk_out(ctx);
+  };
+  if (ctx.conto_parentesi > 0) {
+    // err_token = loc_1;
+    // token = loc_2;
+    // errore (14, NULLP, NULLP);
+	// BreakOnDebug();
+    return;
+  };
+  if (ctx.n_arg_trovati > ((is_funzione) ? 1 : 0)) {
+	  ++ctx.liv_procedura;
+	  // err2 (12, get_sv (n_arg_trovati));	// va in errore
+	  return;
+  }
+  poploc (ctx, n_locali);			/* spurgo delle variabili locali a procedura */
+  poploc(ctx, pop_sc());			/* 5: spurgo delle variabili argomento */
+  n_locali = pop_sc();				/* 4: numero variabili locali proc. esterna*/
+  ctx.liv_esecuzione = pop_sc();	/* 3 */
+  ctx.val_verifica = pop_sc();		/* 2 */
+  ctx.RepTotal = pop_sc();
+  ctx.RepCount = pop_sc();
+  ctx.conto_esegui = pop_sc();		/******************************/
+  ctx.token = pop_sc();				/* 1" elemento di STACK-FRAME */
+  ctx.ini_token = pop_sc();
+  is_stop = false;
+  f_out(ctx);
+}
+
+/*-----------------------------------------------------------------------------
+  se nello spazio delle parole non esiste una variabile di nome specificato la
+  crea e considera che il suo vecchio valore sia NULLVALUE (valore invalido);
+  comunque mette il valore specificato nella variabile e salva su stack dei
+  valori la variabile e il vecchio valore
+  ---------------------------------------------------------------------------*/
+function pushloc(parola: string, nuovo_valore: any): void {
+	var vecchio_valore;
+	if (parola in globalVariables.keys)
+		vecchio_valore = globalVariables[parola];
+	else
+		vecchio_valore = null;
+	globalVariables[parola] = nuovo_valore;
+	push_sv(parola);
+	push_sv(vecchio_valore);
+}
+
 /*------------------------------------------------------------------------
   ripristina i vecchi valori di n variabili; in cima al vstack si trovano
   n coppie (variabile, vecchio-valore); se il vecchio valore era NULLVALUE
   (valore non assegnato) la variabile NON viene piu' cancellata dallo spazio
   delle parole
   ------------------------------------------------------------------------*/
-function poploc (ctx: Context, n: number): void {
+function poploc(ctx: Context, n: number): void {
 	var risultato: any;
-	var oggetto: any;
+	var parola: string;
 	var valore: any;
 
 	if (ctx.n_arg_trovati != 0)
-		risultato = pop_sv ();
+		risultato = pop_sv();
 	for (var i = 1; i <= n; ++i) {
 	    valore = pop_sv();
-	    oggetto = pop_sv();
-	    // putcar (oggetto, valore); ASSEGNAZIONE
+	    parola = pop_sv();
+	    if (valore)
+	    	globalVariables[parola] = valore;
 	};
 	if (ctx.n_arg_trovati != 0)
-		push_sv (risultato);
+		push_sv(risultato);
 }
 
 /*---------------------------
@@ -253,12 +364,12 @@ function blk_in(ctx: Context, is_arg_atteso: number): void {
   push_sc(ctx.conto_esegui);
   push_sc(ctx.RepCount);
   push_sc(ctx.RepTotal);
-  push_sc (ctx.val_verifica);
+  push_sc(ctx.val_verifica);
   pushco(ctx);
   ctx.conto_parentesi = 0;
   ctx.parentesi = -1;
   ctx.n_arg_attesi = is_arg_atteso;
-  push_sc (n_locali);
+  push_sc(n_locali);
   n_locali = 0;
   ++ctx.liv_esecuzione;
   if (is_ripeti) {
@@ -324,7 +435,6 @@ function blk_out(ctx: Context): void {
   AssertContesto();
 }
 
-
 export function ini_main(): void {
 	contesti = [];
 	liv_contesto = -1;
@@ -356,9 +466,19 @@ export function ini_exec(): void {
 		'ini_p_sv' : 0,
 		'linea_com': [],
 	};
-	ini_valuta (ctx);
+	ini_valuta(ctx);
 	contesti.push(ctx);
 	liv_contesto += 1;
 	liv_analisi = 0;
 	is_nestedExec = false;
+}
+
+// inizializzazione parziale di Commander (NestedExec)
+function ini_valuta(ctx: Context): void {			
+	ctx.funzione = null;	/* nessuna funzione incontrata */
+	ctx.n_arg_attesi = 0;	/* numero di parametri atteso dalla funzione corrente*/
+	ctx.n_arg_trovati = 0;	/* numero di oggetti sullo stack per la fun corrente*/
+	ctx.conto_parentesi = 0;
+ 	ctx.parentesi = -1;		/* = liv_funzione se sfun corr. e' preceduta da "("*/
+	is_stop = false;		/* se vero e' terminata esecuz. procedura corrente */
 }

@@ -70,7 +70,7 @@ export type Context = {
 	in_liv_proc: number; // val. in. liv_procedura in PAUSA/RECUPERA
 	liv_funzione: number; // nest globale delle funzioni
 	in_liv_funzione: number; // val. in. liv_funzione in PAUSA/RECUPERA
-	funzione: SystemFunction | null; // command key + command definition
+	funzione: SystemFunction | UserFunction | null; // command key + command definition
 	liv_esecuzione: number; // nest dei blocchi in proc. corrente
 	val_verifica: boolean | null; // valore ultima condizione verificata
 	conto_esegui: number;
@@ -92,8 +92,15 @@ export type Context = {
 
 // Tipi per i comandi
 export type SystemFunction = {
-  coreKey: CoreDefinitionKeys;
-  definition: CommandDef;
+	type: CellType;
+	coreKey: CoreDefinitionKeys;
+	definition: CommandDef;
+};
+
+export type UserFunction = {
+	type: CellType;
+	name: string;
+	definition: ProcedureDef;
 };
 
 // Tipi per i comandi
@@ -109,7 +116,7 @@ export type CommandDef = {
 
 export type ProcedureDef = {
 	parameters: string[];
-	body: any[][]
+	body: any[][];
 }
 
 // Tipi per i parametri di configurazione
