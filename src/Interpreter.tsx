@@ -16,7 +16,7 @@ import { LanguageCode } from './UseLocalization';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
 import { shared_globalState, shared_dispatch } from './LogoShell';
 import { Parse, getCharClass, CharClass } from './Parser';
-import { contesti, liv_contesto, liv_analisi, v_stack, push_arg, ini_exec, sf_in, sf_out } from './LogoControl';
+import { contesti, liv_contesto, liv_analisi, v_stack, push_arg, ini_exec, sf_in, sf_out, uf_in, uf_call, uf_ret } from './LogoControl';
 import { isProcedureDefinition } from './LogoDefine';
 
 export var mod_parola: ModParola;// modalita' di esecuzione di una parola LOGO
@@ -36,7 +36,7 @@ var is_ciao: boolean;			/* eseguito comando "ciao" */
 export var globalVariables: Record<string, any> = {
 //	'colore': 'red',
 };
-export var userProcedures: Record<string, any> = {
+export var userProcedures: Record<string, ProcedureDef> = {
 //	'quadrato': { parameters: ['lato'], 'body': [Parse('ripeti 4 [a :lato d 90]')]}
 };
 
@@ -72,7 +72,8 @@ export function logoInterpreter(line: string, { resolveCommand }: InterpreterPro
 	var i_cell = 0;
 	mod_parola = ModParola.VERB;		// parola non preceduta da modificatore
 	while ((i_cell < l_linea) && (!isProcedureDefinition)) {
-		i_cell = valuta_token(ctx, i_cell);	// eseguito per ogni token
+		// i_cell = valuta_token(ctx, i_cell);	// eseguito per ogni token
+		i_cell = valuta_token(ctx, ctx.linea_com, i_cell);	// eseguito per ogni token
 	}
 
 	if (v_stack.length)
@@ -81,15 +82,15 @@ export function logoInterpreter(line: string, { resolveCommand }: InterpreterPro
     	return `OK: Eseguito riga di comando.`;
 }
 
-export function valuta_token(ctx: Context, i_cell: number): number {
+export function valuta_token(ctx: Context, block: Cell[], i_cell: number): number {
 	console.log('valuta_token', i_cell);
-	const l_linea: number = ctx.linea_com.length;
+	// const l_linea: number = ctx.linea_com.length;
+	const l_linea: number = block.length;
 	var locale: number;
 	var numeric: number;
 	var values: any[] = [];
     var coreKey: CoreDefinitionKeys;
     var definition: CommandDef | ProcedureDef;
-    var definition_args: any[];
     var signature: number;
     var result = null;
     var cell;
@@ -97,7 +98,8 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 	// if (i_cell >= l_linea) {
 	//	is_finito = true;
 	// } else {
-		cell = ctx.linea_com[i_cell];
+		// cell = ctx.linea_com[i_cell];
+		cell = block[i_cell];
 		i_cell+= 1;
 	    switch (cell.type) {
 			case CellType.QUOTE:
@@ -126,14 +128,15 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 					    if (coreKey) {
 					        definition = CORE_DEFINITIONS[coreKey];
 					        ctx.funzione = { type: CellType.SFUN, coreKey: coreKey, definition: definition};
-					        console.log(coreKey, definition);
+					        console.log('SFUN', coreKey, definition);
 					        // ctx.liv_funzione += 1;
 					        // ctx.n_arg_attesi = definition.args.length;
 							sf_in(ctx, definition);
     					}
-    					else if (verb in userProcedures.keys) {
-							var definition = userProcedures[verb];
+    					else if (Object.keys(userProcedures).includes(verb)) {
+							var definition: ProcedureDef = userProcedures[verb];
 							ctx.funzione = { type: CellType.UFUN, name: verb, definition: definition}; 
+					        console.log('UFUN', verb, definition);
 							uf_in(ctx, definition);
 						}
 					} 
@@ -223,7 +226,9 @@ export function valuta_token(ctx: Context, i_cell: number): number {
 			}
 		}
 		else if (ctx.funzione.type === CellType.UFUN) {
+			console.log('valuta_token UFUN', ctx.n_arg_trovati, ctx.n_arg_attesi);
 			uf_call(ctx);
+			uf_ret(ctx);
 		}
 	// }
 	return i_cell;

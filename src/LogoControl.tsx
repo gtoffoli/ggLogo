@@ -50,6 +50,15 @@ export function _REPEAT(ctx: Context, values: any[]): void {
 	// is_ripeti = true;
 }
 
+function block_exec(ctx: Context, blocco: Cell[]): void {
+	const l_blocco = blocco.length;
+  	var i_cell = 0;
+	while (i_cell < l_blocco) {
+		console.log('block_exec', i_cell, blocco);
+		i_cell = valuta_token(ctx, blocco, i_cell);	// eseguito per ogni token
+	}
+}
+
 // function _esegui (node id): void {
 function _esegui(ctx: Context, blocco: Cell[]): void {
 	// push_sc (id);
@@ -60,13 +69,13 @@ function _esegui(ctx: Context, blocco: Cell[]): void {
 	push_contesto(ctx, CT_TOP);
 	ctx = contesti[liv_contesto];
 	ini_valuta(ctx);
-	ctx.linea_com = blocco;
+	// ctx.linea_com = blocco;
 	const l_blocco = blocco.length;
   	var i_cell = 0;
 	// while (! is_finito) {
 	while (i_cell < l_blocco) {
 		console.log('_esegui', i_cell, ctx.linea_com);
-		i_cell = valuta_token(ctx, i_cell);	// eseguito per ogni token
+		i_cell = valuta_token(ctx, blocco, i_cell);	// eseguito per ogni token
 	}
   	pop_contesto(ctx);
 }
@@ -194,24 +203,23 @@ export function sf_in(ctx: Context, def: CommandDef): void {
 }
 
 // uscita della valutazione di una System Function
-export function sf_out(ctx: Context, def: CommandDef): void {
+export function sf_out(ctx: Context): void {
 	f_out(ctx);
 }
 
 // ingresso nella valutazione di una User Function
 export function uf_in(ctx: Context, definition: ProcedureDef): void {
+	console.log('UF_IN', definition);
 	f_in(ctx);
-	ctx.n_arg_attesi = definition.arguments.length;
+	ctx.n_arg_attesi = definition.parameters.length;
 }
 
 // inizia l' esecuzione di una procedura LOGO con push di uno stack-frame
 export function uf_call(ctx: Context): void {
-  	// int i;
-  	// int locale;
-	// get_uf (&lista_arg, &corpo, funzione);
-	// n_argomenti = lstlen (lista_arg);
-	var parameters = ctx.funzione.definition.parameters;
-	n_argomenti = parameters.length;
+	const parameters = ctx.funzione.definition.parameters;
+	const body = ctx.funzione.definition.body;
+	const n_parameters = parameters.length;
+	var argomenti: any[] = [];
 	/*riconosce eventuale ricorsione di coda :*/
 	/* e proc. da attivare coincide con proc.attiva */
     // push_sc (ini_token);
@@ -223,11 +231,13 @@ export function uf_call(ctx: Context): void {
     push_sc(ctx.liv_esecuzione);	/* 3 */
     push_sc(n_locali);				/* 4: salva conto esterno variabili locali */
     n_locali = 0;       			/* reinizializza conto variabili locali */
-    push_sc(n_argomenti);			/* 5: ultimo elemento di STACK-FRAME */
-                    /* binding di argomenti con salvataggio vecchio binding */
-    for (var i=1; i <= n_argomenti; ++i) push_sc(pop_sv()); /* temporary inverted stack */
-    for (var i=1; i <= n_argomenti; ++i)
-		pushloc(parameters[i], pop_sc());
+    push_sc(n_parameters);			/* 5: ultimo elemento di STACK-FRAME */
+	// svuota stack argomenti e ne copia il valore in locale
+    for (var i=0; i<n_parameters; ++i)
+		argomenti.push(pop_sv().val);
+	// binding temporaneo degli argomenti con salvataggio vecchio binding
+    for (var i=0; i < n_parameters; ++i)
+		pushloc(parameters[i], argomenti[n_parameters-i-1]);
     // tr_comando();		/* ATTENZIONE : usa oltre top di c_stack */
     stk_funzioni[++ctx.liv_procedura] = ctx.funzione;
     stk_livelli[ctx.liv_procedura] = ctx.liv_funzione;
@@ -243,10 +253,15 @@ export function uf_call(ctx: Context): void {
 	ctx.RepTotal = 0;
 	ctx.val_verifica = false;
 	ctx.funzione = null;
+	for (var i=0; i<body.length; i++) {
+		console.log('uf_call', i);
+		block_exec(ctx, body[i]);
+	}
+		
 }
 
 // finalizza l' esecuzione di una procedura LOGO con pop di uno stack-frame
-function uf_ret(ctx: Context): void {
+export function uf_ret(ctx: Context): void {
   var procedura;
   // var loc_1, loc_2;
   // loc_1 = err_token;
@@ -292,11 +307,12 @@ function uf_ret(ctx: Context): void {
   ---------------------------------------------------------------------------*/
 function pushloc(parola: string, nuovo_valore: any): void {
 	var vecchio_valore;
-	if (parola in globalVariables.keys)
+	if (Object.keys(globalVariables).includes(parola))
 		vecchio_valore = globalVariables[parola];
 	else
 		vecchio_valore = null;
 	globalVariables[parola] = nuovo_valore;
+	console.log('PUSHLOC', parola, nuovo_valore, globalVariables);
 	push_sv(parola);
 	push_sv(vecchio_valore);
 }
@@ -319,6 +335,7 @@ function poploc(ctx: Context, n: number): void {
 	    parola = pop_sv();
 	    if (valore)
 	    	globalVariables[parola] = valore;
+		console.log('POPLOC', parola, valore, globalVariables);
 	};
 	if (ctx.n_arg_trovati != 0)
 		push_sv(risultato);

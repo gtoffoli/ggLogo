@@ -75,6 +75,7 @@ export async function _TO(ctx: Context, values: any[], i_cell: number): void {
     } while (s.toUpperCase() !== 'END');
     var procedureDef = {parameters: parameters, body: procedureBody};
 	userProcedures[procedureName] = procedureDef;
+	console.log('_TO - userProcedures:', userProcedures, Object.keys(userProcedures));
 	isProcedureDefinition = false;
 	sf_out(ctx);    
 	console.log(`Procedura ${procedureName} definita come`, procedureDef);
