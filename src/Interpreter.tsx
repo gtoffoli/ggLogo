@@ -6,6 +6,7 @@
 // 251114 - dry command execution in auxiliary functions of Intepreter
 // 251115 - integration of command execution with CommandDef (added the ref field)
 // 251116 - imported some shared values retrieved by LogoShell through React-specific functions
+// 251129 - propagation downward of resolveCommand also to functions in LogoControl module
 
 
 import { ModParola, CellType, Cell, Context, ParamDef } from './CoreDefinitions';
@@ -50,9 +51,9 @@ interface InterpreterProps {
 
 // L'interprete riceve la riga e lo stato/dispatcher
 // export function logoInterpreter(line: string, { globalState, dispatch, activeLang, resolveCommand }: InterpreterProps): string | any[]
-export function logoInterpreter(line: string, { resolveCommand }: InterpreterProps): string | any[]
+export function logoInterpreter(activeLang: LanguageCode, line: string, { resolveCommand }: InterpreterProps): string | any[]
 {
-	console.log('logoInterpreter', resolveCommand);
+	console.log('logoInterpreter', activeLang, resolveCommand);
 	// from Ilmain.execute()
 	if (liv_analisi > 0) {
 		ini_exec ();
@@ -72,8 +73,7 @@ export function logoInterpreter(line: string, { resolveCommand }: InterpreterPro
 	var i_cell = 0;
 	mod_parola = ModParola.VERB;		// parola non preceduta da modificatore
 	while ((i_cell < l_linea) && (!isProcedureDefinition)) {
-		// i_cell = valuta_token(ctx, i_cell);	// eseguito per ogni token
-		i_cell = valuta_token(ctx, ctx.linea_com, i_cell);	// eseguito per ogni token
+		i_cell = valuta_token(ctx, ctx.linea_com, i_cell, resolveCommand);	// eseguito per ogni token
 	}
 
 	if (v_stack.length)
@@ -82,7 +82,7 @@ export function logoInterpreter(line: string, { resolveCommand }: InterpreterPro
     	return `OK: Eseguito riga di comando.`;
 }
 
-export function valuta_token(ctx: Context, block: Cell[], i_cell: number): number {
+export function valuta_token(ctx: Context, block: Cell[], i_cell: number, resolveCommand): number {
 	console.log('valuta_token', i_cell);
 	// const l_linea: number = ctx.linea_com.length;
 	const l_linea: number = block.length;
@@ -166,8 +166,11 @@ export function valuta_token(ctx: Context, block: Cell[], i_cell: number): numbe
 				// i_cell = 100;
 				return 1000;	// a number bigger than any command length
 			}
-			else if ((definition.classes & FunClass.EXEC) || (definition.classes & FunClass.DEF)) {
+			else if (definition.classes & FunClass.DEF) {
 				definition.ref(ctx, values);
+			}
+			else if (definition.classes & FunClass.EXEC) {
+				definition.ref(ctx, values, resolveCommand);
 			}
 			else if (definition.classes & FunClass.TURT) {
 			    const activeWin = shared_globalState.windows[shared_globalState.activeWindowId];
@@ -227,23 +230,9 @@ export function valuta_token(ctx: Context, block: Cell[], i_cell: number): numbe
 		}
 		else if (ctx.funzione.type === CellType.UFUN) {
 			console.log('valuta_token UFUN', ctx.n_arg_trovati, ctx.n_arg_attesi);
-			uf_call(ctx);
+			uf_call(ctx, resolveCommand);
 			uf_ret(ctx);
 		}
 	// }
 	return i_cell;
-}
-
-// questa funzione duplica una funzione interna a UseLocalization.useLocalization
-function resolveCommand(commandName: string): CoreDefinitionKeys | undefined {
-    const canonicalName = commandName.toUpperCase(); // Prepara il nome per la ricerca
-
-    // 1. Cerca il nome utente all'interno della mappa linguistica attiva
-    const coreKey: CoreDefinitionKeys | undefined = LANGUAGE_MAPS["it"][canonicalName];
-
-    if (coreKey && CORE_DEFINITIONS[coreKey]) {
-        return coreKey;
-    }
-    // Se non trovato, potrebbe essere un comando non tradotto o non valido
-    return undefined;
 }

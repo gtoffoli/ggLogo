@@ -1,5 +1,6 @@
 // LogoControl.tsx
 // 251116 - 1st version: inspired to Ilcontro.cpp of IperLogo
+// 251129 - of resolveCommand also to functions calling valuta_token
 
 import { devCode, devType, contextType, Context, Cell, CommandDef, ModParola, ProcedureDef } from './CoreDefinitions';
 import { valuta_token, globalVariables, userProcedures } from './Interpreter';
@@ -39,28 +40,28 @@ var stk_livelli: any[] = [];		// stack di camm. att. dur.esecuz. (blocchi) ?? */
 export function _NOP(): void  {
 }
 
-export function _REPEAT(ctx: Context, values: any[]): void {
+export function _REPEAT(ctx: Context, values: any[], resolveCommand): void {
 	console.log('function _REPEAT', values[0],values[1]);
 	// ctx.conto_esegui = values[0];
 	var n_repeat = values[0];
 	var blocco = values[1];
 	console.log('function _REPEAT', n_repeat, blocco);
 	for (var i=0; i<n_repeat; i++)
-		_esegui(ctx, blocco);
+		_esegui(ctx, blocco, resolveCommand);
 	// is_ripeti = true;
 }
 
-function block_exec(ctx: Context, blocco: Cell[]): void {
+function block_exec(ctx: Context, blocco: Cell[], resolveCommand): void {
 	const l_blocco = blocco.length;
   	var i_cell = 0;
 	while (i_cell < l_blocco) {
 		console.log('block_exec', i_cell, blocco);
-		i_cell = valuta_token(ctx, blocco, i_cell);	// eseguito per ogni token
+		i_cell = valuta_token(ctx, blocco, i_cell, resolveCommand);	// eseguito per ogni token
 	}
 }
 
 // function _esegui (node id): void {
-function _esegui(ctx: Context, blocco: Cell[]): void {
+function _esegui(ctx: Context, blocco: Cell[], resolveCommand): void {
 	// push_sc (id);
 	// push_sc (token);
 	// token = blocco;
@@ -75,7 +76,7 @@ function _esegui(ctx: Context, blocco: Cell[]): void {
 	// while (! is_finito) {
 	while (i_cell < l_blocco) {
 		console.log('_esegui', i_cell, ctx.linea_com);
-		i_cell = valuta_token(ctx, blocco, i_cell);	// eseguito per ogni token
+		i_cell = valuta_token(ctx, blocco, i_cell, resolveCommand);	// eseguito per ogni token
 	}
   	pop_contesto(ctx);
 }
@@ -215,7 +216,7 @@ export function uf_in(ctx: Context, definition: ProcedureDef): void {
 }
 
 // inizia l' esecuzione di una procedura LOGO con push di uno stack-frame
-export function uf_call(ctx: Context): void {
+export function uf_call(ctx: Context, resolveCommand): void {
 	const parameters = ctx.funzione.definition.parameters;
 	const body = ctx.funzione.definition.body;
 	const n_parameters = parameters.length;
@@ -255,7 +256,7 @@ export function uf_call(ctx: Context): void {
 	ctx.funzione = null;
 	for (var i=0; i<body.length; i++) {
 		console.log('uf_call', i);
-		block_exec(ctx, body[i]);
+		block_exec(ctx, body[i], resolveCommand);
 	}
 		
 }

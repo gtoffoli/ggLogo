@@ -1,5 +1,6 @@
 // LogoShell.tsx
 // 251016 - new version with Gemini and DeepSeek
+// 251128 - moved PanelContainer for LogoShell to LogoShell module
 
 import React from 'react';
 import "./index.css"; // (da installazione bundle Bum-React)
@@ -12,7 +13,6 @@ import "./style.css"; // (da Gemini)
 // --- DEFINIZIONE DEI MENU (Hook per l'esecuzione dei comandi) ---
 
 const handleCanvasReset = () => { alert('Canvas Reset: La tartaruga verrà riportata a (0,0).'); };
-const handleConsoleClear = () => { alert('Console Clear: La cronologia B verrà cancellata.'); };
 const handleEditorLoad = () => { console.log('Caricamento file LOGO...'); };
 const handleEditorSave = () => { console.log('Salvataggio file LOGO...'); };
 
@@ -25,17 +25,6 @@ const menuA = [
   { label: 'Turtle', submenu: [
     { label: 'Reset Posizione', action: handleCanvasReset },
     { label: 'Mostra/Nascondi', action: () => console.log('Toggle Turtle visibility') },
-  ]},
-];
-
-// Menu per l'Area B (Interprete/Console)
-const menuB = [
-  { label: 'History', submenu: [
-    { label: 'Cancella Log', action: handleConsoleClear },
-    { label: 'Esporta Log', action: () => console.log('Esporta log della console') },
-  ]},
-  { label: 'Commands', submenu: [
-    { label: 'Aiuto (F1)', action: () => alert('Mostra la guida comandi LOGO.') },
   ]},
 ];
 
@@ -59,14 +48,7 @@ const App: React.FC = () => {
     <LogoStateProvider>
      <>
       <div id="area-destra">
-        <PanelContainer
-          id="area-b"
-          title="Command Console"
-          borderColor="#28a745" // Verde
-          menuItems={menuB}
-        >
-          <LogoShell />
-        </PanelContainer>
+        <LogoShell />
         <PanelContainer
           id="area-c"
           title="Procedure Editor"

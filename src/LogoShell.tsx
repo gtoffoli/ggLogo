@@ -3,14 +3,17 @@
 // 251024 - moved logoInterpreter to module Interpreter
 // 251104 - call to useLocalization; executeCommand passes activeLang and resolveCommand to logoInterpreter
 // 251116 - shared and exported some const retrieved through React-specific functions
+// 251129 - new Language menu
 
 import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
+import PanelContainer from './PanelContainer';
 import { LogoGlobalState } from './LogoState';
-import { useLocalization } from './UseLocalization';
+import { useLocalization, LanguageCode } from './UseLocalization';
 import { logoInterpreter } from './Interpreter';
 import { useLogoState, useLogoDispatch } from './LogoStateContext';
 import { ini_main, ini_exec } from './LogoControl';
 
+export var shared_language: LanguageCode;
 export var shared_globalState: LogoGlobalState;
 export var shared_dispatch: (action: any) => void;
 
@@ -90,7 +93,7 @@ const LogoShell: React.FC = () => {
 
 	    // const result = logoInterpreter(command);
 	    // Invoca l'interprete con lo stato e il dispatcher
-	    const result = logoInterpreter(command, { resolveCommand });
+	    const result = logoInterpreter(activeLang, command, { resolveCommand });
 	
 	    // ... logica di visualizzazione del risultato (result) ...
 	    console.log("Risultato interprete:", result);
@@ -121,7 +124,40 @@ const LogoShell: React.FC = () => {
     }
   };
 
+  const handleConsoleClear = () => { alert('Console Clear: La cronologia B verrà cancellata.'); };
+
+    // Azione 1: Imposta la lingua (usa l'hook di localizzazione)
+    const handleSetLanguage = (lang: LanguageCode) => {
+        setLanguage(lang); // Questa funzione aggiorna lo stato della lingua
+        shared_language = lang;
+        // Opzionale: Aggiungi un messaggio di sistema alla console history
+        // dispatch({ type: 'SYSTEM_MESSAGE', text: `Lingua impostata su: ${lang.toUpperCase()}` }); 
+    };
+
+  // Menu per l'Area B (Interprete/Console)
+  const menuB = [
+    { label: 'History', submenu: [
+      { label: 'Cancella Log', action: handleConsoleClear },
+      { label: 'Esporta Log', action: () => console.log('Esporta log della console') },
+    ]},
+        // Menu Lingua (Dynamic)
+        { label: 'Language', submenu: [
+            { label: 'Italiano', action: () => handleSetLanguage('it'), active: activeLang === 'it' },
+            { label: 'English', action: () => handleSetLanguage('en'), active: activeLang === 'en' },
+            // Aggiungi altre lingue qui
+        ]},
+    { label: 'Commands', submenu: [
+      { label: 'Aiuto (F1)', action: () => alert('Mostra la guida comandi LOGO.') },
+    ]},
+  ];
+
   return (
+    <PanelContainer
+      id="area-b"
+      title="Command Console"
+      borderColor="#28a745" // Verde
+      menuItems={menuB}
+    >
     <div style={{ 
         backgroundColor: '#000', 
         color: '#0f0', 
@@ -164,6 +200,7 @@ const LogoShell: React.FC = () => {
         />
       </div>
     </div>
+    </PanelContainer>
   );
 };
 
