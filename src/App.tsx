@@ -10,36 +10,6 @@ import Canvas from './TurtleCanvas'; // Il tuo componente A (da DeepSeek)
 import Editor from './LogoEditor'; // Il tuo componente C (da DeepSeek)
 import "./style.css"; // (da Gemini)
 
-// --- DEFINIZIONE DEI MENU (Hook per l'esecuzione dei comandi) ---
-
-const handleCanvasReset = () => { alert('Canvas Reset: La tartaruga verrà riportata a (0,0).'); };
-const handleEditorLoad = () => { console.log('Caricamento file LOGO...'); };
-const handleEditorSave = () => { console.log('Salvataggio file LOGO...'); };
-
-// Menu per l'Area A (Canvas/Grafica)
-const menuA = [
-  { label: 'File', submenu: [
-    { label: 'Salva Immagine', action: () => alert('Salvataggio Canvas...') },
-    { label: 'Stampa', action: () => alert('Stampa Canvas...') },
-  ]},
-  { label: 'Turtle', submenu: [
-    { label: 'Reset Posizione', action: handleCanvasReset },
-    { label: 'Mostra/Nascondi', action: () => console.log('Toggle Turtle visibility') },
-  ]},
-];
-
-// Menu per l'Area C (Editor LOGO)
-const menuC = [
-  { label: 'File', submenu: [
-    { label: 'Nuovo', action: () => console.log('Nuovo file') },
-    { label: 'Carica...', action: handleEditorLoad },
-    { label: 'Salva', action: handleEditorSave },
-  ]},
-  { label: 'Run', submenu: [
-    { label: 'Esegui Editor', action: () => alert('Esecuzione del codice nell\'Editor...') },
-  ]},
-];
-
 import { LogoStateProvider } from './LogoStateContext';
 
 const App: React.FC = () => {
@@ -49,23 +19,9 @@ const App: React.FC = () => {
      <>
       <div id="area-destra">
         <LogoShell />
-        <PanelContainer
-          id="area-c"
-          title="Procedure Editor"
-          borderColor="#ff8c00" // Arancione
-          menuItems={menuC}
-        >
-          <Editor /> 
-        </PanelContainer>
+        <Editor /> 
       </div>
-      <PanelContainer
-        id="area-a"
-        title="Turtle Graphics"
-        borderColor="#007bff" // Blu
-        menuItems={menuA}
-      >
-        <Canvas windowId="TARTA" />
-      </PanelContainer>
+      <Canvas windowId="TARTA" />
      </>
     </LogoStateProvider>
   );

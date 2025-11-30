@@ -124,6 +124,8 @@ const LogoShell: React.FC = () => {
     }
   };
 
+// --- DEFINIZIONE DEI MENU (Hook per l'esecuzione dei comandi) ---
+
   const handleConsoleClear = () => { alert('Console Clear: La cronologia B verrà cancellata.'); };
 
     // Azione 1: Imposta la lingua (usa l'hook di localizzazione)

@@ -6,7 +6,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { useLogoDispatch, useLogoState } from './LogoStateContext';
-// import { LogoStateProvider } from './LogoStateContext';
+import PanelContainer from './PanelContainer';
 // ... importa DrawingCommand, GraphicWindowState, etc.
 
 interface TurtleCanvasProps {
@@ -106,11 +106,34 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
 
     }, [windowState]); // Ridisegna ogni volta che lo stato della finestra cambia
 
+  // --- DEFINIZIONE DEI MENU (Hook per l'esecuzione dei comandi) ---
+
+  const handleCanvasReset = () => { alert('Canvas Reset: La tartaruga verrà riportata a (0,0).'); };
+
+  // Menu per l'Area A (Canvas/Grafica)
+  const menuA = [
+  { label: 'File', submenu: [
+    { label: 'Salva Immagine', action: () => alert('Salvataggio Canvas...') },
+    { label: 'Stampa', action: () => alert('Stampa Canvas...') },
+  ]},
+  { label: 'Turtle', submenu: [
+    { label: 'Reset Posizione', action: handleCanvasReset },
+    { label: 'Mostra/Nascondi', action: () => console.log('Toggle Turtle visibility') },
+  ]},
+  ];
+
     return (
+      <PanelContainer
+        id="area-a"
+        title="Turtle Graphics"
+        borderColor="#007bff" // Blu
+        menuItems={menuA}
+      >
         <canvas 
             ref={canvasRef} 
             style={{ width: '100%', height: '100%', display: 'block' }} 
         />
+      </PanelContainer>
     );
 };
 
