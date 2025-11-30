@@ -91,9 +91,8 @@ const LogoShell: React.FC = () => {
 	    // 2. Esegui il comando tramite l'interprete
 	    console.log(command);
 
-	    // const result = logoInterpreter(command);
 	    // Invoca l'interprete con lo stato e il dispatcher
-	    const result = logoInterpreter(activeLang, command, { resolveCommand });
+	    const result = logoInterpreter(activeLang, [command], { resolveCommand });
 	
 	    // ... logica di visualizzazione del risultato (result) ...
 	    console.log("Risultato interprete:", result);
@@ -124,9 +123,33 @@ const LogoShell: React.FC = () => {
     }
   };
 
-// --- DEFINIZIONE DEI MENU (Hook per l'esecuzione dei comandi) ---
+  // --- DEFINIZIONE DEI MENU (Hook per l'esecuzione dei comandi) ---
 
   const handleConsoleClear = () => { alert('Console Clear: La cronologia B verrà cancellata.'); };
+
+    // Azione 2: Recupera (simula l'apertura del file dialog)
+    const handleFileRetrieve = () => {
+        // Logica per aprire un input file nascosto
+        const fileInput = document.getElementById('logo-file-input') as HTMLInputElement;
+        fileInput?.click();
+    };
+
+  const [text, setText] = useState('');
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const textOutput = document.getElementById('editor-area');
+        const text = e.target.result;
+        textOutput.value += text;
+        var lines = text.split('\n');
+        const result = logoInterpreter(activeLang, lines, { resolveCommand });
+      };
+      reader.readAsText(file);
+    }
+  };
 
     // Azione 1: Imposta la lingua (usa l'hook di localizzazione)
     const handleSetLanguage = (lang: LanguageCode) => {
@@ -138,19 +161,24 @@ const LogoShell: React.FC = () => {
 
   // Menu per l'Area B (Interprete/Console)
   const menuB = [
+	// Menu File
+	{ label: 'File', submenu: [
+	  { label: 'Recupera...', action: handleFileRetrieve },
+	  { label: 'Conserva come...', action: () => alert('Salva...') },
+	]},
     { label: 'History', submenu: [
       { label: 'Cancella Log', action: handleConsoleClear },
       { label: 'Esporta Log', action: () => console.log('Esporta log della console') },
     ]},
-        // Menu Lingua (Dynamic)
-        { label: 'Language', submenu: [
-            { label: 'Italiano', action: () => handleSetLanguage('it'), active: activeLang === 'it' },
-            { label: 'English', action: () => handleSetLanguage('en'), active: activeLang === 'en' },
-            // Aggiungi altre lingue qui
-        ]},
     { label: 'Commands', submenu: [
       { label: 'Aiuto (F1)', action: () => alert('Mostra la guida comandi LOGO.') },
     ]},
+        // Menu Lingua (Dynamic)
+	{ label: 'Language', submenu: [
+	  { label: 'Italiano', action: () => handleSetLanguage('it'), active: activeLang === 'it' },
+	  { label: 'English', action: () => handleSetLanguage('en'), active: activeLang === 'en' },
+      // Aggiungi altre lingue qui
+	]},
   ];
 
   return (
@@ -201,6 +229,7 @@ const LogoShell: React.FC = () => {
           placeholder="Enter your LOGO command..."
         />
       </div>
+      <input type="file" id='logo-file-input'  accept=".txt" onChange={handleFileChange} style={{ display: 'none' }} />
     </div>
     </PanelContainer>
   );

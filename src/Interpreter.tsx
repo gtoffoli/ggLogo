@@ -50,8 +50,7 @@ interface InterpreterProps {
 }
 
 // L'interprete riceve la riga e lo stato/dispatcher
-// export function logoInterpreter(line: string, { globalState, dispatch, activeLang, resolveCommand }: InterpreterProps): string | any[]
-export function logoInterpreter(activeLang: LanguageCode, line: string, { resolveCommand }: InterpreterProps): string | any[]
+export function logoInterpreter(activeLang: LanguageCode, lines: string[], { resolveCommand }: InterpreterProps): string | any[]
 {
 	console.log('logoInterpreter', activeLang, resolveCommand);
 	// from Ilmain.execute()
@@ -62,6 +61,10 @@ export function logoInterpreter(activeLang: LanguageCode, line: string, { resolv
 	}
 
 	const ctx: Context = contesti[liv_contesto];
+	var line;
+
+  for (var i_line=0; i_line<lines.length; i_line++) {
+	line = lines[i_line];
 
     // 1. Tokenizzazione
     const cells = Parse(line); // La tua funzione di tokenizzazione e analisi
@@ -75,6 +78,7 @@ export function logoInterpreter(activeLang: LanguageCode, line: string, { resolv
 	while ((i_cell < l_linea) && (!isProcedureDefinition)) {
 		i_cell = valuta_token(ctx, ctx.linea_com, i_cell, resolveCommand);	// eseguito per ogni token
 	}
+  }
 
 	if (v_stack.length)
 		return v_stack;

@@ -34,6 +34,7 @@ const Editor: React.FC = () => {
   >
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <textarea
+        id="editor-area"
         value={code}
         onChange={(e) => setCode(e.target.value)}
         style={{ flex: 1, background: '#1e1e1e', color: 'white', border: 'none', padding: '10px' }}

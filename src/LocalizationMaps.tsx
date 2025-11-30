@@ -69,6 +69,7 @@ export const EN_MAP: LanguageMap = {
   "REPEAT": "REPEAT",
   "PRINT": "PRINT",
   "PENCOLOR": "PENCOLOR",
+  "SETPENCOLOR": "SETPENCOLOR",
   "TURTLESIZE": "TURTLESIZE",
 };
 
