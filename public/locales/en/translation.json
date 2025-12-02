@@ -1,0 +1,11 @@
+{
+  "menu": {
+    "file": "File",
+    "language": "Language...",
+    "retrieve": "Retrieve..."
+  },
+  "messages": {
+    "startup_message": "Interprete caricato. Digita '{{helpCmd}}' per aiuto.",
+    "error_not_recognized": "Comando non riconosciuto in {{lang}}"
+  }
+}

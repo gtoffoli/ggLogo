@@ -6,6 +6,9 @@
 // 251129 - new Language menu
 
 import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
+// import i18n from 'i18next';
+import './i18n';
+import { useTranslation } from 'react-i18next';
 import PanelContainer from './PanelContainer';
 import { LogoGlobalState } from './LogoState';
 import { useLocalization, LanguageCode } from './UseLocalization';
@@ -13,7 +16,6 @@ import { logoInterpreter } from './Interpreter';
 import { useLogoState, useLogoDispatch } from './LogoStateContext';
 import { ini_main, ini_exec } from './LogoControl';
 
-export var shared_language: LanguageCode;
 export var shared_globalState: LogoGlobalState;
 export var shared_dispatch: (action: any) => void;
 
@@ -151,10 +153,14 @@ const LogoShell: React.FC = () => {
     }
   };
 
+  // 't' è la funzione di traduzione
+  const { t, i18n } = useTranslation();
+
     // Azione 1: Imposta la lingua (usa l'hook di localizzazione)
-    const handleSetLanguage = (lang: LanguageCode) => {
-        setLanguage(lang); // Questa funzione aggiorna lo stato della lingua
-        shared_language = lang;
+    const handleSetLanguage = (langCode: LanguageCode) => {
+        setLanguage(langCode); // Questa funzione aggiorna lo stato della lingua usato da LocalizationMaps
+        i18n.changeLanguage(langCode);
+        // changeLanguage(langCode); // Questa funzione aggiorna lo stato della lingua usato da i18n
         // Opzionale: Aggiungi un messaggio di sistema alla console history
         // dispatch({ type: 'SYSTEM_MESSAGE', text: `Lingua impostata su: ${lang.toUpperCase()}` }); 
     };
@@ -163,7 +169,7 @@ const LogoShell: React.FC = () => {
   const menuB = [
 	// Menu File
 	{ label: 'File', submenu: [
-	  { label: 'Recupera...', action: handleFileRetrieve },
+	  { label: t('menu.retrieve'), action: handleFileRetrieve },
 	  { label: 'Conserva come...', action: () => alert('Salva...') },
 	]},
     { label: 'History', submenu: [
@@ -174,7 +180,7 @@ const LogoShell: React.FC = () => {
       { label: 'Aiuto (F1)', action: () => alert('Mostra la guida comandi LOGO.') },
     ]},
         // Menu Lingua (Dynamic)
-	{ label: 'Language', submenu: [
+	{ label: t('menu.language'), submenu: [
 	  { label: 'Italiano', action: () => handleSetLanguage('it'), active: activeLang === 'it' },
 	  { label: 'English', action: () => handleSetLanguage('en'), active: activeLang === 'en' },
       // Aggiungi altre lingue qui
