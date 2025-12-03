@@ -13,7 +13,6 @@ import Editor from './LogoEditor'; // Il tuo componente C (da DeepSeek)
 import "./style.css"; // (da Gemini)
 
 import { LogoStateProvider } from './LogoStateContext';
-import './i18n';
 
 const App: React.FC = () => {
   return (

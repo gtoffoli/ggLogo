@@ -170,14 +170,14 @@ const LogoShell: React.FC = () => {
 	// Menu File
 	{ label: 'File', submenu: [
 	  { label: t('menu.retrieve'), action: handleFileRetrieve },
-	  { label: 'Conserva come...', action: () => alert('Salva...') },
+	  { label: t('menu.save'), action: () => alert('Salva...') },
 	]},
-    { label: 'History', submenu: [
-      { label: 'Cancella Log', action: handleConsoleClear },
-      { label: 'Esporta Log', action: () => console.log('Esporta log della console') },
+    { label: t('menu.history'), submenu: [
+      { label: t('menu.delete'), action: handleConsoleClear },
+      { label: t('menu.export'), action: () => console.log('Esporta log della console') },
     ]},
-    { label: 'Commands', submenu: [
-      { label: 'Aiuto (F1)', action: () => alert('Mostra la guida comandi LOGO.') },
+    { label: t('menu.commands'), submenu: [
+      { label: t('menu.help'), action: () => alert('Mostra la guida comandi LOGO.') },
     ]},
         // Menu Lingua (Dynamic)
 	{ label: t('menu.language'), submenu: [

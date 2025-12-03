@@ -1,8 +1,14 @@
 {
   "menu": {
     "file": "File",
-    "language": "Lingua...",
-    "retrieve": "Recupera..."
+    "retrieve": "Recupera..",
+    "save": "Salva come..",
+    "history": "Storia",
+    "delete": "Cancella",
+    "export": "Esporta",
+    "commands": "Comandi",
+    "help": "Aiuto",
+    "language": "Lingua.."
   },
   "messages": {
     "startup_message": "Interprete caricato. Digita '{{helpCmd}}' per aiuto.",
