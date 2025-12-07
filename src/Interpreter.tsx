@@ -17,7 +17,8 @@ import { LanguageCode } from './UseLocalization';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
 import { shared_globalState, shared_dispatch } from './LogoShell';
 import { Parse, getCharClass, CharClass } from './Parser';
-import { contesti, liv_contesto, liv_analisi, v_stack, push_arg, ini_exec, sf_in, sf_out, uf_in, uf_call, uf_ret } from './LogoControl';
+import { contesti, liv_contesto, liv_analisi, v_stack, blocco } from './LogoControl';
+import { push_arg, ini_exec, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_out } from './LogoControl';
 import { isProcedureDefinition } from './LogoDefine';
 
 export var mod_parola: ModParola;// modalita' di esecuzione di una parola LOGO
@@ -52,60 +53,65 @@ interface InterpreterProps {
 // L'interprete riceve la riga e lo stato/dispatcher
 export function logoInterpreter(activeLang: LanguageCode, lines: string[], { resolveCommand }: InterpreterProps): string | any[]
 {
-	console.log('logoInterpreter', activeLang, resolveCommand);
+	console.log('logoInterpreter', activeLang);
 	// from Ilmain.execute()
 	if (liv_analisi > 0) {
 		ini_exec ();
-		mod_parola = ModParola.VERB;		/* parola non preceduta da modificatore*/
+		mod_parola = ModParola.VERB;		// parola non preceduta da modificatore
 		return 'parentesi non chiuse';
 	}
 
 	const ctx: Context = contesti[liv_contesto];
-	var line;
-
-  for (var i_line=0; i_line<lines.length; i_line++) {
-	line = lines[i_line];
 
     // 1. Tokenizzazione
-    const cells = Parse(line); // La tua funzione di tokenizzazione e analisi
-	const l_linea = cells.length;
-    console.log('cells:', cells);
-    if (cells.length === 0) return "";
-	ctx.linea_com = cells;
-
-	var i_cell = 0;
 	mod_parola = ModParola.VERB;		// parola non preceduta da modificatore
-	while ((i_cell < l_linea) && (!isProcedureDefinition)) {
-		i_cell = valuta_token(ctx, ctx.linea_com, i_cell, resolveCommand);	// eseguito per ogni token
-	}
-  }
+	for (var i_line=0; i_line<lines.length; i_line++)
+		ctx.block.push(Parse(lines[i_line]));
+
+	valuta_token(resolveCommand);
 
 	if (v_stack.length)
-		return v_stack;
+	return v_stack;
 	else
-    	return `OK: Eseguito riga di comando.`;
+	return `OK: Eseguito riga di comando.`;
 }
 
-export function valuta_token(ctx: Context, block: Cell[], i_cell: number, resolveCommand): number {
-	console.log('valuta_token', i_cell);
-	// const l_linea: number = ctx.linea_com.length;
-	const l_linea: number = block.length;
+export function valuta_token(resolveCommand) {
+	var ctx: Context = contesti[liv_contesto];
+
 	var locale: number;
 	var numeric: number;
-	var values: any[] = [];
     var coreKey: CoreDefinitionKeys;
     var definition: CommandDef | ProcedureDef;
     var signature: number;
     var result = null;
-    var cell;
+     
+    while (true) {
+console.log('valuta_token', ctx.i_line, ctx.i_token, ctx.block);
+console.log('- conto_esegui', ctx.conto_esegui);
+console.log('-- conto_parentesi', ctx.conto_parentesi);
+		if (ctx.i_token >= ctx.block[ctx.i_line].length) {
+			ctx.i_line += 1;
+			if (ctx.i_line >= ctx.block.length)
+				if (ctx.liv_esecuzione > 0) {
+					console.log('valuta_token - blk_out 0', ctx.block, ctx.i_line, ctx.i_token);
+					blk_out(ctx);
+					console.log('valuta_token - blk_out 1', ctx.block, ctx.i_line, ctx.i_token);
+					ctx = contesti[liv_contesto];
+					console.log('valuta_token - blk_out 2', ctx.block, ctx.i_line, ctx.i_token);
+					// return;
+				}
+				else {
+					// is_finito = true
+					return;
+				}
+		}
 
-	// if (i_cell >= l_linea) {
-	//	is_finito = true;
-	// } else {
-		// cell = ctx.linea_com[i_cell];
-		cell = block[i_cell];
-		i_cell+= 1;
-	    switch (cell.type) {
+		var cell = ctx.block[ctx.i_line][ctx.i_token];
+	  	if (ctx.i_token === 0)
+	  		mod_parola = ModParola.VERB;		// parola non preceduta da modificatore
+		console.log('token', ctx.block, ctx.i_line, ctx.i_token, cell, cell.val, mod_parola);
+		switch (cell.type) {
 			case CellType.QUOTE:
 				if (cell.val === '"')
 					mod_parola = ModParola.LITERAL;
@@ -152,10 +158,13 @@ export function valuta_token(ctx: Context, block: Cell[], i_cell: number, resolv
 				push_arg(cell);
 				break;
 		}
-		console.log(ctx.parentesi, ctx.liv_funzione, ctx.n_arg_trovati, ctx.n_arg_attesi);
-		if ((ctx.funzione) && (ctx.parentesi < ctx.liv_funzione) && (ctx.n_arg_trovati === ctx.n_arg_attesi))
+		ctx.i_token += 1;
+		console.log('funzione?', ctx.funzione, ctx.liv_funzione, ctx.parentesi, ctx.n_arg_trovati, ctx.n_arg_attesi);
+		// if ((ctx.funzione) && (ctx.parentesi < ctx.liv_funzione) && (ctx.n_arg_trovati === ctx.n_arg_attesi))
+		if ((ctx.funzione) && (ctx.n_arg_trovati === ctx.n_arg_attesi))
 		  if (ctx.funzione.type === CellType.SFUN) {
 			console.log('eseguo FUNZIONE', ctx.funzione);
+			var values: any[] = [];
 			for (var i=0; i<ctx.n_arg_trovati; i++) {
 				values.push(v_stack.pop().val);
 				values.reverse();
@@ -164,17 +173,17 @@ export function valuta_token(ctx: Context, block: Cell[], i_cell: number, resolv
 			definition = ctx.funzione.definition;
 			signature = definition.signature;
 			var is_function = ((signature !== undefined) && (signature || FunSignature.FUNCT));
+			var is_exec = false;
 			if (ctx.funzione.coreKey === 'TO') {
-				definition.ref(ctx, values, i_cell-1);
-				//is_finito = true;
-				// i_cell = 100;
-				return 1000;	// a number bigger than any command length
+				ctx.i_token -= 1;
+				definition.ref(ctx, values);
 			}
 			else if (definition.classes & FunClass.DEF) {
 				definition.ref(ctx, values);
 			}
 			else if (definition.classes & FunClass.EXEC) {
-				definition.ref(ctx, values, resolveCommand);
+				definition.ref(ctx, values);
+				is_exec = true;
 			}
 			else if (definition.classes & FunClass.TURT) {
 			    const activeWin = shared_globalState.windows[shared_globalState.activeWindowId];
@@ -225,7 +234,8 @@ export function valuta_token(ctx: Context, block: Cell[], i_cell: number, resolv
 				else
 					definition.ref(values);
 			}
-			if (!isProcedureDefinition)
+			// if (!isProcedureDefinition)
+			if ((!isProcedureDefinition) && (!is_exec)) // in alcuni casi, come REPEAT, sf_out viene anticipato
 				sf_out(ctx);
 			if (result !== null) {
 				push_arg(result);
@@ -237,6 +247,5 @@ export function valuta_token(ctx: Context, block: Cell[], i_cell: number, resolv
 			uf_call(ctx, resolveCommand);
 			uf_ret(ctx);
 		}
-	// }
-	return i_cell;
+	}
 }

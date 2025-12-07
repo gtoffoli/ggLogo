@@ -78,7 +78,7 @@ export type Context = {
 	RepTotal: number;
 	// token: Cell | null;
 	// ini_token:  Cell | null;
-	token: number | null;
+	i_token: number;
 	ini_token:  number | null;
 	n_arg_attesi: number; // numero di parametri atteso dalla funzione corrente
 	n_arg_trovati: number; // numero di oggetti sullo stack per la fun corrente
@@ -88,6 +88,8 @@ export type Context = {
 	p_sv: number;
 	ini_p_sv: number;
 	linea_com: Cell[];
+	block: Cell[][];
+	i_line: number;
 };
 
 // Tipi per i comandi

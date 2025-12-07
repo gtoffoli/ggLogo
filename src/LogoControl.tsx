@@ -18,7 +18,7 @@ const ID_RUNRESULT = 2;
 export var contesti: Context[] = [];
 export var liv_contesto: number = 0; /* livello di nidificazione dei contesti */
 
-var blocco: Cell[] = [];
+export var blocco: Cell[] = [];
 var ha_blocco_valore: boolean = false;
 var is_ripeti: boolean = false;
 var is_funzione: boolean = false;
@@ -40,45 +40,26 @@ var stk_livelli: any[] = [];		// stack di camm. att. dur.esecuz. (blocchi) ?? */
 export function _NOP(): void  {
 }
 
-export function _REPEAT(ctx: Context, values: any[], resolveCommand): void {
-	console.log('function _REPEAT', values[0],values[1]);
-	// ctx.conto_esegui = values[0];
-	var n_repeat = values[0];
-	var blocco = values[1];
-	console.log('function _REPEAT', n_repeat, blocco);
-	for (var i=0; i<n_repeat; i++)
-		_esegui(ctx, blocco, resolveCommand);
-	// is_ripeti = true;
+export function _REPEAT(ctx: Context, values: any[]): void {
+	console.log('function _REPEAT', values[0], values[1]);
+	ctx.conto_esegui = values[0];
+	is_ripeti = true;
+	var block = [values[1]];
+	console.log('function _REPEAT', ctx.conto_esegui, block);
+	sf_out(ctx); // anticipo, per non confliggere con blk_in
+	// _esegui(ctx, block);
+	blk_in(ctx, block, 0);
 }
 
-function block_exec(ctx: Context, blocco: Cell[], resolveCommand): void {
-	const l_blocco = blocco.length;
-  	var i_cell = 0;
-	while (i_cell < l_blocco) {
-		console.log('block_exec', i_cell, blocco);
-		i_cell = valuta_token(ctx, blocco, i_cell, resolveCommand);	// eseguito per ogni token
-	}
+function block_exec(ctx: Context, block: Cell[][]): void {
+	blk_in(ctx, block, 0);
 }
 
-// function _esegui (node id): void {
-function _esegui(ctx: Context, blocco: Cell[], resolveCommand): void {
-	// push_sc (id);
-	// push_sc (token);
-	// token = blocco;
-	// blk_in (ha_blocco_valore && (n_arg_attesi > 0));
-
-	push_contesto(ctx, CT_TOP);
-	ctx = contesti[liv_contesto];
-	ini_valuta(ctx);
-	// ctx.linea_com = blocco;
-	const l_blocco = blocco.length;
-  	var i_cell = 0;
-	// while (! is_finito) {
-	while (i_cell < l_blocco) {
-		console.log('_esegui', i_cell, ctx.linea_com);
-		i_cell = valuta_token(ctx, blocco, i_cell, resolveCommand);	// eseguito per ogni token
-	}
-  	pop_contesto(ctx);
+function _esegui(ctx: Context, block: Cell[][]): void {
+	console.log('_esegui', liv_contesto, ctx.liv_esecuzione, block);
+	push_sc(ctx.i_token);
+	push_sc(ctx.block);
+	blk_in(ctx, block, 0);
 }
 
 function AssertContesto(): void {}
@@ -102,6 +83,7 @@ function pop_sv(): any {
 }
 
 export function push_arg(arg: any): void {
+	console.log('push_arg', arg);
 	const ctx = contesti[liv_contesto];
     ctx.n_arg_trovati += 1;
     v_stack.push(arg);
@@ -119,7 +101,7 @@ function push_contesto(ctx: Context, id: number): void {
 	AssertContesto();
 }
 
-function pop_contesto(ctx: Context): void {
+function pop_contesto(ctx: Context) {
 	var locale: number;
 	AssertContesto();
 	locale = ctx.dev_recupera;
@@ -139,6 +121,7 @@ function pop_contesto(ctx: Context): void {
 
 // salvataggio di parte del contesto sullo stack di controllo
 function pushco(ctx: Context): void {
+	console.log('pushco', ctx);
   AssertContesto();
   push_sc(ctx.conto_parentesi);
   push_sc(ctx.n_arg_trovati);
@@ -157,10 +140,12 @@ function popco(ctx: Context): void {
   ctx.n_arg_trovati = pop_sc();
   ctx.conto_parentesi = pop_sc();
   AssertContesto();
+	console.log('popco', ctx);
 }
 
 // azioni comuni al riconoscimento di un token funzione (sfun o ufun)
 function f_in(ctx: Context): void {
+	console.log('f_in', ctx);
   AssertContesto();
   push_sc(ctx.funzione);
   pushco (ctx);
@@ -174,17 +159,19 @@ function f_in(ctx: Context): void {
 // azioni comuni al termine della valutazione di sfun e ufun
 function f_out (ctx: Context): void {
   AssertContesto();
+	console.log('f_out -> popco');
   popco(ctx);
   ctx.funzione = pop_sc();
   // VALID(funzione);
-  if (is_funzione)
-  		push_arg(pop_sv());
+  // if (is_funzione)
+  //		push_arg(pop_sv());
   --ctx.liv_funzione;
-  if (ctx.conto_esegui > 0)
+  //if (ctx.conto_esegui > 0)
 	//_esegui ((node) idRun);
-	_esegui (ctx, blocco);
+	// _esegui (ctx, blocco);
   // idRun = 0;
   AssertContesto();
+	console.log('f_out', ctx);
 }
 
 // ingresso nella valutazione di una System Function
@@ -201,10 +188,12 @@ export function sf_in(ctx: Context, def: CommandDef): void {
 	n_arg_attesi = N_NOMINALE;
 */
 	ctx.n_arg_attesi = def.args.length;
+	console.log(sf_in, ctx.n_arg_attesi);
 }
 
 // uscita della valutazione di una System Function
 export function sf_out(ctx: Context): void {
+	console.log('sf_out', ctx);
 	f_out(ctx);
 }
 
@@ -216,7 +205,7 @@ export function uf_in(ctx: Context, definition: ProcedureDef): void {
 }
 
 // inizia l' esecuzione di una procedura LOGO con push di uno stack-frame
-export function uf_call(ctx: Context, resolveCommand): void {
+export function uf_call(ctx: Context): void {
 	const parameters = ctx.funzione.definition.parameters;
 	const body = ctx.funzione.definition.body;
 	const n_parameters = parameters.length;
@@ -256,7 +245,7 @@ export function uf_call(ctx: Context, resolveCommand): void {
 	ctx.funzione = null;
 	for (var i=0; i<body.length; i++) {
 		console.log('uf_call', i);
-		block_exec(ctx, body[i], resolveCommand);
+		block_exec(ctx, body[i]);
 	}
 		
 }
@@ -294,7 +283,7 @@ export function uf_ret(ctx: Context): void {
   ctx.RepTotal = pop_sc();
   ctx.RepCount = pop_sc();
   ctx.conto_esegui = pop_sc();		/******************************/
-  ctx.token = pop_sc();				/* 1" elemento di STACK-FRAME */
+  ctx.i_token = pop_sc();				/* 1" elemento di STACK-FRAME */
   ctx.ini_token = pop_sc();
   is_stop = false;
   f_out(ctx);
@@ -346,6 +335,7 @@ function poploc(ctx: Context, n: number): void {
   ingresso in parentesi tonde
   ---------------------------*/
 function parenin(ctx: Context): void {
+	console.log('parenin', ctx);
   push_sc(ctx.funzione);
   funzione = null;
   pushco(ctx);
@@ -360,11 +350,13 @@ function parenin(ctx: Context): void {
   -------------------------*/
 function parenout(ctx: Context, n: number): void {
 	var locale: number;
-	for (var i = 1; i <= n; ++i) {
+	console.log('parenout, n=', n);
+	for (var i=0; i<n; ++i) {
 		if (ctx.n_arg_trovati > 1) {
 			// err2 (12, get_sv (1));
 		}
 		locale = ctx.n_arg_trovati;
+	console.log('parenout -> popco');
 		popco(ctx);
 		ctx.funzione = pop_sc();
 		ctx.n_arg_trovati = ctx.n_arg_trovati + locale;
@@ -372,13 +364,18 @@ function parenout(ctx: Context, n: number): void {
 }
 
 // azioni comuni all' ingresso in un blocco
-function blk_in(ctx: Context, is_arg_atteso: number): void {
+function blk_in(ctx: Context, block: Cell[][], is_arg_atteso: number): void {
+	console.log('blk_in', liv_contesto, ctx.liv_esecuzione, block);
   AssertContesto();
   push_sc(ctx.funzione);
   ctx.funzione = null;
-  push_sc (ctx.ini_token);
-  // err_token = ini_token = token;
-  push_sc(ctx.token);
+  // err_token = 
+  push_sc(ctx.ini_token);
+  ctx.ini_token = ctx.i_token;
+  push_sc(ctx.block);
+  ctx.block = block;
+  push_sc(ctx.i_line);
+  push_sc(ctx.i_token);
   push_sc(ctx.conto_esegui);
   push_sc(ctx.RepCount);
   push_sc(ctx.RepTotal);
@@ -400,19 +397,23 @@ function blk_in(ctx: Context, is_arg_atteso: number): void {
   ctx.conto_esegui = 0;
   ctx.val_verifica = false;
   ctx.n_arg_trovati = 0;
+	ctx.i_line = 0;
+	ctx.i_token = 0;
   AssertContesto();
 }
 
 // azioni comuni all' uscita da un blocco
-function blk_out(ctx: Context): void {
+export function blk_out(ctx: Context): void {
   var OldTotal: number, OldCount: number;
   var locale: number;
   var id: number;
+  var block: Cell[][];
   AssertContesto();
   parenout(ctx, ctx.conto_parentesi);
   poploc(ctx, n_locali);
   n_locali = pop_sc ();
   locale = ctx.n_arg_trovati;
+	console.log('blk_out -> popco');
   popco(ctx);
   ctx.n_arg_trovati = ctx.n_arg_trovati + locale;
   ctx.val_verifica = pop_sc();
@@ -421,22 +422,27 @@ function blk_out(ctx: Context): void {
   ctx.RepTotal = pop_sc();
   ctx.RepCount = pop_sc();
   ctx.conto_esegui = pop_sc();
+  console.log('blk_out - conto_esegui', ctx.conto_esegui)
   if (is_vai)
 	  ctx.conto_esegui = 1;
-  ctx.token = pop_sc();
+  ctx.i_token = pop_sc();
+  ctx.i_line = pop_sc();
+  block = ctx.block;
+  console.log('blk_out - block', ctx.i_token, ctx.i_line, ctx.block)
+  ctx.block = pop_sc();
   ctx.ini_token = pop_sc();
   ctx.funzione = pop_sc ();
   --ctx.liv_esecuzione;
   --ctx.conto_esegui;
   if (ctx.conto_esegui > 0) {
-  	blk_in(ctx, 0);
+  	blk_in(ctx, block, 0);
 	if (OldTotal) {
 		ctx.RepTotal = OldTotal;
 		ctx.RepCount = OldCount + 1;
 	}
   }
   else {
-    ctx.token = pop_sc();
+    ctx.i_token = pop_sc();
     id = pop_sc();
     if (id === ctx.id_contesto)
     	pop_contesto(ctx);
@@ -473,8 +479,8 @@ export function ini_exec(): void {
 		'conto_esegui': 0,
 		'RepCount': 0,
 		'RepTotal': 0,
-		'token': null,
-		'ini_token': null,
+		'i_token': 0,
+		'ini_token': 0,
 		'n_arg_attesi': 0,
 		'n_arg_trovati': 0,
 		'parentesi': -1,
@@ -483,6 +489,8 @@ export function ini_exec(): void {
 		'p_sv': 0,
 		'ini_p_sv' : 0,
 		'linea_com': [],
+		'block': [],
+		'i_line': 0,
 	};
 	ini_valuta(ctx);
 	contesti.push(ctx);
@@ -492,7 +500,9 @@ export function ini_exec(): void {
 }
 
 // inizializzazione parziale di Commander (NestedExec)
-function ini_valuta(ctx: Context): void {			
+function ini_valuta(ctx: Context): void {
+	ctx.i_line = 0;	
+	ctx.i_token = 0;	
 	ctx.funzione = null;	/* nessuna funzione incontrata */
 	ctx.n_arg_attesi = 0;	/* numero di parametri atteso dalla funzione corrente*/
 	ctx.n_arg_trovati = 0;	/* numero di oggetti sullo stack per la fun corrente*/
