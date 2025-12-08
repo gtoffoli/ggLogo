@@ -76,20 +76,14 @@ export type Context = {
 	conto_esegui: number;
 	RepCount: number;
 	RepTotal: number;
-	// token: Cell | null;
-	// ini_token:  Cell | null;
-	i_token: number;
-	ini_token:  number | null;
 	n_arg_attesi: number; // numero di parametri atteso dalla funzione corrente
 	n_arg_trovati: number; // numero di oggetti sullo stack per la fun corrente
 	parentesi: number; // = liv_funzione se sfun corr. e' preceduta da "("
 	conto_parentesi: number;
-	p_sc: number;
-	p_sv: number;
-	ini_p_sv: number;
-	linea_com: Cell[];
 	block: Cell[][];
 	i_line: number;
+	i_token: number;
+	ini_token:  number | null;
 };
 
 // Tipi per i comandi

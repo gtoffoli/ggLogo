@@ -21,26 +21,9 @@ import { contesti, liv_contesto, liv_analisi, v_stack, blocco } from './LogoCont
 import { push_arg, ini_exec, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_out } from './LogoControl';
 import { isProcedureDefinition } from './LogoDefine';
 
+export var globalVariables: Record<string, any> = {};
+export var userProcedures: Record<string, ProcedureDef> = {};
 export var mod_parola: ModParola;// modalita' di esecuzione di una parola LOGO
-var is_riporta: boolean;		// procedura termina con RIPORTA
-var is_interprete: boolean;		/* input e' richiesto da interprete dei comandi */
-var is_analisi: boolean;		/* input e' richiesto tramite analisi */
-var is_prima_linea: boolean;	/* e' prima linea di input */
-var is_errore: boolean;			/* incontrato e ancora non gestito errore */
-var is_ciao: boolean;			/* eseguito comando "ciao" */
-
-// var tipo_token: number;	// tipo del token corrente
-// var val_token: any; 	//
-// var prev_token: Cell;	// eventuale token precedente
-// var next_token: Cell;	// eventuale token successivo
-// var	next_val: any;		// valore di eventuale token succesivo
-
-export var globalVariables: Record<string, any> = {
-//	'colore': 'red',
-};
-export var userProcedures: Record<string, ProcedureDef> = {
-//	'quadrato': { parameters: ['lato'], 'body': [Parse('ripeti 4 [a :lato d 90]')]}
-};
 
 // Presupponiamo di avere accesso allo stato globale (GET) e al dispatcher (SET)
 interface InterpreterProps {
@@ -99,10 +82,13 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 					console.log('valuta_token - blk_out 1', ctx.block, ctx.i_line, ctx.i_token);
 					ctx = contesti[liv_contesto];
 					console.log('valuta_token - blk_out 2', ctx.block, ctx.i_line, ctx.i_token);
-					// return;
+					if (ctx.i_token >= ctx.block[ctx.i_line].length) {
+						ctx.i_line += 1;
+						if (ctx.i_line >= ctx.block.length)
+							return;
+					}
 				}
 				else {
-					// is_finito = true
 					return;
 				}
 		}
@@ -110,7 +96,9 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 		var cell = ctx.block[ctx.i_line][ctx.i_token];
 	  	if (ctx.i_token === 0)
 	  		mod_parola = ModParola.VERB;		// parola non preceduta da modificatore
-		console.log('token', ctx.block, ctx.i_line, ctx.i_token, cell, cell.val, mod_parola);
+		// console.log('token', ctx.block, ctx.i_line, ctx.i_token, cell, cell.val, mod_parola);
+		console.log('token', liv_contesto, ctx.block, ctx.i_line, ctx.i_token, cell, mod_parola);
+		console.log('token', ctx);
 		switch (cell.type) {
 			case CellType.QUOTE:
 				if (cell.val === '"')
@@ -176,7 +164,8 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 			var is_exec = false;
 			if (ctx.funzione.coreKey === 'TO') {
 				ctx.i_token -= 1;
-				definition.ref(ctx, values);
+				definition.ref(ctx, values, ctx.i_token);
+				ctx.i_token = 1000;
 			}
 			else if (definition.classes & FunClass.DEF) {
 				definition.ref(ctx, values);
@@ -235,7 +224,8 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 					definition.ref(values);
 			}
 			// if (!isProcedureDefinition)
-			if ((!isProcedureDefinition) && (!is_exec)) // in alcuni casi, come REPEAT, sf_out viene anticipato
+			// if ((!isProcedureDefinition) && (!is_exec)) // in alcuni casi, come REPEAT, sf_out viene anticipato
+			if (!is_exec)	 // in alcuni casi, come REPEAT, sf_out viene anticipato
 				sf_out(ctx);
 			if (result !== null) {
 				push_arg(result);

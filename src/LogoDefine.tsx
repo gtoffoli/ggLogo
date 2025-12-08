@@ -34,10 +34,9 @@ interface InterpreterDispatch {
 // per "quadrato :lato
 // ripeti 4 [a :lato d 90]
 // end
-export async function _TO(ctx: Context, values: any[], i_cell: number): void {
+export async function _TO(ctx: Context, values: any[]): void {
 	const procedureName = values[0]; // procedure name
-	const lineaCom = ctx.linea_com;
-	const l_linea: number = lineaCom.length;
+	const declaration = ctx.block[0];
 	var cell: Cell;
 	var parameter_expected: boolean = false;
 	var parameters: string[] = []; 		// list of parameter names
@@ -48,9 +47,9 @@ export async function _TO(ctx: Context, values: any[], i_cell: number): void {
 	// check that name is not a reserved string
 	// ..
 	// look for the parameters in the already parsed command line
-	while (i_cell < l_linea) {
-		cell = lineaCom[i_cell];
-		i_cell+= 1;
+	while (ctx.i_token < declaration.length) {
+		cell = declaration[ctx.i_token];
+		ctx.i_token += 1;
 		if ((!parameter_expected) && (cell.type === CellType.QUOTE) && (cell.val === ':')) {
 			parameter_expected = true;
 		}
@@ -77,7 +76,7 @@ export async function _TO(ctx: Context, values: any[], i_cell: number): void {
 	userProcedures[procedureName] = procedureDef;
 	console.log('_TO - userProcedures:', userProcedures, Object.keys(userProcedures));
 	isProcedureDefinition = false;
-	sf_out(ctx);    
+	// sf_out(ctx);    
 	console.log(`Procedura ${procedureName} definita come`, procedureDef);
     
     // Una volta usciti dal loop (trovato END), la Promise è finita.

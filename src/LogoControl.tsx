@@ -111,7 +111,8 @@ function pop_contesto(ctx: Context) {
 	ctx.id_contesto = (liv_contesto == 0) ?
 		0 : (contesti [liv_contesto]).id_contesto;	// contesto 0 e' riservato
 	if (locale != devType.NULL_DEV) {
-    	ctx.linea_com = [];
+    	// ctx.linea_com = [];
+    	ctx.block = [];
     if (   (locale != ctx.dev_recupera)
         && (! (_fstato [locale] & devType.O_FINESTRA))
        ) f_chiudi (locale);
@@ -209,11 +210,12 @@ export function uf_call(ctx: Context): void {
 	const parameters = ctx.funzione.definition.parameters;
 	const body = ctx.funzione.definition.body;
 	const n_parameters = parameters.length;
+console.log('uf_call', parameters, body);
 	var argomenti: any[] = [];
 	/*riconosce eventuale ricorsione di coda :*/
 	/* e proc. da attivare coincide con proc.attiva */
-    // push_sc (ini_token);
-    // push_sc (token);		/* 1" elemento di STACK-FRAME */
+    push_sc(ctx.ini_token);
+    push_sc(ctx.i_token);		/* 1" elemento di STACK-FRAME */
     push_sc(ctx.conto_esegui);	/******************************/
 	push_sc(ctx.RepCount);
 	push_sc(ctx.RepTotal);
@@ -228,11 +230,10 @@ export function uf_call(ctx: Context): void {
 	// binding temporaneo degli argomenti con salvataggio vecchio binding
     for (var i=0; i < n_parameters; ++i)
 		pushloc(parameters[i], argomenti[n_parameters-i-1]);
-    // tr_comando();		/* ATTENZIONE : usa oltre top di c_stack */
-    stk_funzioni[++ctx.liv_procedura] = ctx.funzione;
+	++ctx.liv_procedura;
+    stk_funzioni[ctx.liv_procedura] = ctx.funzione;
     stk_livelli[ctx.liv_procedura] = ctx.liv_funzione;
-	// err_token = ini_token =
-	// token = corpo; 
+	ctx.ini_token = ctx.i_token = 0; 
 	is_stop = false;
 	ctx.liv_esecuzione = 0;
 	ctx.n_arg_attesi = ctx.n_arg_trovati = 0;
@@ -243,31 +244,22 @@ export function uf_call(ctx: Context): void {
 	ctx.RepTotal = 0;
 	ctx.val_verifica = false;
 	ctx.funzione = null;
-	for (var i=0; i<body.length; i++) {
-		console.log('uf_call', i);
-		block_exec(ctx, body[i]);
-	}
-		
+	block_exec(ctx, body);
 }
 
 // finalizza l' esecuzione di una procedura LOGO con pop di uno stack-frame
 export function uf_ret(ctx: Context): void {
   var procedura;
-  // var loc_1, loc_2;
-  // loc_1 = err_token;
-  // loc_2 = token;
   is_funzione = is_riporta;
   is_riporta = false;
-  procedura = stk_funzioni[ctx.liv_procedura--];
+  procedura = stk_funzioni[ctx.liv_procedura];
+  --ctx.liv_procedura;
   while (ctx.liv_esecuzione > 0) {
     if (ctx.conto_parentesi > 0) break;
     blk_out(ctx);
   };
   if (ctx.conto_parentesi > 0) {
-    // err_token = loc_1;
-    // token = loc_2;
     // errore (14, NULLP, NULLP);
-	// BreakOnDebug();
     return;
   };
   if (ctx.n_arg_trovati > ((is_funzione) ? 1 : 0)) {
@@ -441,6 +433,7 @@ export function blk_out(ctx: Context): void {
 		ctx.RepCount = OldCount + 1;
 	}
   }
+/*
   else {
     ctx.i_token = pop_sc();
     id = pop_sc();
@@ -456,6 +449,7 @@ export function blk_out(ctx: Context): void {
 		}
 	} 
   };
+*/
   AssertContesto();
 }
 
@@ -485,10 +479,6 @@ export function ini_exec(): void {
 		'n_arg_trovati': 0,
 		'parentesi': -1,
 		'conto_parentesi': 0,
-		'p_sc': 0,
-		'p_sv': 0,
-		'ini_p_sv' : 0,
-		'linea_com': [],
 		'block': [],
 		'i_line': 0,
 	};
