@@ -17,7 +17,7 @@ import { LanguageCode } from './UseLocalization';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
 import { shared_globalState, shared_dispatch } from './LogoShell';
 import { Parse, getCharClass, CharClass } from './Parser';
-import { contesti, liv_contesto, liv_analisi, v_stack, blocco } from './LogoControl';
+import { contesti, liv_contesto, liv_analisi, v_stack, blocco, is_stop } from './LogoControl';
 import { push_arg, ini_exec, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_out } from './LogoControl';
 import { isProcedureDefinition } from './LogoDefine';
 
@@ -60,7 +60,7 @@ export function logoInterpreter(activeLang: LanguageCode, lines: string[], { res
 }
 
 export function valuta_token(resolveCommand) {
-	var ctx: Context = contesti[liv_contesto];
+	var ctx: Context;
 
 	var locale: number;
 	var numeric: number;
@@ -70,33 +70,38 @@ export function valuta_token(resolveCommand) {
     var result = null;
      
     while (true) {
+		ctx = contesti[liv_contesto];
 console.log('valuta_token', ctx.i_line, ctx.i_token, ctx.block);
 console.log('- conto_esegui', ctx.conto_esegui);
 console.log('-- conto_parentesi', ctx.conto_parentesi);
-		if (ctx.i_token >= ctx.block[ctx.i_line].length) {
-			ctx.i_line += 1;
-			if (ctx.i_line >= ctx.block.length)
-				if (ctx.liv_esecuzione > 0) {
-					console.log('valuta_token - blk_out 0', ctx.block, ctx.i_line, ctx.i_token);
-					blk_out(ctx);
-					console.log('valuta_token - blk_out 1', ctx.block, ctx.i_line, ctx.i_token);
-					ctx = contesti[liv_contesto];
-					console.log('valuta_token - blk_out 2', ctx.block, ctx.i_line, ctx.i_token);
-					if (ctx.i_token >= ctx.block[ctx.i_line].length) {
-						ctx.i_line += 1;
-						if (ctx.i_line >= ctx.block.length)
-							return;
+
+		while (true) {
+			ctx = contesti[liv_contesto];
+			console.log('?????', ctx.block.length, ctx.i_line, ctx.block[ctx.i_line].length, ctx.i_token, ctx.liv_esecuzione, ctx.liv_procedura);
+			if (ctx.i_token >= ctx.block[ctx.i_line].length) {
+				ctx.i_line += 1;
+				// ctx.i_token = 0;
+				if (ctx.i_line >= ctx.block.length) {
+					if (ctx.liv_esecuzione > 0) { // prima chiudo i blocchi interni
+						blk_out(ctx);
+						continue;
+					}
+					else if (ctx.liv_procedura > 0) { // poi chiudo le procedure
+						uf_ret(ctx);
+						continue;
+					}
+					else {
+						return;
 					}
 				}
-				else {
-					return;
-				}
+				else break;
+			}
+			else break;
 		}
 
 		var cell = ctx.block[ctx.i_line][ctx.i_token];
 	  	if (ctx.i_token === 0)
 	  		mod_parola = ModParola.VERB;		// parola non preceduta da modificatore
-		// console.log('token', ctx.block, ctx.i_line, ctx.i_token, cell, cell.val, mod_parola);
 		console.log('token', liv_contesto, ctx.block, ctx.i_line, ctx.i_token, cell, mod_parola);
 		console.log('token', ctx);
 		switch (cell.type) {
@@ -108,34 +113,33 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 				break;
 			case CellType.WORD:
 				if (mod_parola === ModParola.LITERAL) {
-					push_arg(cell);
+					push_arg(ctx, cell);
 				}
 				else if (mod_parola === ModParola.VARIABLE) {
 					cell = {type: CellType.WORD, val: globalVariables[cell.val]};
 					console.log('VARIABILE', cell);
-					push_arg(cell);
+					push_arg(ctx, cell);
 				}
 				else if (mod_parola === ModParola.VERB) {
 					numeric = parseFloat(cell.val);
 					if (! isNaN(numeric)) {
-						push_arg({type: CellType.NUMBER, val: numeric});
+						push_arg(ctx, {type: CellType.NUMBER, val: numeric});
 					}
 					else {
 						var verb = cell.val;
+						var funzione;
 						coreKey = resolveCommand(verb);
 					    if (coreKey) {
 					        definition = CORE_DEFINITIONS[coreKey];
-					        ctx.funzione = { type: CellType.SFUN, coreKey: coreKey, definition: definition};
+					        funzione = { type: CellType.SFUN, coreKey: coreKey, definition: definition};
 					        console.log('SFUN', coreKey, definition);
-					        // ctx.liv_funzione += 1;
-					        // ctx.n_arg_attesi = definition.args.length;
-							sf_in(ctx, definition);
+							sf_in(ctx, funzione);
     					}
     					else if (Object.keys(userProcedures).includes(verb)) {
 							var definition: ProcedureDef = userProcedures[verb];
-							ctx.funzione = { type: CellType.UFUN, name: verb, definition: definition}; 
+							funzione = { type: CellType.UFUN, name: verb, definition: definition}; 
 					        console.log('UFUN', verb, definition);
-							uf_in(ctx, definition);
+							uf_in(ctx, funzione);
 						}
 					} 
 				}
@@ -143,7 +147,7 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 				mod_parola = ModParola.VERB;
 				break;
 			case CellType.LIST:
-				push_arg(cell);
+				push_arg(ctx, cell);
 				break;
 		}
 		ctx.i_token += 1;
@@ -228,14 +232,13 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 			if (!is_exec)	 // in alcuni casi, come REPEAT, sf_out viene anticipato
 				sf_out(ctx);
 			if (result !== null) {
-				push_arg(result);
+				push_arg(ctx, result);
 				ctx.n_arg_trovati += 1;
 			}
 		}
 		else if (ctx.funzione.type === CellType.UFUN) {
 			console.log('valuta_token UFUN', ctx.n_arg_trovati, ctx.n_arg_attesi);
 			uf_call(ctx, resolveCommand);
-			uf_ret(ctx);
 		}
 	}
 }

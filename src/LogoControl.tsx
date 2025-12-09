@@ -52,6 +52,7 @@ export function _REPEAT(ctx: Context, values: any[]): void {
 }
 
 function block_exec(ctx: Context, block: Cell[][]): void {
+	ctx.conto_esegui = 1;
 	blk_in(ctx, block, 0);
 }
 
@@ -62,7 +63,15 @@ function _esegui(ctx: Context, block: Cell[][]): void {
 	blk_in(ctx, block, 0);
 }
 
-function AssertContesto(): void {}
+function AssertContesto(ctx: Context): void {
+	if (! ((ctx.liv_procedura >= 0) && (ctx.liv_funzione >= 0) && (ctx.liv_esecuzione >= 0)
+	    && (ctx.conto_esegui >= 0) && (ctx.n_arg_attesi >= 0) && (ctx.n_arg_trovati >= 0)
+	    && (ctx.liv_procedura < 2) && (ctx.liv_funzione < 3) // solo per test
+	    )) {
+		console.log(ctx);
+		throw new Error("INVALID CONTEXT");
+	}
+}
 
 // push di un valore sullo stack di controllo
 function push_sc (val: any): void {
@@ -82,28 +91,26 @@ function pop_sv(): any {
   return v_stack.pop();
 }
 
-export function push_arg(arg: any): void {
+export function push_arg(ctx: Context, arg: any): void {
 	console.log('push_arg', arg);
-	const ctx = contesti[liv_contesto];
     ctx.n_arg_trovati += 1;
     v_stack.push(arg);
-    ctx.p_sv += 1;
 }
 
 function push_contesto(ctx: Context, id: number): void {
-	AssertContesto();
+	AssertContesto(ctx);
 	ctx.id_contesto = id;
 	// contesti[liv_contesto+1] = contesti[0];
 	contesti.push(ctx)
 	++liv_contesto;
 	ctx = contesti[liv_contesto];
 	ctx.funzione = null;
-	AssertContesto();
+	AssertContesto(ctx);
 }
 
 function pop_contesto(ctx: Context) {
 	var locale: number;
-	AssertContesto();
+	AssertContesto(ctx);
 	locale = ctx.dev_recupera;
   	// trap(liv_contesto > 0);
   	--liv_contesto;
@@ -117,49 +124,49 @@ function pop_contesto(ctx: Context) {
         && (! (_fstato [locale] & devType.O_FINESTRA))
        ) f_chiudi (locale);
 	}
-	AssertContesto();
+	AssertContesto(ctx);
 }
 
 // salvataggio di parte del contesto sullo stack di controllo
 function pushco(ctx: Context): void {
 	console.log('pushco', ctx);
-  AssertContesto();
+  AssertContesto(ctx);
   push_sc(ctx.conto_parentesi);
   push_sc(ctx.n_arg_trovati);
   push_sc(ctx.n_arg_attesi);
   push_sc (ctx.parentesi);
   // push_sc (err_token);
-  AssertContesto();
+  AssertContesto(ctx);
 }
  
 // ripristino di parte del contesto dallo stack di controllo
 function popco(ctx: Context): void {
-  AssertContesto();
+  AssertContesto(ctx);
   // err_token = pop_sc ();
   ctx.parentesi = pop_sc();
   ctx.n_arg_attesi = pop_sc();
   ctx.n_arg_trovati = pop_sc();
   ctx.conto_parentesi = pop_sc();
-  AssertContesto();
+  AssertContesto(ctx);
 	console.log('popco', ctx);
 }
 
 // azioni comuni al riconoscimento di un token funzione (sfun o ufun)
-function f_in(ctx: Context): void {
+function f_in(ctx: Context, funzione): void {
 	console.log('f_in', ctx);
-  AssertContesto();
-  push_sc(ctx.funzione);
-  pushco (ctx);
-  // funzione = val_token;
-  ctx.n_arg_trovati = 0;
-  ++ctx.liv_funzione;
-  // err_token = prev_token;
-  AssertContesto();
+	AssertContesto(ctx);
+	push_sc(funzione);
+	pushco (ctx);
+	ctx.funzione = funzione;
+	ctx.n_arg_trovati = 0;
+	++ctx.liv_funzione;
+	// err_token = prev_token;
+	AssertContesto(ctx);
 }
 
 // azioni comuni al termine della valutazione di sfun e ufun
 function f_out (ctx: Context): void {
-  AssertContesto();
+  AssertContesto(ctx);
 	console.log('f_out -> popco');
   popco(ctx);
   ctx.funzione = pop_sc();
@@ -171,13 +178,13 @@ function f_out (ctx: Context): void {
 	//_esegui ((node) idRun);
 	// _esegui (ctx, blocco);
   // idRun = 0;
-  AssertContesto();
+  AssertContesto(ctx);
 	console.log('f_out', ctx);
 }
 
 // ingresso nella valutazione di una System Function
-export function sf_in(ctx: Context, def: CommandDef): void {
-	f_in(ctx);
+export function sf_in(ctx: Context, funzione: SystemFunction): void {
+	f_in(ctx, funzione);
 /*
 	get_sf (funzione);
 	if (IS_PR_MM)
@@ -188,7 +195,7 @@ export function sf_in(ctx: Context, def: CommandDef): void {
 	) errore (19, funzione, NULLP);	// primitiva non riporta !
 	n_arg_attesi = N_NOMINALE;
 */
-	ctx.n_arg_attesi = def.args.length;
+	ctx.n_arg_attesi = funzione.definition.args.length;
 	console.log(sf_in, ctx.n_arg_attesi);
 }
 
@@ -199,10 +206,10 @@ export function sf_out(ctx: Context): void {
 }
 
 // ingresso nella valutazione di una User Function
-export function uf_in(ctx: Context, definition: ProcedureDef): void {
-	console.log('UF_IN', definition);
-	f_in(ctx);
-	ctx.n_arg_attesi = definition.parameters.length;
+export function uf_in(ctx: Context, funzione: UserFunction): void {
+	console.log('UF_IN', funzione.definition);
+	f_in(ctx, funzione);
+	ctx.n_arg_attesi = funzione.definition.parameters.length;
 }
 
 // inizia l' esecuzione di una procedura LOGO con push di uno stack-frame
@@ -211,11 +218,14 @@ export function uf_call(ctx: Context): void {
 	const body = ctx.funzione.definition.body;
 	const n_parameters = parameters.length;
 console.log('uf_call', parameters, body);
+	AssertContesto(ctx);
 	var argomenti: any[] = [];
 	/*riconosce eventuale ricorsione di coda :*/
 	/* e proc. da attivare coincide con proc.attiva */
+	push_sc(ctx.block);
+	push_sc(ctx.i_line);
+	push_sc(ctx.i_token);
     push_sc(ctx.ini_token);
-    push_sc(ctx.i_token);		/* 1" elemento di STACK-FRAME */
     push_sc(ctx.conto_esegui);	/******************************/
 	push_sc(ctx.RepCount);
 	push_sc(ctx.RepTotal);
@@ -239,46 +249,54 @@ console.log('uf_call', parameters, body);
 	ctx.n_arg_attesi = ctx.n_arg_trovati = 0;
 	ctx.parentesi = -1;
 	ctx.conto_parentesi = 0;
-	ctx.conto_esegui = 0;
+	ctx.conto_esegui = 1;
 	ctx.RepCount = 0;
 	ctx.RepTotal = 0;
 	ctx.val_verifica = false;
 	ctx.funzione = null;
 	block_exec(ctx, body);
+	AssertContesto(ctx);
 }
 
 // finalizza l' esecuzione di una procedura LOGO con pop di uno stack-frame
 export function uf_ret(ctx: Context): void {
-  var procedura;
-  is_funzione = is_riporta;
-  is_riporta = false;
-  procedura = stk_funzioni[ctx.liv_procedura];
-  --ctx.liv_procedura;
-  while (ctx.liv_esecuzione > 0) {
-    if (ctx.conto_parentesi > 0) break;
-    blk_out(ctx);
-  };
-  if (ctx.conto_parentesi > 0) {
-    // errore (14, NULLP, NULLP);
-    return;
-  };
-  if (ctx.n_arg_trovati > ((is_funzione) ? 1 : 0)) {
-	  ++ctx.liv_procedura;
-	  // err2 (12, get_sv (n_arg_trovati));	// va in errore
-	  return;
-  }
-  poploc (ctx, n_locali);			/* spurgo delle variabili locali a procedura */
-  poploc(ctx, pop_sc());			/* 5: spurgo delle variabili argomento */
-  n_locali = pop_sc();				/* 4: numero variabili locali proc. esterna*/
-  ctx.liv_esecuzione = pop_sc();	/* 3 */
-  ctx.val_verifica = pop_sc();		/* 2 */
-  ctx.RepTotal = pop_sc();
-  ctx.RepCount = pop_sc();
-  ctx.conto_esegui = pop_sc();		/******************************/
-  ctx.i_token = pop_sc();				/* 1" elemento di STACK-FRAME */
-  ctx.ini_token = pop_sc();
-  is_stop = false;
-  f_out(ctx);
+	console.log('uf_ret in', ctx.block.length, ctx);
+	var procedura; // valore attualmente non usato
+	AssertContesto(ctx);
+	is_funzione = is_riporta;
+	is_riporta = false;
+	procedura = stk_funzioni[ctx.liv_procedura];
+	--ctx.liv_procedura;
+/*
+	while (ctx.liv_esecuzione > 0) { // ma questo serve?
+		if (ctx.conto_parentesi > 0) break;
+		blk_out(ctx);
+	};
+	if (ctx.conto_parentesi > 0) {
+		// errore (14, NULLP, NULLP);
+		return;
+	};
+	if (ctx.n_arg_trovati > ((is_funzione) ? 1 : 0)) {
+		++ctx.liv_procedura;
+		// err2 (12, get_sv (n_arg_trovati));	// va in errore
+		return;
+	}
+*/
+	poploc (ctx, n_locali);			/* spurgo delle variabili locali a procedura */
+	poploc(ctx, pop_sc());			/* 5: spurgo delle variabili argomento */
+	n_locali = pop_sc();			/* 4: numero variabili locali proc. esterna*/
+	ctx.liv_esecuzione = pop_sc();	/* 3 */
+	ctx.val_verifica = pop_sc();	/* 2 */
+	ctx.RepTotal = pop_sc();
+	ctx.RepCount = pop_sc();
+	ctx.conto_esegui = pop_sc();	/******************************/
+	ctx.ini_token = pop_sc();
+	ctx.i_token = pop_sc();			/* 1" elemento di STACK-FRAME */
+	ctx.i_line = pop_sc();
+	ctx.block = pop_sc();
+	is_stop = false;
+	f_out(ctx);
+	console.log('uf_ret out', ctx.block.length, ctx);
 }
 
 /*-----------------------------------------------------------------------------
@@ -328,13 +346,13 @@ function poploc(ctx: Context, n: number): void {
   ---------------------------*/
 function parenin(ctx: Context): void {
 	console.log('parenin', ctx);
-  push_sc(ctx.funzione);
-  funzione = null;
-  pushco(ctx);
-  ctx.n_arg_attesi = (ctx.n_arg_attesi > 0)? 1: 0;
-  ctx.n_arg_trovati = 0;
-  ctx.parentesi = -1;
-  ++ctx.conto_parentesi;
+	push_sc(ctx.funzione);
+	ctx.funzione = null;
+	pushco(ctx);
+	ctx.n_arg_attesi = (ctx.n_arg_attesi > 0)? 1: 0;
+	ctx.n_arg_trovati = 0;
+	ctx.parentesi = -1;
+	++ctx.conto_parentesi;
 }
 
 /*-------------------------
@@ -358,81 +376,81 @@ function parenout(ctx: Context, n: number): void {
 // azioni comuni all' ingresso in un blocco
 function blk_in(ctx: Context, block: Cell[][], is_arg_atteso: number): void {
 	console.log('blk_in', liv_contesto, ctx.liv_esecuzione, block);
-  AssertContesto();
-  push_sc(ctx.funzione);
-  ctx.funzione = null;
-  // err_token = 
-  push_sc(ctx.ini_token);
-  ctx.ini_token = ctx.i_token;
-  push_sc(ctx.block);
-  ctx.block = block;
-  push_sc(ctx.i_line);
-  push_sc(ctx.i_token);
-  push_sc(ctx.conto_esegui);
-  push_sc(ctx.RepCount);
-  push_sc(ctx.RepTotal);
-  push_sc(ctx.val_verifica);
-  pushco(ctx);
-  ctx.conto_parentesi = 0;
-  ctx.parentesi = -1;
-  ctx.n_arg_attesi = is_arg_atteso;
-  push_sc(n_locali);
-  n_locali = 0;
-  ++ctx.liv_esecuzione;
-  if (is_ripeti) {
+	AssertContesto(ctx);
+	push_sc(ctx.funzione);
+	ctx.funzione = null;
+	// err_token = 
+	push_sc(ctx.ini_token);
+	ctx.ini_token = ctx.i_token;
+	push_sc(ctx.block);
+	ctx.block = block;
+	push_sc(ctx.i_line);
+	push_sc(ctx.i_token);
+	push_sc(ctx.conto_esegui);
+	push_sc(ctx.RepCount);
+	push_sc(ctx.RepTotal);
+	push_sc(ctx.val_verifica);
+	pushco(ctx);
+	ctx.conto_parentesi = 0;
+	ctx.parentesi = -1;
+	ctx.n_arg_attesi = is_arg_atteso;
+	push_sc(n_locali);
+	n_locali = 0;
+	++ctx.liv_esecuzione;
+	if (is_ripeti) {
 	is_ripeti = false;
-  	ctx.RepTotal = ctx.conto_esegui;
-  	ctx.RepCount = 1;
-  } else {
-  	ctx.RepTotal = 0;
-  }
-  ctx.conto_esegui = 0;
-  ctx.val_verifica = false;
-  ctx.n_arg_trovati = 0;
+		ctx.RepTotal = ctx.conto_esegui;
+		ctx.RepCount = 1;
+	} else {
+		ctx.RepTotal = 0;
+	}
+	ctx.conto_esegui = 0;
+	ctx.val_verifica = false;
+	ctx.n_arg_trovati = 0;
 	ctx.i_line = 0;
 	ctx.i_token = 0;
-  AssertContesto();
+	AssertContesto(ctx);
 }
 
 // azioni comuni all' uscita da un blocco
 export function blk_out(ctx: Context): void {
-  var OldTotal: number, OldCount: number;
-  var locale: number;
-  var id: number;
-  var block: Cell[][];
-  AssertContesto();
-  parenout(ctx, ctx.conto_parentesi);
-  poploc(ctx, n_locali);
-  n_locali = pop_sc ();
-  locale = ctx.n_arg_trovati;
+	var OldTotal: number, OldCount: number;
+	var locale: number;
+	var id: number;
+	var block: Cell[][];
+	AssertContesto(ctx);
+	parenout(ctx, ctx.conto_parentesi);
+	poploc(ctx, n_locali);
+	n_locali = pop_sc ();
+	locale = ctx.n_arg_trovati;
 	console.log('blk_out -> popco');
-  popco(ctx);
-  ctx.n_arg_trovati = ctx.n_arg_trovati + locale;
-  ctx.val_verifica = pop_sc();
-  OldTotal = ctx.RepTotal;
-  OldCount = ctx.RepCount;
-  ctx.RepTotal = pop_sc();
-  ctx.RepCount = pop_sc();
-  ctx.conto_esegui = pop_sc();
-  console.log('blk_out - conto_esegui', ctx.conto_esegui)
-  if (is_vai)
-	  ctx.conto_esegui = 1;
-  ctx.i_token = pop_sc();
-  ctx.i_line = pop_sc();
-  block = ctx.block;
-  console.log('blk_out - block', ctx.i_token, ctx.i_line, ctx.block)
-  ctx.block = pop_sc();
-  ctx.ini_token = pop_sc();
-  ctx.funzione = pop_sc ();
-  --ctx.liv_esecuzione;
-  --ctx.conto_esegui;
-  if (ctx.conto_esegui > 0) {
-  	blk_in(ctx, block, 0);
+	popco(ctx);
+	ctx.n_arg_trovati = ctx.n_arg_trovati + locale;
+	ctx.val_verifica = pop_sc();
+	OldTotal = ctx.RepTotal;
+	OldCount = ctx.RepCount;
+	ctx.RepTotal = pop_sc();
+	ctx.RepCount = pop_sc();
+	ctx.conto_esegui = pop_sc();
+	console.log('blk_out - conto_esegui', ctx.conto_esegui)
+	if (is_vai)
+		ctx.conto_esegui = 1;
+	ctx.i_token = pop_sc();
+	ctx.i_line = pop_sc();
+	block = ctx.block;
+	console.log('blk_out - block', ctx.i_token, ctx.i_line, ctx.block)
+	ctx.block = pop_sc();
+	ctx.ini_token = pop_sc();
+	ctx.funzione = pop_sc ();
+	--ctx.liv_esecuzione;
+	--ctx.conto_esegui;
+	if (ctx.conto_esegui > 0) {
+		blk_in(ctx, block, 0);
 	if (OldTotal) {
 		ctx.RepTotal = OldTotal;
 		ctx.RepCount = OldCount + 1;
 	}
-  }
+	}
 /*
   else {
     ctx.i_token = pop_sc();
@@ -450,7 +468,7 @@ export function blk_out(ctx: Context): void {
 	} 
   };
 */
-  AssertContesto();
+	AssertContesto(ctx);
 }
 
 export function ini_main(): void {
