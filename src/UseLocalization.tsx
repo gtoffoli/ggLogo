@@ -16,7 +16,9 @@ type InterpreterContext = {
   // Funzione per commutare la lingua
   setLanguage: (lang: LanguageCode) => void;
   // Funzione per risolvere un comando
-  resolveCommand: (commandName: string) => CoreDefinitionKeys| undefined;
+  resolveCommand: (commandName: string) => CoreDefinitionKeys | undefined;
+  // Funzione per risolvere una generica keyword
+  resolveKeyword: (keyword: string) => string | undefined;
 };
 
 export const useLocalization = (initialLang: LanguageCode = 'it'): InterpreterContext => {
@@ -54,12 +56,23 @@ export const useLocalization = (initialLang: LanguageCode = 'it'): InterpreterCo
     } else {
       console.error(`Lingua non supportata: ${lang}`);
     }
-  };
+  }
+
+  // 4. Funzione di Risoluzione di una Stringa Riservata (keyword)
+  const resolveKeyword = (keyword: string): string => {
+
+    // Cerca la keywors all'interno della mappa linguistica attiva
+    const coreKey: string | undefined = activeMap[keyword.toUpperCase()];
+    
+    // Se non trovato, potrebbe essere una Keyword non tradotta o non valida
+    return (coreKey) ? coreKey : keyword;
+  }
 
   return {
     activeLang,
     activeMap,
     setLanguage,
     resolveCommand,
+    resolveKeyword,
   };
-};
+}

@@ -66,12 +66,11 @@ export async function _TO(ctx: Context, values: any[]): void {
     do {
         // La chiamata ASINCRONA SOSPENDE l'esecuzione qui
         s = await getLine('TO> ', shared_dispatch); 
-        if (s.toUpperCase() !== 'END') {
+        if (s !== 'END') {
 			parsedLine = Parse(s);
             procedureBody.push(parsedLine);
         }
-
-    } while (s.toUpperCase() !== 'END');
+    } while (s !== 'END');
     var procedureDef = {parameters: parameters, body: procedureBody};
 	userProcedures[procedureName] = procedureDef;
 	console.log('_TO - userProcedures:', userProcedures, Object.keys(userProcedures));

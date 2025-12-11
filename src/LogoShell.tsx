@@ -46,7 +46,7 @@ const LogoShell: React.FC = () => {
   // Riferimento per scrollare automaticamente in basso
   const endOfHistoryRef = useRef<HTMLDivElement>(null);
 
-  const { activeLang, activeMap, setLanguage, resolveCommand } = useLocalization('it'); 
+  const { activeLang, activeMap, setLanguage, resolveCommand, resolveKeyword } = useLocalization('it'); 
 
   ini_main();
   ini_exec();
@@ -64,10 +64,11 @@ const LogoShell: React.FC = () => {
 	    // 1. Modalità: C'è qualcuno in attesa (es. la primitiva TO)?
 
         // Verifica la condizione di terminazione del corpo procedura (END)
-        // if (trimmedCommand.toUpperCase() === 'END') {
-        if (command.toUpperCase() === 'END') {
+        // if (command.toUpperCase() === 'END') {
+        var keyword = resolveKeyword(command.trim());
+        if (keyword === 'END') {
             // Risolvi la Promise con la riga "END"
-            globalState.inputWaiter.resolve(command);
+            globalState.inputWaiter.resolve(keyword);
             // Pulisci il waiter (torna al Command Mode)
             dispatch({ type: 'CLEAR_WAITER' });
         } else {
