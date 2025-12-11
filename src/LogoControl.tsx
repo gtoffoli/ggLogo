@@ -217,23 +217,12 @@ export function uf_call(ctx: Context): void {
 	const parameters = ctx.funzione.definition.parameters;
 	const body = ctx.funzione.definition.body;
 	const n_parameters = parameters.length;
-console.log('uf_call', parameters, body);
+console.log('uf_call 1', parameters, body, ctx.block, ctx.block.length, ctx.i_line, ctx.i_token);
 	AssertContesto(ctx);
 	var argomenti: any[] = [];
 	/*riconosce eventuale ricorsione di coda :*/
 	/* e proc. da attivare coincide con proc.attiva */
-	push_sc(ctx.block);
-	push_sc(ctx.i_line);
-	push_sc(ctx.i_token);
-    push_sc(ctx.ini_token);
-    push_sc(ctx.conto_esegui);	/******************************/
-	push_sc(ctx.RepCount);
-	push_sc(ctx.RepTotal);
-    push_sc(ctx.val_verifica);		/* 2 */
-    push_sc(ctx.liv_esecuzione);	/* 3 */
-    push_sc(n_locali);				/* 4: salva conto esterno variabili locali */
-    n_locali = 0;       			/* reinizializza conto variabili locali */
-    push_sc(n_parameters);			/* 5: ultimo elemento di STACK-FRAME */
+    push_sc(n_parameters);
 	// svuota stack argomenti e ne copia il valore in locale
     for (var i=0; i<n_parameters; ++i)
 		argomenti.push(pop_sv().val);
@@ -243,17 +232,8 @@ console.log('uf_call', parameters, body);
 	++ctx.liv_procedura;
     stk_funzioni[ctx.liv_procedura] = ctx.funzione;
     stk_livelli[ctx.liv_procedura] = ctx.liv_funzione;
-	ctx.ini_token = ctx.i_token = 0; 
 	is_stop = false;
-	ctx.liv_esecuzione = 0;
 	ctx.n_arg_attesi = ctx.n_arg_trovati = 0;
-	ctx.parentesi = -1;
-	ctx.conto_parentesi = 0;
-	ctx.conto_esegui = 1;
-	ctx.RepCount = 0;
-	ctx.RepTotal = 0;
-	ctx.val_verifica = false;
-	ctx.funzione = null;
 	block_exec(ctx, body);
 	AssertContesto(ctx);
 }
@@ -267,33 +247,8 @@ export function uf_ret(ctx: Context): void {
 	is_riporta = false;
 	procedura = stk_funzioni[ctx.liv_procedura];
 	--ctx.liv_procedura;
-/*
-	while (ctx.liv_esecuzione > 0) { // ma questo serve?
-		if (ctx.conto_parentesi > 0) break;
-		blk_out(ctx);
-	};
-	if (ctx.conto_parentesi > 0) {
-		// errore (14, NULLP, NULLP);
-		return;
-	};
-	if (ctx.n_arg_trovati > ((is_funzione) ? 1 : 0)) {
-		++ctx.liv_procedura;
-		// err2 (12, get_sv (n_arg_trovati));	// va in errore
-		return;
-	}
-*/
-	poploc (ctx, n_locali);			/* spurgo delle variabili locali a procedura */
-	poploc(ctx, pop_sc());			/* 5: spurgo delle variabili argomento */
-	n_locali = pop_sc();			/* 4: numero variabili locali proc. esterna*/
-	ctx.liv_esecuzione = pop_sc();	/* 3 */
-	ctx.val_verifica = pop_sc();	/* 2 */
-	ctx.RepTotal = pop_sc();
-	ctx.RepCount = pop_sc();
-	ctx.conto_esegui = pop_sc();	/******************************/
-	ctx.ini_token = pop_sc();
-	ctx.i_token = pop_sc();			/* 1" elemento di STACK-FRAME */
-	ctx.i_line = pop_sc();
-	ctx.block = pop_sc();
+	const n_parameters = pop_sc();	// numero delle variabili argomento
+	poploc(ctx, n_parameters);			// spurgo delle variabili argomento
 	is_stop = false;
 	f_out(ctx);
 	console.log('uf_ret out', ctx.block.length, ctx);
@@ -508,9 +463,10 @@ export function ini_exec(): void {
 }
 
 // inizializzazione parziale di Commander (NestedExec)
-function ini_valuta(ctx: Context): void {
+export function ini_valuta(ctx: Context): void {
 	ctx.i_line = 0;	
 	ctx.i_token = 0;	
+	ctx.block = [];	
 	ctx.funzione = null;	/* nessuna funzione incontrata */
 	ctx.n_arg_attesi = 0;	/* numero di parametri atteso dalla funzione corrente*/
 	ctx.n_arg_trovati = 0;	/* numero di oggetti sullo stack per la fun corrente*/

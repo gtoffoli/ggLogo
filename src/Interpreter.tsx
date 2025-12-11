@@ -18,7 +18,7 @@ import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
 import { shared_globalState, shared_dispatch } from './LogoShell';
 import { Parse, getCharClass, CharClass } from './Parser';
 import { contesti, liv_contesto, liv_analisi, v_stack, blocco, is_stop } from './LogoControl';
-import { push_arg, ini_exec, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_out } from './LogoControl';
+import { ini_valuta, push_arg, ini_exec, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_out } from './LogoControl';
 import { isProcedureDefinition } from './LogoDefine';
 
 export var globalVariables: Record<string, any> = {};
@@ -36,7 +36,7 @@ interface InterpreterProps {
 // L'interprete riceve la riga e lo stato/dispatcher
 export function logoInterpreter(activeLang: LanguageCode, lines: string[], { resolveCommand }: InterpreterProps): string | any[]
 {
-	console.log('logoInterpreter', activeLang);
+	console.log('logoInterpreter', activeLang, lines.length);
 	// from Ilmain.execute()
 	if (liv_analisi > 0) {
 		ini_exec ();
@@ -77,10 +77,13 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 
 		while (true) {
 			ctx = contesti[liv_contesto];
-			console.log('?????', ctx.block.length, ctx.i_line, ctx.block[ctx.i_line].length, ctx.i_token, ctx.liv_esecuzione, ctx.liv_procedura);
+			if (ctx.i_line >= ctx.block.length) {
+				ini_valuta(ctx);
+				return;
+			}
+			console.log('?????', ctx.block.length, ctx.block, ctx.i_line, ctx.i_token, ctx.liv_esecuzione, ctx.liv_procedura);
 			if (ctx.i_token >= ctx.block[ctx.i_line].length) {
 				ctx.i_line += 1;
-				// ctx.i_token = 0;
 				if (ctx.i_line >= ctx.block.length) {
 					if (ctx.liv_esecuzione > 0) { // prima chiudo i blocchi interni
 						blk_out(ctx);
@@ -91,10 +94,14 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 						continue;
 					}
 					else {
+						ini_valuta(ctx);
 						return;
 					}
 				}
-				else break;
+				else {
+					ctx.i_token = 0;
+					break;
+				}
 			}
 			else break;
 		}
