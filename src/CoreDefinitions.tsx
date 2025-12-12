@@ -54,6 +54,11 @@ export type Cell = {
   val: any;
 } // | null;
 
+export enum Delimiter {
+	DEL_PARSINISTRA = '(',
+	DEL_PARDESTRA = ')',
+}
+
 // codifica dei tipi di contesto (id_contesto)
 export enum contextType {
 	CT_TOP = 0,			// contesto iniziale (top_level)
@@ -101,10 +106,10 @@ export type UserFunction = {
 
 // Tipi per i comandi
 export type CommandDef = {
-  classes: number;
+  classes: number[];
   signature?: number;
   description?: string;
-  syntax?: string;
+  // syntax?: string;
   args: { name: string; type: 'number' | 'string' | 'boolean' }[];
   semantics?: (args: any[]) => any; // La funzione che esegue il comando
   ref: (args: any) => any; // La funzione che esegue il comando
@@ -137,17 +142,19 @@ export enum FunSignature {
 	FUNCT = 1,
 }
 
-/* codifica di classi di primitiva */
+// codifica di classi di primitiva
 export enum FunClass {
 	TURT = 1,	// IS_PR_TARTA: turtle function
 	EDIT = 2,	// IS_PR_FOGLIO: edit function
-	TOPL = 4,	// IS_PR_TOP: can be executed only at top level
-	PROC = 8,	// IS_PR_PROC: can be executed only inside a procedure
-	TXOU = 16,	// IS_PR_SCRIVI: writes on screen
-	EXEC = 32,	// IS_PR_ESEGUI: execution control
-	DEF = 64,	// IS_PR_DEF: Variable or ptocedure definition
-	PGUI = 128,	// IS_PR_GUI: graphic UI building
-	PMCI = 256	// IS_PR_MM: not used?
+	TOPL = 3,	// IS_PR_TOP: can be executed only at top level
+	PROC = 4,	// IS_PR_PROC: can be executed only inside a procedure
+	TXOU = 5,	// IS_PR_SCRIVI: writes on screen
+	EXEC = 6,	// IS_PR_ESEGUI: execution control
+	DEF = 7,	// IS_PR_DEF: Variable or procedure definition
+	OPER = 8, // infix operator
+	PGUI = 9,	// IS_PR_GUI: graphic UI building
+	PMCI = 10,	// IS_PR_MM: not used?
+	BOUNDLESS = 11	// no bound for # of arguments inside parentheses
 }
 
 export const turtleStrokes = ['CS', 'FD', 'BK',];
@@ -156,141 +163,101 @@ export const turtleStrokes = ['CS', 'FD', 'BK',];
 export const CORE_DEFINITIONS = {
   // --- Comandi LOGO ---
   HOME: {
-    classes: FunClass.TURT,
-    description: "Resetta posizione e direzione della tartaruga.",
-    syntax: "HOME",
-    args: [],
-    semantics: () => console.log(`HOME: Reseta posizione e direzione della tartaruga.`),
+    classes: [FunClass.TURT],
+    // description: "Resetta posizione e direzione della tartaruga.",
     ref: _HOME,
   } as CommandDef,
   CS: {
-    classes: FunClass.TURT,
-    description: "Pulisce lo schermo.",
-    syntax: "CS",
-    args: [],
-    semantics: () => console.log(`CS: Pulisci lo schermo.`),
+    classes: [FunClass.TURT],
+    // description: "Pulisce lo schermo.",
     ref: _CS,
   } as CommandDef,
   FD: {
-    classes: FunClass.TURT,
-    description: "Muove la tartaruga in avanti.",
-    syntax: "FD <distanza>",
+    classes: [FunClass.TURT],
+    // description: "Muove la tartaruga in avanti.",
     args: [{ name: "distanza", type: 'number' }],
-    semantics: (args) => console.log(`FD: Muovi ${args[0]} unità.`),
     ref: _FD,
   } as CommandDef,
   BK: {
-    classes: FunClass.TURT,
-    description: "Muove la tartaruga all'indietro (back).",
-    syntax: "BK <distanza>",
+    classes: [FunClass.TURT],
+    // description: "Muove la tartaruga all'indietro (back).",
     args: [{ name: "distanza", type: 'number' }],
-    semantics: (args) => console.log(`BK: Muovi ${args[0]} unità.`),
     ref: _BK,
   } as CommandDef,
   RT: {
-    classes: FunClass.TURT,
-    description: "Ruota la tartaruga a destra.",
-    syntax: "RT <angolo>",
+    classes: [FunClass.TURT],
+    // description: "Ruota la tartaruga a destra.",
     args: [{ name: "angolo", type: 'number' }],
-    semantics: (args) => console.log(`RT: Ruota di ${args[0]} radianti.`),
     ref: _RT,
   } as CommandDef,
   LT: {
-    classes: FunClass.TURT,
-    description: "Ruota la tartaruga a sinistra.",
-    syntax: "LT <angolo>",
+    classes: [FunClass.TURT],
+    // description: "Ruota la tartaruga a sinistra.",
     args: [{ name: "angolo", type: 'number' }],
-    semantics: (args) => console.log(`LT: Ruota di ${args[0]} radianti.`),
     ref: _LT,
   } as CommandDef,
   PENCOLOR: {
-    classes: FunClass.TURT,
+    classes: [FunClass.TURT],
     signature: FunSignature.FUNCT,
-    description: "Riporta il colore della penna.",
-    syntax: "PENCOLOR",
-    args: [],
-    semantics: () => console.log(`PENCOLOR: Riporta il colore della penna.`),
+    // description: "Riporta il colore della penna.",
     ref: _PENCOLOR,
   } as CommandDef,
   SETPENCOLOR: {
-    classes: FunClass.TURT,
-    description: "Assegna il colore della penna.",
-    syntax: "SETPENCOLOR <colore>",
+    classes: [FunClass.TURT],
+    // description: "Assegna il colore della penna.",
     args: [{ name: "colore", type: 'string' }],
-    semantics: (args) => console.log(`SETPENCOLOR: Assegna alla penna il colore ${args[0]}.`),
     ref: _SETPENCOLOR,
   } as CommandDef,
   PENUP: {
-    classes: FunClass.TURT,
-    description: "Solleva la penna.",
-    syntax: "PENUP",
-    args: [],
-    semantics: () => console.log(`PENUP: Solleva la penna.`),
+    classes: [FunClass.TURT],
+    // description: "Solleva la penna.",
     ref: _PENUP,
   } as CommandDef,
   PENDOWN: {
-    classes: FunClass.TURT,
-    description: "Abbassa la penna.",
-    syntax: "_PENDOWN",
-    args: [],
-    semantics: () => console.log(`PENDOWN: Abbassa la penna.`),
+    classes: [FunClass.TURT],
+    // description: "Abbassa la penna.",
     ref: _PENDOWN,
   } as CommandDef,
   SET: {
-    classes: FunClass.DEF,
-    description: "Assegna valore a nome.",
-    syntax: "SET <nome> <valore>",
+    classes: [FunClass.DEF],
+    // description: "Assegna valore a nome.",
     args: [{ name: "nome", type: 'string' }, { name: "valore", type: 'any'}],
-    semantics: (args) => console.log(`SET: Assegna il valore ${args[1]} a ${args[0]}.`),
     ref: _SET,
   } as CommandDef,
   DEFINE: {
-    classes: FunClass.DEF,
-    description: "Assegna valore a nome di procedura.",
-    syntax: "DEFINE <nome> <valore>",
+    classes: [FunClass.DEF],
+    // description: "Assegna valore a nome di procedura.",
     args: [{ name: "nome", type: 'string' }, { name: "valore", type: 'any'}],
-    semantics: (args) => console.log(`DEFINE: Assegna il valore ${args[1]} a ${args[0]}.`),
     ref: _DEFINE,
   } as CommandDef,
   TO: {
-    classes: FunClass.DEF,
-    description: "Inizializza la definizione di una procedura.",
-    syntax: "TO <nome>",
+    classes: [FunClass.DEF],
+    // description: "Inizializza la definizione di una procedura.",
     args: [{ name: "nome", type: 'string' }],
-    semantics: (args) => console.log(`TO: Inizializza la definizione della procedura ${args[0]}.`),
     ref: _TO,
   } as CommandDef,
   END: {
-    classes: FunClass.DEF,
-    description: "Termina la definizione di una procedura.",
-    syntax: "END",
-    args: [],
-    semantics: () => console.log(`END: Termina la definizione di una procedura.`),
+    classes: [FunClass.DEF],
+    // description: "Termina la definizione di una procedura.",
     ref: _END,
   } as CommandDef,
   TEXT: {
-    classes: FunClass.DEF,
+    classes: [FunClass.DEF],
     signature: FunSignature.FUNCT,
-    description: "Riporta la definizione di una procedura.",
-    syntax: "TEXT <nome>",
+    // description: "Riporta la definizione di una procedura.",
     args: [{ name: "nome", type: 'string' }],
-    semantics: (args) => console.log(`TEXT: Riporta la definizione della procedura ${args[0]}.`),
     ref: _TEXT,
   } as CommandDef,
   REPEAT: {
-    classes: FunClass.EXEC,
-    description: "Ripete una lista di comandi.",
-    syntax: "REPEAT <volte> <comandi>",
+    classes: [FunClass.EXEC],
+    // description: "Ripete una lista di comandi.",
     args: [{ name: "volte", type: 'number' }, { name: "comandi", type: 'list'}],
-    semantics: (args) => console.log(`_REPEAT: Ripete ${args[0]} volte una lista di comandi.`),
     ref: _REPEAT,
   } as CommandDef,
   PRINT: {
-    classes: FunClass.TXOU,
-    description: "Visualizza un valore nella console.",
-    syntax: "PRINT <valore>",
+    classes: [FunClass.TXOU],
+    // description: "Visualizza un valore nella console.",
     args: [{ name: "valore", type: 'string' }],
-    semantics: (args) => console.log(`Output: ${args[0]}`),
     ref: _NOP,
   } as CommandDef,
 /*

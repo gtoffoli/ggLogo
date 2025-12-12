@@ -9,7 +9,7 @@
 // 251129 - propagation downward of resolveCommand also to functions in LogoControl module
 
 
-import { ModParola, CellType, Cell, Context, ParamDef } from './CoreDefinitions';
+import { ModParola, CellType, Delimiter, Cell, Context, ParamDef } from './CoreDefinitions';
 import { SystemFunction, CORE_DEFINITIONS, CommandDef, CoreDefinitionKeys, FunClass, FunSignature, turtleStrokes } from './CoreDefinitions';
 import { UserFunction, ProcedureDef } from './CoreDefinitions';
 import { LANGUAGE_MAPS } from './LocalizationMaps';
@@ -17,8 +17,8 @@ import { LANGUAGE_MAPS } from './LocalizationMaps';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
 import { shared_globalState, shared_dispatch } from './LogoShell';
 import { Parse, getCharClass, CharClass } from './Parser';
-import { contesti, liv_contesto, liv_analisi, v_stack, blocco, is_stop } from './LogoControl';
-import { ini_valuta, push_arg, ini_exec, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_out } from './LogoControl';
+import { contesti, liv_contesto, liv_analisi, v_stack, is_stop } from './LogoControl';
+import { ini_valuta, push_arg, ini_exec, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_out, parenin, parenout } from './LogoControl';
 import { isProcedureDefinition } from './LogoDefine';
 
 export var globalVariables: Record<string, any> = {};
@@ -112,6 +112,9 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 		console.log('token', liv_contesto, ctx.block, ctx.i_line, ctx.i_token, cell, mod_parola);
 		console.log('token', ctx);
 		switch (cell.type) {
+			case CellType.LIST:
+				push_arg(ctx, cell);
+				break;
 			case CellType.QUOTE:
 				if (cell.val === '"')
 					mod_parola = ModParola.LITERAL;
@@ -153,9 +156,25 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 				locale = mod_parola;
 				mod_parola = ModParola.VERB;
 				break;
-			case CellType.LIST:
-				push_arg(ctx, cell);
-				break;
+			case CellType.OPERATOR:
+				switch (cell.val) {
+					case Delimiter.DEL_PARSINISTRA:
+						parenin(ctx);
+						break;
+					case Delimiter.DEL_PARDESTRA:
+						parenout(ctx);
+						break;
+					default: // infix operator: + - * / ^  = < >
+						coreKey = resolveCommand(cell.val);
+					    if (coreKey) {
+					        definition = CORE_DEFINITIONS[coreKey];
+					        funzione = { type: CellType.SFUN, coreKey: coreKey, definition: definition};
+					        console.log('OPERATOR', cell.val, coreKey, definition);
+							sf_in(ctx, funzione); // come gestire operando precedente? come gestire +/- prefissi?
+						}
+						break;
+				}
+				 
 		}
 		ctx.i_token += 1;
 		console.log('funzione?', ctx.funzione, ctx.liv_funzione, ctx.parentesi, ctx.n_arg_trovati, ctx.n_arg_attesi);
@@ -173,19 +192,23 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 			signature = definition.signature;
 			var is_function = ((signature !== undefined) && (signature || FunSignature.FUNCT));
 			var is_exec = false;
+			var classes = definition.classes || [];
 			if (ctx.funzione.coreKey === 'TO') {
 				ctx.i_token -= 1;
 				definition.ref(ctx, values, ctx.i_token);
 				ctx.i_token = 1000;
 			}
-			else if (definition.classes & FunClass.DEF) {
+			// else if (definition.classes & FunClass.DEF) {
+			else if (classes.includes(FunClass.DEF)) {
 				definition.ref(ctx, values);
 			}
-			else if (definition.classes & FunClass.EXEC) {
+			// else if (definition.classes & FunClass.EXEC) {
+			else if (classes.includes(FunClass.EXEC)) {
 				definition.ref(ctx, values);
 				is_exec = true;
 			}
-			else if (definition.classes & FunClass.TURT) {
+			// else if (definition.classes & FunClass.TURT) {
+			else if (classes.includes(FunClass.TURT)) {
 			    const activeWin = shared_globalState.windows[shared_globalState.activeWindowId];
 			    if (!activeWin)
 					console.log("ERRORE: Nessuna finestra grafica attiva.");

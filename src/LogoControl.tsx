@@ -18,7 +18,6 @@ const ID_RUNRESULT = 2;
 export var contesti: Context[] = [];
 export var liv_contesto: number = 0; /* livello di nidificazione dei contesti */
 
-export var blocco: Cell[] = [];
 var ha_blocco_valore: boolean = false;
 var is_ripeti: boolean = false;
 var is_funzione: boolean = false;
@@ -195,7 +194,9 @@ export function sf_in(ctx: Context, funzione: SystemFunction): void {
 	) errore (19, funzione, NULLP);	// primitiva non riporta !
 	n_arg_attesi = N_NOMINALE;
 */
-	ctx.n_arg_attesi = funzione.definition.args.length;
+	// ctx.n_arg_attesi = funzione.definition.args.length;
+    const args = funzione.definition.args;
+    ctx.n_arg_attesi = (args) ? args.length : 0;
 	console.log(sf_in, ctx.n_arg_attesi);
 }
 
@@ -299,7 +300,7 @@ function poploc(ctx: Context, n: number): void {
 /*---------------------------
   ingresso in parentesi tonde
   ---------------------------*/
-function parenin(ctx: Context): void {
+export function parenin(ctx: Context): void {
 	console.log('parenin', ctx);
 	push_sc(ctx.funzione);
 	ctx.funzione = null;
@@ -313,7 +314,7 @@ function parenin(ctx: Context): void {
 /*-------------------------
   uscita da parentesi tonde
   -------------------------*/
-function parenout(ctx: Context, n: number): void {
+export function parenout(ctx: Context, n: number): void {
 	var locale: number;
 	console.log('parenout, n=', n);
 	for (var i=0; i<n; ++i) {
@@ -473,4 +474,5 @@ export function ini_valuta(ctx: Context): void {
 	ctx.conto_parentesi = 0;
  	ctx.parentesi = -1;		/* = liv_funzione se sfun corr. e' preceduta da "("*/
 	is_stop = false;		/* se vero e' terminata esecuz. procedura corrente */
+	v_stack = [];
 }

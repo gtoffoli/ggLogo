@@ -20,6 +20,7 @@ export var shared_globalState: LogoGlobalState;
 export var shared_dispatch: (action: any) => void;
 
 export var inputString: string = '';
+var prompt: string;
 
 
 // Definisci il tipo per i messaggi di input/output (History)
@@ -37,8 +38,8 @@ const LogoShell: React.FC = () => {
   shared_dispatch = dispatch;
 
   // Stato per l'history dei comandi e risultati
-  const [history, setHistory] = useState<Message[]>([{ type: 'output', text: "Wellcome in the LOGO Interpreter TypeScript/React!" },
-  ]);
+  // const [history, setHistory] = useState<Message[]>([{ type: 'output', text: "Wellcome in the LOGO Interpreter!" }]);
+  const [history, setHistory] = useState<Message[]>([]);
 
   // Stato per l'input corrente
   const [currentCommand, setCurrentCommand] = useState('');
@@ -62,7 +63,7 @@ const LogoShell: React.FC = () => {
     if (globalState.inputWaiter) {
         
 	    // 1. Modalità: C'è qualcuno in attesa (es. la primitiva TO)?
-
+prompt = globalState.inputWaiter.prompt;
         // Verifica la condizione di terminazione del corpo procedura (END)
         // if (command.toUpperCase() === 'END') {
         var keyword = resolveKeyword(command.trim());
@@ -85,6 +86,7 @@ const LogoShell: React.FC = () => {
     } else {
 
 		// 2. Modalità: Esecuzione standard del comando
+prompt = '&gt;';
 
 	    if (!command.trim()) return;
 	
@@ -195,18 +197,19 @@ const LogoShell: React.FC = () => {
       borderColor="#28a745" // Verde
       menuItems={menuB}
     >
-    <div style={{ 
+    <div style={{
+		display: 'flex', flexDirection: 'column', height: '100%',
         backgroundColor: '#000', 
         color: '#0f0', 
-        padding: '10px', 
-        height: '400px', 
-        overflowY: 'auto', 
+        padding: '0px', 
+         
         fontFamily: 'monospace' 
     }}>
       {/* Visualizzazione dell'History dei Comandi e Risultati */}
-      <div className="history">
+      <div className="history"
+		style={{ display: 'block', flexGrow: 4 }}>
         {history.map((msg, index) => (
-          <div key={index} style={{ 
+          <div key={index} style={{
             color: msg.type === 'error' ? '#f00' : 
                    msg.type === 'input' ? '#aaa' : '#0f0' 
           }}>
@@ -217,7 +220,7 @@ const LogoShell: React.FC = () => {
       </div>
 
       {/* Area di Input */}
-      <div style={{ marginTop: '10px', display: 'flex' }}>
+      <div style={{ marginTop: 0, display: 'block', borderStyle: 'solid', borderWidth: 1, borderColor: 'white', flexGrow: 1 }}>
         <span style={{ color: '#fff', marginRight: '5px' }}>&gt;</span>
         <input
           type="text"
@@ -225,8 +228,7 @@ const LogoShell: React.FC = () => {
           onChange={(e) => setCurrentCommand(e.target.value)}
           onKeyDown={handleKeyDown}
           autoFocus
-          style={{ 
-            flexGrow: 1, 
+          style={{
             backgroundColor: 'transparent', 
             border: 'none', 
             color: '#fff', 
