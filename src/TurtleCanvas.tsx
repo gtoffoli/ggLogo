@@ -6,6 +6,8 @@
 
 import React, { useEffect, useRef } from 'react';
 import { useLogoDispatch, useLogoState } from './LogoStateContext';
+import './i18n';
+import { useTranslation } from 'react-i18next';
 import PanelContainer from './PanelContainer';
 // ... importa DrawingCommand, GraphicWindowState, etc.
 
@@ -21,6 +23,9 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
     
     // Ottiene la finestra grafica specifica da Redux
     const windowState = state.windows[windowId];
+
+	// 't' è la funzione di traduzione
+	const { t, i18n } = useTranslation();
     
     // 1. REGISTRAZIONE DEL CONTESTO CANVASS NEL REDUX STATE
     useEffect(() => {
@@ -112,20 +117,21 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
 
   // Menu per l'Area A (Canvas/Grafica)
   const menuA = [
-  { label: 'File', submenu: [
-    { label: 'Salva Immagine', action: () => alert('Salvataggio Canvas...') },
-    { label: 'Stampa', action: () => alert('Stampa Canvas...') },
+  { label: t('menu.turtle'), submenu: [
+    { label: t('menu.home'), action: handleCanvasReset },
+    { label: t('menu.hide_show'), action: () => console.log('Toggle Turtle visibility') },
   ]},
-  { label: 'Turtle', submenu: [
-    { label: 'Reset Posizione', action: handleCanvasReset },
-    { label: 'Mostra/Nascondi', action: () => console.log('Toggle Turtle visibility') },
+  { label: t('menu.image'), submenu: [
+    { label: t('menu.clear'), action: () => alert('Pulisce canvas...') },
+    { label: t('menu.save'), action: () => alert('Salvataggio Canvas...') },
+    { label: t('menu.print'), action: () => alert('Stampa Canvas...') },
   ]},
   ];
 
     return (
       <PanelContainer
         id="area-a"
-        title="Turtle Graphics"
+	    title={t('header.canvas')}
         borderColor="#007bff" // Blu
         menuItems={menuA}
       >

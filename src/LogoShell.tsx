@@ -6,7 +6,6 @@
 // 251129 - new Language menu
 
 import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
-// import i18n from 'i18next';
 import './i18n';
 import { useTranslation } from 'react-i18next';
 import PanelContainer from './PanelContainer';
@@ -100,7 +99,7 @@ prompt = '&gt;';
 	    const result = logoInterpreter(activeLang, [command], { resolveCommand });
 	
 	    // ... logica di visualizzazione del risultato (result) ...
-	    console.log("Risultato interprete:", result);
+	    console.log(t('msg.interpreter_result'), result);
 	
 	    // Gestione speciale per 'clear' (pulisce la console)
 	    if (command.trim().toLowerCase() === 'clear') {
@@ -193,7 +192,7 @@ prompt = '&gt;';
   return (
     <PanelContainer
       id="area-b"
-      title="Command Console"
+      title={t('header.shell')}
       borderColor="#28a745" // Verde
       menuItems={menuB}
     >
@@ -235,7 +234,7 @@ prompt = '&gt;';
             outline: 'none', 
             fontFamily: 'monospace' 
           }}
-          placeholder="Enter your LOGO command..."
+          placeholder={t('msg.command_placeholder')}
         />
       </div>
       <input type="file" id='logo-file-input'  accept=".txt" onChange={handleFileChange} style={{ display: 'none' }} />

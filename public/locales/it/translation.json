@@ -1,17 +1,36 @@
 {
+   "header": {
+	"canvas": "Graphica della Tartaruga",
+	"shell": "Console dei Comandi",
+	"editor": "Editor di Codice"
+  },
   "menu": {
+    "turtle": "Tarta",
+    "home": "Tana",
+    "hide_show": "Nascondi/mostra Tarta",
+    "image": "Immagine",
+    "clear": "Pulisci",
+    "save": "Salva...",
+    "print": "Stampa...",
     "file": "File",
-    "retrieve": "Recupera..",
-    "save": "Salva come..",
+    "new": "Nuovo",
+    "load": "Carica...",
+    "retrieve": "Recupera...",
     "history": "Storia",
     "delete": "Cancella",
     "export": "Esporta",
     "commands": "Comandi",
     "help": "Aiuto",
-    "language": "Lingua.."
+    "language": "Lingua",
+    "run": "Esegui",
+    "run_all": "Esegui tutto"
+
   },
-  "messages": {
+  "msg": {
     "startup_message": "Interprete caricato. Digita '{{helpCmd}}' per aiuto.",
-    "error_not_recognized": "Comando non riconosciuto in {{lang}}"
+    "error_not_recognized": "Comando non riconosciuto in {{lang}}",
+    "interpreter_result": "Risultato interprete:",
+    "command_placeholder": "inserisci un comando LOGO...",
+    "code_placeholder": "inserisci del codice LOGO..."
   }
 }
