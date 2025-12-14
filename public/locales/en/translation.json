@@ -10,26 +10,31 @@
     "hide_show": "Hide/show Turtle",
     "image": "Image",
     "clear": "Clear",
-    "save": "Save...",
-    "print": "Print...",
+    "save": "Save..",
+    "print": "Print..",
     "file": "File",
     "new": "New",
-    "load": "Upload...",
-    "retrieve": "Retrieve...",
+    "load": "Upload..",
     "history": "History",
     "delete": "Delete",
     "export": "Export",
     "commands": "Commands",
     "help": "Help",
     "language": "Language",
+    "edit": "Edit",
+    "undo": "Undo",
+    "set": "Set",
+    "char": "Char..",
     "run": "Run",
-    "run_all": "Run all"
+    "test": "Test",
+    "run_selection": "Run Selection",
+    "run_all": "Run All"
   },
   "msg": {
     "startup_message": "Interprete caricato. Digita '{{helpCmd}}' per aiuto.",
     "error_not_recognized": "Comando non riconosciuto in {{lang}}",
     "interpreter_result": "Interpreter result:",
-    "command_placeholder": "enter a LOGO command...",
-    "code_placeholder": "enter LOGO code here..."
+    "command_placeholder": "enter a LOGO command..",
+    "code_placeholder": "enter LOGO code here.."
   }
 }

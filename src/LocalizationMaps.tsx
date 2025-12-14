@@ -41,6 +41,7 @@ export const IT_MAP: LanguageMap = {
   "COLORE": "PENCOLOR",
   "COLPENNA": "PENCOLOR",
   "ASCOLPENNA": "SETPENCOLOR",
+  "DACHELEGGI": "READER",
   "DIMENSIONETARTARUGA": "TURTLESIZE",
 };
 
@@ -70,6 +71,7 @@ export const EN_MAP: LanguageMap = {
   "PRINT": "PRINT",
   "PENCOLOR": "PENCOLOR",
   "SETPENCOLOR": "SETPENCOLOR",
+  "READER": "READER",
   "TURTLESIZE": "TURTLESIZE",
 };
 

@@ -3,9 +3,10 @@
 // 251115 - added FunClass; added ref field to CommandDef
 
 
-import { _SET, _DEFINE, _TO, _END, _TEXT } from './LogoDefine';
 import { _NOP, _REPEAT } from './LogoControl';
+import { _SET, _DEFINE, _TO, _END, _TEXT } from './LogoDefine';
 import { _HOME, _CS, _FD, _BK, _RT, _LT, _PENUP, _PENDOWN, _PENCOLOR, _SETPENCOLOR } from './InterpreterCore';
+import { _READER } from './LogoDevices';
 
 
 // codifica dei device MLOGO
@@ -259,6 +260,11 @@ export const CORE_DEFINITIONS = {
     // description: "Visualizza un valore nella console.",
     args: [{ name: "valore", type: 'string' }],
     ref: _NOP,
+  } as CommandDef,
+  READER: {
+    signature: FunSignature.FUNCT,
+    // description: "Riporta il device di lettura dei comandi.",
+    ref: _READER,
   } as CommandDef,
 /*
   // --- Parametri di Configurazione ---

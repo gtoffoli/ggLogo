@@ -132,7 +132,7 @@ prompt = '&gt;';
   const handleConsoleClear = () => { alert('Console Clear: La cronologia B verrà cancellata.'); };
 
     // Azione 2: Recupera (simula l'apertura del file dialog)
-    const handleFileRetrieve = () => {
+    const handleFileLoad = () => {
         // Logica per aprire un input file nascosto
         const fileInput = document.getElementById('logo-file-input') as HTMLInputElement;
         fileInput?.click();
@@ -171,7 +171,7 @@ prompt = '&gt;';
   const menuB = [
 	// Menu File
 	{ label: 'File', submenu: [
-	  { label: t('menu.retrieve'), action: handleFileRetrieve },
+	  { label: t('menu.load'), action: handleFileLoad },
 	  { label: t('menu.save'), action: () => alert('Salva...') },
 	]},
     { label: t('menu.history'), submenu: [
