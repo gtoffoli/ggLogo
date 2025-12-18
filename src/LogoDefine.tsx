@@ -3,23 +3,23 @@
 
 import { shared_globalState, shared_dispatch } from './LogoShell';
 import { CellType, Cell, Context, ProcedureDef } from './CoreDefinitions';
-import { Parse } from './Parser';
+import { Parse, unParse } from './Parser';
 import { globalVariables, userProcedures } from './Interpreter';
 import { getLine } from './InterpreterCore';
-import { sf_out } from './LogoControl';
+import { contesti, liv_contesto, sf_out } from './LogoControl';
 
 
 export var isProcedureDefinition: boolean;	/* in corso definizione di procedura */
 
 
-export function _SET(ctx: Context, values: any[]): void {
+export function _SET(values: any[]): void {
 	console.log('function _SET', values[0],values[1]);
 	var name = values[0];
 	var value = values[1];
 	globalVariables[name] = value;
 }
 
-export function _DEFINE(ctx: Context, values: any[]): void {
+export function _DEFINE(values: any[]): void {
 	console.log('function _DEFINE', values[0],values[1]);
 	var name = values[0];
 	var value = values[1];
@@ -31,12 +31,11 @@ interface InterpreterDispatch {
     dispatch: (action: any) => void;
 }
 
-// per "quadrato :lato
-// ripeti 4 [a :lato d 90]
-// end
-export async function _TO(ctx: Context, values: any[]): void {
+export async function _TO(values: any[]): void {
 	const procedureName = values[0]; // procedure name
-	const declaration = ctx.block[0];
+	console.log('async function _TO', procedureName, values);
+	var ctx = contesti[liv_contesto];
+	var declaration = ctx.block[0];
 	var cell: Cell;
 	var parameter_expected: boolean = false;
 	var parameters: string[] = []; 		// list of parameter names
@@ -82,16 +81,20 @@ export async function _TO(ctx: Context, values: any[]): void {
     // L'azione CLEAR_WAITER è stata gestita nel CommandInterpreter per END.
 }
 
-export function _END(ctx: Context, values: any[]): void {
+export function _END(values: any[]): void {
 	console.log('function _END');
 	if (isProcedureDefinition)
 		console.log('procedure declaration error');
 	isProcedureDefinition = false;
 }
 
-export function _TEXT(ctx: Context, values: any[]): ProcedureDef {
+export function _TEXT(values: any[]): Cell {
 	const procedureName = values[0];
 	const procedureDef = userProcedures[procedureName];
 	console.log('TESTO DI', procedureName, ' : ', procedureDef);
-	return procedureDef;
+	// return { type: CellType.LIST, val: procedureDef };
+	// var text = [procedureDef.parameters, procedureDef.body];
+	// var text = [procedureDef.parameters, unParse(procedureDef.body)];
+	var text = unParse([[procedureDef.parameters, procedureDef.body]]);
+	return { type: CellType.WORD, val: text };
 }

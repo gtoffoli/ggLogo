@@ -108,11 +108,13 @@ prompt = '&gt;';
 	    }
 
 		// 3. Aggiungi l'output (o l'errore) all'history
-		if (result.error) {
-			setHistory(prev => [...prev, { type: 'error', text: `ERRORE: ${result.error}` }]);
-		} else if (result.output) {
-			setHistory(prev => [...prev, { type: 'output', text: result.output }]);
-		}
+		if (result)
+			if (result.error) {
+				setHistory(prev => [...prev, { type: 'error', text: `ERRORE: ${result.error}` }]);
+			} else if (result.output) {
+				// setHistory(prev => [...prev, { type: 'output', text: JSON.stringify(result.output) }]);
+				setHistory(prev => [...prev, { type: 'output', text: result.output.toString() }]);
+			}
 	}
   };
 

@@ -4,7 +4,7 @@
 
 
 import { _NOP, _REPEAT } from './LogoControl';
-import { _SET, _DEFINE, _TO, _END, _TEXT } from './LogoDefine';
+import { _MAKE, _DEFINE, _TO, _END, _TEXT } from './LogoDefine';
 import { _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT } from './Math';
 import { _READER } from './LogoDevices';
 import { _HOME, _CS, _FD, _BK, _RT, _LT, _PENUP, _PENDOWN, _PENCOLOR, _SETPENCOLOR } from './InterpreterCore';
@@ -220,11 +220,11 @@ export const CORE_DEFINITIONS = {
     // description: "Abbassa la penna.",
     ref: _PENDOWN,
   } as CommandDef,
-  SET: {
+  MAKE: {
     classes: [FunClass.DEF],
     // description: "Assegna valore a nome.",
     args: [{ name: "nome", type: 'string' }, { name: "valore", type: 'any'}],
-    ref: _SET,
+    ref: _MAKE,
   } as CommandDef,
   DEFINE: {
     classes: [FunClass.DEF],

@@ -46,6 +46,8 @@ export function logoInterpreter(activeLang: LanguageCode, lines: string[], { res
 	}
 
 	var ctx: Context = contesti[liv_contesto];
+	if (! isProcedureDefinition)
+		ini_valuta(ctx);
 
     // 1. Tokenizzazione
 	mod_parola = ModParola.VERB;		// parola non preceduta da modificatore
@@ -59,8 +61,8 @@ export function logoInterpreter(activeLang: LanguageCode, lines: string[], { res
 		// return v_stack;
 		return {output: v_stack.pop().val}
 	else
-		// return `OK: Eseguito riga di comando.`;
-		return {output: `OK: Eseguito riga di comando.`};
+		// return {output: `OK: Eseguito riga di comando.`};
+		return null;
 }
 
 function get_token(ctx) {
@@ -219,19 +221,13 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 			var classes = definition.classes || [];
 			if (ctx.funzione.coreKey === 'TO') {
 				ctx.i_token -= 1;
-				definition.ref(ctx, values, ctx.i_token);
+				definition.ref(values);
 				ctx.i_token = 1000;
 			}
-			// else if (definition.classes & FunClass.DEF) {
-			else if (classes.includes(FunClass.DEF)) {
-				definition.ref(ctx, values);
-			}
-			// else if (definition.classes & FunClass.EXEC) {
 			else if (classes.includes(FunClass.EXEC)) {
 				definition.ref(ctx, values);
 				is_exec = true;
 			}
-			// else if (definition.classes & FunClass.TURT) {
 			else if (classes.includes(FunClass.TURT)) {
 			    const activeWin = shared_globalState.windows[shared_globalState.activeWindowId];
 			    if (!activeWin)
@@ -276,10 +272,14 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 
 			}
 			else {
-				if (is_function)
+				if (is_function) {
 					result = definition.ref(values);
-				else
+					console.log('+++ IS_FUNCTION', values, result);
+				}
+				else {
 					definition.ref(values);
+					console.log('--- NOT IS_FUNCTION', values);
+				}
 			}
 			// if (!isProcedureDefinition)
 			// if ((!isProcedureDefinition) && (!is_exec)) // in alcuni casi, come REPEAT, sf_out viene anticipato

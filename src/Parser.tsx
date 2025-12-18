@@ -239,4 +239,29 @@ export function Parse(input: string): any[] {
 	}
 	return parsed;
 }
-	
+
+export function unParse(body: any[]): any[] {
+	var output = "";
+	var node;
+	var value;
+	for (var i=0; i<body.length; i++) {
+		node = body[i];
+		if (Array.isArray(node))
+			output += '['+unParse(node)+']';
+		else if (typeof node === 'string') {
+			output += node+' ';
+		}
+		else if (node.type === CellType.LIST)
+			output += '['+unParse(node.val)+']';
+		else {
+			value = node.val.toString();
+			output += value;
+			if (! '\"\:'.includes(value))
+				output += ' ';
+		}
+		output = output.replace(/\ \]/, "]");
+	}
+	return output;
+}
+
+
