@@ -5,8 +5,9 @@
 
 import { _NOP, _REPEAT } from './LogoControl';
 import { _SET, _DEFINE, _TO, _END, _TEXT } from './LogoDefine';
-import { _HOME, _CS, _FD, _BK, _RT, _LT, _PENUP, _PENDOWN, _PENCOLOR, _SETPENCOLOR } from './InterpreterCore';
+import { _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT } from './Math';
 import { _READER } from './LogoDevices';
+import { _HOME, _CS, _FD, _BK, _RT, _LT, _PENUP, _PENDOWN, _PENCOLOR, _SETPENCOLOR } from './InterpreterCore';
 
 
 // codifica dei device MLOGO
@@ -265,6 +266,30 @@ export const CORE_DEFINITIONS = {
     signature: FunSignature.FUNCT,
     // description: "Riporta il device di lettura dei comandi.",
     ref: _READER,
+  } as CommandDef,
+  '+': {
+    signature: FunSignature.FUNCT,
+    // description: "Riporta la somma di 2 o più numeri.",
+    args: [{ name: "addendo_1", type: 'number' }, { name: "addendo_2", type: 'number' }],
+    ref: _SUM,
+  } as CommandDef,
+  '-': {
+    signature: FunSignature.FUNCT,
+    // description: "Riporta la somma di 2 o più numeri.",
+    args: [{ name: "minuendo", type: 'number' }, { name: "sottraendo", type: 'number' }],
+    ref: _DIFFERENCE,
+  } as CommandDef,
+  '*': {
+    signature: FunSignature.FUNCT,
+    // description: "Riporta la somma di 2 o più numeri.",
+    args: [{ name: "fattore_1", type: 'number' }, { name: "fattore_2", type: 'number' }],
+    ref: _PRODUCT,
+  } as CommandDef,
+  '/': {
+    signature: FunSignature.FUNCT,
+    // description: "Riporta la somma di 2 o più numeri.",
+    args: [{ name: "dividendo", type: 'number' }, { name: "divisore", type: 'number' }],
+    ref: _QUOTIENT,
   } as CommandDef,
 /*
   // --- Parametri di Configurazione ---

@@ -16,14 +16,16 @@ import { LANGUAGE_MAPS } from './LocalizationMaps';
 // import { LanguageCode } from './UseLocalization';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
 import { shared_globalState, shared_dispatch } from './LogoShell';
-import { Parse, getCharClass, CharClass } from './Parser';
+import { Parse, infix_operators } from './Parser';
 import { contesti, liv_contesto, liv_analisi, v_stack, is_stop } from './LogoControl';
-import { ini_valuta, push_arg, ini_exec, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_out, parenin, parenout } from './LogoControl';
+import { ini_valuta, push_arg, ini_exec, push_sv, pop_sv, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_out, parenin, parenout } from './LogoControl';
 import { isProcedureDefinition } from './LogoDefine';
 
 export var globalVariables: Record<string, any> = {};
 export var userProcedures: Record<string, ProcedureDef> = {};
 export var mod_parola: ModParola;// modalita' di esecuzione di una parola LOGO
+var next_type: CellType | null;
+var next_val: any;
 
 // Presupponiamo di avere accesso allo stato globale (GET) e al dispatcher (SET)
 interface InterpreterProps {
@@ -34,8 +36,7 @@ interface InterpreterProps {
 }
 
 // L'interprete riceve la riga e lo stato/dispatcher
-export function logoInterpreter(activeLang: LanguageCode, lines: string[], { resolveCommand }: InterpreterProps): string | any[]
-{
+export function logoInterpreter(activeLang: LanguageCode, lines: string[], { resolveCommand }: InterpreterProps): any {
 	console.log('logoInterpreter', activeLang, lines.length);
 	// from Ilmain.execute()
 	if (liv_analisi > 0) {
@@ -44,7 +45,7 @@ export function logoInterpreter(activeLang: LanguageCode, lines: string[], { res
 		return 'parentesi non chiuse';
 	}
 
-	const ctx: Context = contesti[liv_contesto];
+	var ctx: Context = contesti[liv_contesto];
 
     // 1. Tokenizzazione
 	mod_parola = ModParola.VERB;		// parola non preceduta da modificatore
@@ -53,10 +54,25 @@ export function logoInterpreter(activeLang: LanguageCode, lines: string[], { res
 
 	valuta_token(resolveCommand);
 
+	console.log('VALORI:', v_stack)
 	if (v_stack.length)
-	return v_stack;
+		// return v_stack;
+		return {output: v_stack.pop().val}
 	else
-	return `OK: Eseguito riga di comando.`;
+		// return `OK: Eseguito riga di comando.`;
+		return {output: `OK: Eseguito riga di comando.`};
+}
+
+function get_token(ctx) {
+	var next_token: Cell | null;
+	if (ctx.i_token >= ctx.block[ctx.i_line].length)
+		next_token = next_type = next_val = null;
+	else {
+		next_token = ctx.block[ctx.i_line][ctx.i_token];
+		next_type = next_token.type;
+		next_val = next_token.val;
+	}
+	console.log('>>> get_token >>>', next_token, next_type, next_val);
 }
 
 export function valuta_token(resolveCommand) {
@@ -68,6 +84,7 @@ export function valuta_token(resolveCommand) {
     var definition: CommandDef | ProcedureDef;
     var signature: number;
     var result = null;
+    var cell: Cell;
      
     while (true) {
 		ctx = contesti[liv_contesto];
@@ -78,7 +95,6 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 		while (true) {
 			ctx = contesti[liv_contesto];
 			if (ctx.i_line >= ctx.block.length) {
-				ini_valuta(ctx);
 				return;
 			}
 			console.log('?????', ctx.block.length, ctx.block, ctx.i_line, ctx.i_token, ctx.liv_esecuzione, ctx.liv_procedura);
@@ -94,7 +110,6 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 						continue;
 					}
 					else {
-						ini_valuta(ctx);
 						return;
 					}
 				}
@@ -106,7 +121,7 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 			else break;
 		}
 
-		var cell = ctx.block[ctx.i_line][ctx.i_token];
+		cell = ctx.block[ctx.i_line][ctx.i_token];
 	  	if (ctx.i_token === 0)
 	  		mod_parola = ModParola.VERB;		// parola non preceduta da modificatore
 		console.log('token', liv_contesto, ctx.block, ctx.i_line, ctx.i_token, cell, mod_parola);
@@ -176,10 +191,19 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 				}
 				 
 		}
-		ctx.i_token += 1;
-		console.log('funzione?', ctx.funzione, ctx.liv_funzione, ctx.parentesi, ctx.n_arg_trovati, ctx.n_arg_attesi);
+		ctx.i_token += 1; // next token!!!
+		get_token(ctx);
+		console.log('funzione?', ctx.funzione, ctx.liv_funzione, ctx.parentesi, ctx.n_arg_trovati, ctx.n_arg_attesi, next_val);
 		// if ((ctx.funzione) && (ctx.parentesi < ctx.liv_funzione) && (ctx.n_arg_trovati === ctx.n_arg_attesi))
-		if ((ctx.funzione) && (ctx.n_arg_trovati === ctx.n_arg_attesi))
+		if ((ctx.n_arg_trovati>0) && (next_type === CellType.OPERATOR) && (infix_operators.includes(next_val)))	{ // look ahead
+			console.log('LOOK-AHEAD', next_val, CORE_DEFINITIONS[next_val]);
+			--ctx.n_arg_trovati;
+			sf_in(ctx, { type: CellType.SFUN, coreKey: next_val, definition: CORE_DEFINITIONS[next_val]});
+			++ctx.n_arg_trovati;
+			// if (ctx.parentesi == ctx.liv_funzione) ctx.parentesi = -1;	// coordinato con ...
+			ctx.i_token += 1;
+		}
+		else if ((ctx.funzione) && (ctx.n_arg_trovati === ctx.n_arg_attesi))
 		  if (ctx.funzione.type === CellType.SFUN) {
 			console.log('eseguo FUNZIONE', ctx.funzione);
 			var values: any[] = [];
@@ -263,7 +287,7 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 				sf_out(ctx);
 			if (result !== null) {
 				push_arg(ctx, result);
-				ctx.n_arg_trovati += 1;
+				// ctx.n_arg_trovati += 1;
 			}
 		}
 		else if (ctx.funzione.type === CellType.UFUN) {

@@ -89,6 +89,8 @@ const FSM_MATRIX: Transition[][] = [
     ]
 ];
 
+export const infix_operators = '+-*/^<=>';
+
 /**
  * Classificatore Lessicale: Mappa un carattere alla sua classe.
  */
@@ -97,7 +99,7 @@ export function getCharClass(char: string | undefined): CharClass {
     if ((char === undefined) || (char.charCodeAt(0) === 0)) return CharClass.END_OF_INPUT;
     
     // Lista di separatori tipici (non gestisce la logica avanzata di operatore/parentesi)
-    const separators = '()[]+-*/<=>,'; 
+    const separators = infix_operators + '()[],'; 
     const quotes = '\":'; 
     const blanks = ' \t'; 
 

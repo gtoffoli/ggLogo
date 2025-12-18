@@ -106,16 +106,14 @@ prompt = '&gt;';
 	        setHistory([]); // Pulisce lo stato history
 	        return;
 	    }
-/*
-    // 3. Aggiungi l'output (o l'errore) all'history
-    if (result.error) {
-        setHistory(prev => [...prev, { type: 'error', text: `ERRORE: ${result.error}` }]);
-    } else if (result.output) {
-        setHistory(prev => [...prev, { type: 'output', text: result.output }]);
-    }
-*/  
 
-    }
+		// 3. Aggiungi l'output (o l'errore) all'history
+		if (result.error) {
+			setHistory(prev => [...prev, { type: 'error', text: `ERRORE: ${result.error}` }]);
+		} else if (result.output) {
+			setHistory(prev => [...prev, { type: 'output', text: result.output }]);
+		}
+	}
   };
 
   // Gestore per l'invio del comando (tasto INVIO)

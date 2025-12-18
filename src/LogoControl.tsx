@@ -82,11 +82,11 @@ function pop_sc(): any {
 }
 
 //  push di un valore sullo stack dei valori
-function push_sv (val: any): void {
+export function push_sv (val: any): void {
 	v_stack.push(val);
 }
 // pop di un valore dallo stack dei valori
-function pop_sv(): any {
+export function pop_sv(): any {
   return v_stack.pop();
 }
 
