@@ -9,6 +9,28 @@ import { _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT } from './Math';
 import { _READER } from './LogoDevices';
 import { _HOME, _CS, _FD, _BK, _RT, _LT, _PENUP, _PENDOWN, _PENCOLOR, _SETPENCOLOR } from './InterpreterCore';
 
+export const SEPARATORS = {
+	// "\t\r\":()+-*/^<=> "
+	//  0 0 0 00000223341110}
+	'\r': { precedence: 0},
+	'\b': { precedence: 0},
+	'\"': { precedence: 0},
+	':': { precedence: 0},
+	'(': { precedence: 0},
+	')': { precedence: 0},
+	'<': { precedence: 1},
+	'=': { precedence: 1},
+	'>': { precedence: 1},
+	'+': { precedence: 2},
+	'-': { precedence: 2},
+	'*': { precedence: 3},
+	'/': { precedence: 3},
+	'^': { precedence: 4},
+}
+
+export function isSeparator(s: string): boolean {
+	return Object.keys(SEPARATORS).includes(s);
+}
 
 // codifica dei device MLOGO
 export enum devCode {

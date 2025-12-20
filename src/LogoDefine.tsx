@@ -92,9 +92,6 @@ export function _TEXT(values: any[]): Cell {
 	const procedureName = values[0];
 	const procedureDef = userProcedures[procedureName];
 	console.log('TESTO DI', procedureName, ' : ', procedureDef);
-	// return { type: CellType.LIST, val: procedureDef };
-	// var text = [procedureDef.parameters, procedureDef.body];
-	// var text = [procedureDef.parameters, unParse(procedureDef.body)];
 	var text = unParse([[procedureDef.parameters, procedureDef.body]]);
 	return { type: CellType.WORD, val: text };
 }

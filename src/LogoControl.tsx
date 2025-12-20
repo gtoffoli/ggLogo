@@ -77,8 +77,10 @@ function push_sc (val: any): void {
 	c_stack.push(val);
 }
 // pop di un valore dallo stack di controllo
-function pop_sc(): any {
-  return c_stack.pop();
+function pop_sc(): any {	
+	if (!c_stack.length)
+		throw new Error("C STACK UNDRFLOW");	
+	return c_stack.pop();
 }
 
 //  push di un valore sullo stack dei valori
@@ -87,13 +89,17 @@ export function push_sv (val: any): void {
 }
 // pop di un valore dallo stack dei valori
 export function pop_sv(): any {
-  return v_stack.pop();
+	if (!v_stack.length)
+		throw new Error("V STACK UNDRFLOW");	
+	return v_stack.pop();
 }
 
 export function push_arg(ctx: Context, arg: any): void {
-	console.log('push_arg', arg);
     ctx.n_arg_trovati += 1;
     v_stack.push(arg);
+	console.log('PUSH_ARG', arg, ctx.n_arg_trovati, v_stack.length, v_stack);
+	for (var i=0; i<v_stack.length; ++i)
+		console.log('push_arg', i, v_stack[i]);
 }
 
 function push_contesto(ctx: Context, id: number): void {

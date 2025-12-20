@@ -10,7 +10,7 @@
 
 
 import { ModParola, CellType, Delimiter, Cell, Context, ParamDef } from './CoreDefinitions';
-import { SystemFunction, CORE_DEFINITIONS, CommandDef, CoreDefinitionKeys, FunClass, FunSignature, turtleStrokes } from './CoreDefinitions';
+import { SEPARATORS, isSeparator, SystemFunction, CORE_DEFINITIONS, CommandDef, CoreDefinitionKeys, FunClass, FunSignature, turtleStrokes } from './CoreDefinitions';
 import { UserFunction, ProcedureDef } from './CoreDefinitions';
 import { LANGUAGE_MAPS } from './LocalizationMaps';
 // import { LanguageCode } from './UseLocalization';
@@ -126,8 +126,8 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 		cell = ctx.block[ctx.i_line][ctx.i_token];
 	  	if (ctx.i_token === 0)
 	  		mod_parola = ModParola.VERB;		// parola non preceduta da modificatore
-		console.log('token', liv_contesto, ctx.block, ctx.i_line, ctx.i_token, cell, mod_parola);
-		console.log('token', ctx);
+		console.log('token-1', liv_contesto, ctx.block, ctx.i_line, ctx.i_token, cell, mod_parola);
+		console.log('token-2', ctx);
 		switch (cell.type) {
 			case CellType.LIST:
 				push_arg(ctx, cell);
@@ -174,6 +174,7 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 				mod_parola = ModParola.VERB;
 				break;
 			case CellType.OPERATOR:
+		        console.log('OPERATOR-1', cell.val);
 				switch (cell.val) {
 					case Delimiter.DEL_PARSINISTRA:
 						parenin(ctx);
@@ -182,22 +183,30 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 						parenout(ctx);
 						break;
 					default: // infix operator: + - * / ^  = < >
-						coreKey = resolveCommand(cell.val);
-					    if (coreKey) {
-					        definition = CORE_DEFINITIONS[coreKey];
-					        funzione = { type: CellType.SFUN, coreKey: coreKey, definition: definition};
-					        console.log('OPERATOR', cell.val, coreKey, definition);
-							sf_in(ctx, funzione); // come gestire operando precedente? come gestire +/- prefissi?
-						}
+					    console.log('DEFAULT', cell.val);
+						coreKey = cell.val;
+				        definition = CORE_DEFINITIONS[coreKey];
+				        funzione = { type: CellType.SFUN, coreKey: coreKey, definition: definition};
+				        console.log('OPERATOR-2', cell.val, coreKey, definition);
+						sf_in(ctx, funzione); // come gestire operando precedente? come gestire +/- prefissi?
 						break;
 				}
 				 
-		}
+			}
 		ctx.i_token += 1; // next token!!!
-		get_token(ctx);
+      do {
+		result = null;
+		get_token(ctx); // => next_type, next_val
 		console.log('funzione?', ctx.funzione, ctx.liv_funzione, ctx.parentesi, ctx.n_arg_trovati, ctx.n_arg_attesi, next_val);
 		// if ((ctx.funzione) && (ctx.parentesi < ctx.liv_funzione) && (ctx.n_arg_trovati === ctx.n_arg_attesi))
-		if ((ctx.n_arg_trovati>0) && (next_type === CellType.OPERATOR) && (infix_operators.includes(next_val)))	{ // look ahead
+		var precedence = ((ctx.funzione) && (ctx.funzione.type === CellType.SFUN) && (isSeparator(ctx.funzione.coreKey))) ? SEPARATORS[ctx.funzione.coreKey].precedence : 0;
+		var top_value = (v_stack.length) ? v_stack[v_stack.length-1] : null;
+		console.log('PRECEDENCE', precedence, next_val, top_value, ctx.funzione);
+		if (   (ctx.n_arg_trovati>0)
+			&& (next_type === CellType.OPERATOR)
+			&& (isSeparator(next_val))
+			&& (SEPARATORS[next_val].precedence > precedence)
+			)	{ // look ahead in case of value followed by an infix operator
 			console.log('LOOK-AHEAD', next_val, CORE_DEFINITIONS[next_val]);
 			--ctx.n_arg_trovati;
 			sf_in(ctx, { type: CellType.SFUN, coreKey: next_val, definition: CORE_DEFINITIONS[next_val]});
@@ -205,7 +214,7 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 			// if (ctx.parentesi == ctx.liv_funzione) ctx.parentesi = -1;	// coordinato con ...
 			ctx.i_token += 1;
 		}
-		else if ((ctx.funzione) && (ctx.n_arg_trovati === ctx.n_arg_attesi))
+		if ((ctx.funzione) && (ctx.n_arg_trovati === ctx.n_arg_attesi)) {
 		  if (ctx.funzione.type === CellType.SFUN) {
 			console.log('eseguo FUNZIONE', ctx.funzione);
 			var values: any[] = [];
@@ -289,10 +298,12 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 				push_arg(ctx, result);
 				// ctx.n_arg_trovati += 1;
 			}
-		}
-		else if (ctx.funzione.type === CellType.UFUN) {
+		  }
+		  else if (ctx.funzione.type === CellType.UFUN) {
 			console.log('valuta_token UFUN', ctx.n_arg_trovati, ctx.n_arg_attesi);
 			uf_call(ctx, resolveCommand);
+		  }
 		}
+      } while (result)
 	}
 }
