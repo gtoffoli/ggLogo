@@ -6,7 +6,7 @@
 import { _NOP, _REPEAT } from './LogoControl';
 import { _MAKE, _DEFINE, _TO, _END, _TEXT } from './LogoDefine';
 import { _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT } from './Math';
-import { _READER } from './LogoDevices';
+import { _READER } from './Streams';
 import { _HOME, _CS, _FD, _BK, _RT, _LT, _PENUP, _PENDOWN, _PENCOLOR, _SETPENCOLOR } from './InterpreterCore';
 
 export const SEPARATORS = {
@@ -25,7 +25,14 @@ export const SEPARATORS = {
 	'-': { precedence: 2},
 	'*': { precedence: 3},
 	'/': { precedence: 3},
-	'^': { precedence: 4},
+	'%': { precedence: 4},
+	'^': { precedence: 5},
+	'=': { precedence: 6},
+	'<': { precedence: 6},
+	'>': { precedence: 6},
+	'<=': { precedence: 6},
+	'>=': { precedence: 6},
+	'<>': { precedence: 6},
 }
 
 export function isSeparator(s: string): boolean {

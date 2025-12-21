@@ -79,7 +79,7 @@ function push_sc (val: any): void {
 // pop di un valore dallo stack di controllo
 function pop_sc(): any {	
 	if (!c_stack.length)
-		throw new Error("C STACK UNDRFLOW");	
+		throw new Error("C STACK UNDERFLOW");	
 	return c_stack.pop();
 }
 
@@ -90,8 +90,14 @@ export function push_sv (val: any): void {
 // pop di un valore dallo stack dei valori
 export function pop_sv(): any {
 	if (!v_stack.length)
-		throw new Error("V STACK UNDRFLOW");	
+		throw new Error("V STACK UNDERFLOW");	
 	return v_stack.pop();
+}
+// ritorna il valore dell' i-esimo elemento dalla cima dello stack dei valori
+function get_sv(i: number): any {
+	if (!v_stack.length)
+		throw new Error("V STACK UNDERFLOW");	
+	return v_stack[i];
 }
 
 export function push_arg(ctx: Context, arg: any): void {
@@ -160,7 +166,7 @@ function popco(ctx: Context): void {
 function f_in(ctx: Context, funzione): void {
 	console.log('f_in', ctx);
 	AssertContesto(ctx);
-	push_sc(funzione);
+	push_sc(ctx.funzione);
 	pushco (ctx);
 	ctx.funzione = funzione;
 	ctx.n_arg_trovati = 0;
@@ -320,15 +326,14 @@ export function parenin(ctx: Context): void {
 /*-------------------------
   uscita da parentesi tonde
   -------------------------*/
-export function parenout(ctx: Context, n: number): void {
+export function parenout(ctx: Context, par_count: number): void {
 	var locale: number;
-	console.log('parenout, n=', n);
-	for (var i=0; i<n; ++i) {
-		if (ctx.n_arg_trovati > 1) {
-			// err2 (12, get_sv (1));
-		}
+	console.log('parenout, n=', par_count);
+	for (var i=0; i<par_count; ++i) {
+		if (ctx.n_arg_trovati > 1)
+			throw new Error("INVALID CONTEXT", get_sv (1));
 		locale = ctx.n_arg_trovati;
-	console.log('parenout -> popco');
+		console.log('parenout -> popco');
 		popco(ctx);
 		ctx.funzione = pop_sc();
 		ctx.n_arg_trovati = ctx.n_arg_trovati + locale;

@@ -180,7 +180,7 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 						parenin(ctx);
 						break;
 					case Delimiter.DEL_PARDESTRA:
-						parenout(ctx);
+						parenout(ctx, 1);
 						break;
 					default: // infix operator: + - * / ^  = < >
 					    console.log('DEFAULT', cell.val);
@@ -198,7 +198,6 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 		result = null;
 		get_token(ctx); // => next_type, next_val
 		console.log('funzione?', ctx.funzione, ctx.liv_funzione, ctx.parentesi, ctx.n_arg_trovati, ctx.n_arg_attesi, next_val);
-		// if ((ctx.funzione) && (ctx.parentesi < ctx.liv_funzione) && (ctx.n_arg_trovati === ctx.n_arg_attesi))
 		var precedence = ((ctx.funzione) && (ctx.funzione.type === CellType.SFUN) && (isSeparator(ctx.funzione.coreKey))) ? SEPARATORS[ctx.funzione.coreKey].precedence : 0;
 		var top_value = (v_stack.length) ? v_stack[v_stack.length-1] : null;
 		console.log('PRECEDENCE', precedence, next_val, top_value, ctx.funzione);
