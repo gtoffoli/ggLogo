@@ -4,25 +4,15 @@
 import { shared_globalState, shared_dispatch } from './LogoShell';
 import { CellType, Cell, Context, ProcedureDef } from './CoreDefinitions';
 import { Parse, unParse } from './Parser';
-import { globalVariables, userProcedures } from './Interpreter';
+import { userProcedures } from './Interpreter';
 import { getLine } from './InterpreterCore';
 import { contesti, liv_contesto, sf_out } from './LogoControl';
 
 
-export var isProcedureDefinition: boolean;	/* in corso definizione di procedura */
-
-
-export function _SET(values: any[]): void {
-	console.log('function _SET', values[0],values[1]);
-	var name = values[0];
-	var value = values[1];
-	globalVariables[name] = value;
-}
-
 export function _DEFINE(values: any[]): void {
 	console.log('function _DEFINE', values[0],values[1]);
-	var name = values[0];
-	var value = values[1];
+	var name = values[0].val;
+	var value = values[1].val;
 	userProcedures[name] = value;
 }
 
@@ -32,7 +22,8 @@ interface InterpreterDispatch {
 }
 
 export async function _TO(values: any[]): void {
-	const procedureName = values[0]; // procedure name
+	// const procedureName = values[0]; // procedure name
+	const procedureName = values[0].val; // procedure name
 	console.log('async function _TO', procedureName, values);
 	var ctx = contesti[liv_contesto];
 	var declaration = ctx.block[0];
@@ -89,7 +80,8 @@ export function _END(values: any[]): void {
 }
 
 export function _TEXT(values: any[]): Cell {
-	const procedureName = values[0];
+	// const procedureName = values[0];
+	const procedureName = values[0].val;
 	const procedureDef = userProcedures[procedureName];
 	console.log('TESTO DI', procedureName, ' : ', procedureDef);
 	var text = unParse([[procedureDef.parameters, procedureDef.body]]);

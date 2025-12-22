@@ -7,13 +7,13 @@ import { TurtleState, DrawingCommand } from './LogoState';
 import { initialTurtleState } from './logoReducer';
 
 
-export function _CS(definition: CommandDef, values: any[], state: TurtleState): { newState: TurtleState | null, command: DrawingCommand | null } {
+export function _CS(values: any[], state: TurtleState): { newState: TurtleState | null, command: DrawingCommand | null } {
 	console.log('function _CS');
     // return { newState: initialTurtleState, command: { type: 'CLEAR_CANVAS' }};
     return [ initialTurtleState, { type: 'CLEAR_CANVAS' }];
 }
 
-export function _HOME(definition: CommandDef, values: any[], state: TurtleState): TurtleState {
+export function _HOME(values: any[], state: TurtleState): TurtleState {
     return { 
         ...state, 
         x: 0,
@@ -22,36 +22,40 @@ export function _HOME(definition: CommandDef, values: any[], state: TurtleState)
     };
 }
 
-export function _FD(definition: CommandDef, values: any[], state: TurtleState): TurtleState {
-	const distance: number = values[0];
+export function _FD(values: any[], state: TurtleState): TurtleState {
+	// const distance: number = values[0];
+	const distance: number = values[0].val;
 	console.log('function _FD', distance);
 	return calculateForward(state, distance);
 }
 
-export function _BK(definition: CommandDef, values: any[], state: TurtleState): TurtleState {
-	const distance: number = -values[0];
+export function _BK(values: any[], state: TurtleState): TurtleState {
+	// const distance: number = -values[0];
+	const distance: number = -values[0].val;
 	return calculateForward(state, distance);
 }
 
-export function _RT(definition: CommandDef, values: any[], state: TurtleState): TurtleState {
-	const angle: number = values[0];
+export function _RT(values: any[], state: TurtleState): TurtleState {
+	// const angle: number = values[0];
+	const angle: number = values[0].val;
 	console.log('function _RT', angle);
 	return calculateRight(state, angle);
 }
 
-export function _LT(definition: CommandDef, values: any[], state: TurtleState): TurtleState {
-	const angle: number = -values[0];
+export function _LT(values: any[], state: TurtleState): TurtleState {
+	// const angle: number = -values[0];
+	const angle: number = -values[0].val;
 	return calculateRight(state, angle);
 }
 
-export function _PENUP(definition: CommandDef, values: any[], state: TurtleState): TurtleState {
+export function _PENUP(values: any[], state: TurtleState): TurtleState {
     return { 
         ...state, 
         penDown: false
     };
 }
 
-export function _PENDOWN(definition: CommandDef, values: any[], state: TurtleState): TurtleState {
+export function _PENDOWN(values: any[], state: TurtleState): TurtleState {
     return { 
         ...state, 
         penDown: true
@@ -63,8 +67,9 @@ export function _PENCOLOR(values: any[], state: TurtleState): Cell | null {
 	return { cellType: CellType.WORD, val: color}
 }
 
-export function _SETPENCOLOR(definition: CommandDef, values: any[], state: TurtleState): TurtleState | null {
-	const color: string = values[0];
+export function _SETPENCOLOR(values: any[], state: TurtleState): TurtleState | null {
+	// const color: string = values[0];
+	const color: string = values[0].val;
     return { 
         ...state, 
         penColor: color

@@ -4,7 +4,8 @@
 
 
 import { _NOP, _REPEAT } from './LogoControl';
-import { _MAKE, _DEFINE, _TO, _END, _TEXT } from './LogoDefine';
+import { _MAKE, _THING } from './Data';
+import { _DEFINE, _TO, _END, _TEXT } from './LogoDefine';
 import { _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT } from './Math';
 import { _READER } from './Streams';
 import { _HOME, _CS, _FD, _BK, _RT, _LT, _PENUP, _PENDOWN, _PENCOLOR, _SETPENCOLOR } from './InterpreterCore';
@@ -250,10 +251,15 @@ export const CORE_DEFINITIONS = {
     ref: _PENDOWN,
   } as CommandDef,
   MAKE: {
-    classes: [FunClass.DEF],
+    // classes: [FunClass.DEF],
     // description: "Assegna valore a nome.",
     args: [{ name: "nome", type: 'string' }, { name: "valore", type: 'any'}],
     ref: _MAKE,
+  } as CommandDef,
+  THING: {
+    signature: FunSignature.FUNCT,
+    args: [{ name: "nome", type: 'string' }],
+    ref: _THING,
   } as CommandDef,
   DEFINE: {
     classes: [FunClass.DEF],

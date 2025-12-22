@@ -143,7 +143,8 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 					push_arg(ctx, cell);
 				}
 				else if (mod_parola === ModParola.VARIABLE) {
-					cell = {type: CellType.WORD, val: globalVariables[cell.val]};
+					// cell = {type: CellType.WORD, val: globalVariables[cell.val]};
+					cell = globalVariables[cell.val];
 					console.log('VARIABILE', cell);
 					push_arg(ctx, cell);
 				}
@@ -218,7 +219,8 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 			console.log('eseguo FUNZIONE', ctx.funzione);
 			var values: any[] = [];
 			for (var i=0; i<ctx.n_arg_trovati; i++) {
-				values.push(v_stack.pop().val);
+				// values.push(v_stack.pop().val);
+				values.push(v_stack.pop());
 				values.reverse();
 			}
 			console.log('VALUES', values);
@@ -246,14 +248,16 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 				var drawingCommand: DrawingCommand;
 
 				if (turtleStroke) {
-					[ newTurtleState, drawingCommand ] = definition.ref(definition, values, activeWin.turtleState);
+					// [ newTurtleState, drawingCommand ] = definition.ref(definition, values, activeWin.turtleState);
+					[ newTurtleState, drawingCommand ] = definition.ref(values, activeWin.turtleState);
 					console.log('turtleStroke', newTurtleState, drawingCommand);
 				} else {
 					if (is_function) {
 						result = definition.ref(values, activeWin.turtleState);
 					}
 					else {
-						newTurtleState = definition.ref(definition, values, activeWin.turtleState);
+						// newTurtleState = definition.ref(definition, values, activeWin.turtleState);
+						newTurtleState = definition.ref(values, activeWin.turtleState);
 						console.log('No turtleStroke', newTurtleState);
 					}
 				}

@@ -41,9 +41,11 @@ export function _NOP(): void  {
 
 export function _REPEAT(ctx: Context, values: any[]): void {
 	console.log('function _REPEAT', values[0], values[1]);
-	ctx.conto_esegui = values[0];
+	// ctx.conto_esegui = values[0];
+	ctx.conto_esegui = values[0].val;
 	is_ripeti = true;
-	var block = [values[1]];
+	// var block = [values[1]];
+	var block = [values[1].val];
 	console.log('function _REPEAT', ctx.conto_esegui, block);
 	sf_out(ctx); // anticipo, per non confliggere con blk_in
 	// _esegui(ctx, block);
