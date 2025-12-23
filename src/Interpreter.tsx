@@ -126,6 +126,7 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 		cell = ctx.block[ctx.i_line][ctx.i_token];
 	  	if (ctx.i_token === 0)
 	  		mod_parola = ModParola.VERB;		// parola non preceduta da modificatore
+		console.log('token-0', mod_parola);
 		console.log('token-1', liv_contesto, ctx.block, ctx.i_line, ctx.i_token, cell, mod_parola);
 		console.log('token-2', ctx);
 		switch (cell.type) {
@@ -310,3 +311,6 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
       } while (result)
 	}
 }
+
+
+export function err_arg1() { console.log('ERROR: bad argument') }

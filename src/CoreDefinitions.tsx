@@ -4,7 +4,7 @@
 
 
 import { _NOP, _REPEAT } from './LogoControl';
-import { _MAKE, _THING } from './Data';
+import { _MAKE, _THING, _WORD, _LIST, _FIRST, _LAST } from './Structures';
 import { _DEFINE, _TO, _END, _TEXT } from './LogoDefine';
 import { _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT } from './Math';
 import { _READER } from './Streams';
@@ -66,8 +66,8 @@ export enum devType {
 
 export enum ModParola {
 	VERB = 1,		// parola non preceduta da modificatore
-	LITERAL = 2,	// parola non preceduta da QUOTE
-	VARIABLE = 3,	// parola non preceduta da COLON
+	LITERAL = 2,	// parola preceduta da QUOTE
+	VARIABLE = 3,	// parola preceduta da COLON
 }
 export enum CellType {
 	LIST = 0,
@@ -249,6 +249,26 @@ export const CORE_DEFINITIONS = {
     classes: [FunClass.TURT],
     // description: "Abbassa la penna.",
     ref: _PENDOWN,
+  } as CommandDef,
+  WORD: {
+    signature: FunSignature.FUNCT,
+    args: [{ name: "arg1", type: 'string' }, { name: "arg2", type: 'any'}],
+    ref: _WORD,
+  } as CommandDef,
+  LIST: {
+    signature: FunSignature.FUNCT,
+    args: [{ name: "arg1", type: 'string' }, { name: "arg2", type: 'any'}],
+    ref: _LIST,
+  } as CommandDef,
+  FIRST: {
+    signature: FunSignature.FUNCT,
+    args: [{ name: "word_or_list", type: 'any' }],
+    ref: _FIRST,
+  } as CommandDef,
+  LAST: {
+    signature: FunSignature.FUNCT,
+    args: [{ name: "word_or_list", type: 'any' }],
+    ref: _LAST,
   } as CommandDef,
   MAKE: {
     // classes: [FunClass.DEF],
