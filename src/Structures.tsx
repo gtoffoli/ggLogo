@@ -33,6 +33,34 @@ export function _LIST(values: any[]): Cell {
 	return { type: CellType.LIST, val: list };
 }
 
+export function _SENTENCE(values: any[]): Cell {
+	console.log('function _SENTENCE', values);
+	var sentence = [];
+	var value;
+	for (var i=0; i<values.length; i++) {
+		value = values[i];
+		if (value.type === CellType.LIST)
+			sentence = sentence.concat(value.val);
+		else
+			sentence.push(value);
+	}
+	return { type: CellType.LIST, val: sentence };
+}
+
+export function _FPUT(values: any[]): void {
+	console.log('function _FPUT', values[0],values[1]);
+	const element = values[0];
+	const list = values[1].val;
+	// return { type: CellType.LIST, val: list.unshift(element) };
+	return { type: CellType.LIST, val: [element].concat(list) };
+}
+export function _LPUT(values: any[]): void {
+	console.log('function _LPUT', values[0],values[1]);
+	const element = values[0].val;
+	const list = values[1].val;
+	return { type: CellType.LIST, val: list.push(element) };
+}
+
 export function _FIRST(values: any[]): Cell {
 	console.log('function _FIRST', values);
 	var value = values[0];
@@ -63,4 +91,17 @@ export function _LAST(values: any[]): Cell {
 			return { type: CellType.WORD, val: word.slice(-1) };
 	}
 	err_arg1();
+}
+
+function wordp(cell: Cell): boolean {
+	return ((cell.type===CellType.WORD) || (cell.type===CellType.NUMBER) || (cell.type===CellType.BOOLEAN))	
+}
+export function _WORDP(values: any[]): Cell {
+	console.log('function _WORDP', values);
+	return { type: CellType.BOOLEAN, val: wordp(values[0]) };
+}
+
+export function _LISTP(values: any[]): Cell {
+	console.log('function _LISTP', values);
+	return { type: CellType.BOOLEAN, val: (values[0].type === CellType.LIST) };
 }

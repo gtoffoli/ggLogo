@@ -12,11 +12,13 @@ import PanelContainer from './PanelContainer';
 import { LogoGlobalState } from './LogoState';
 import { useLocalization, LanguageCode } from './UseLocalization';
 import { logoInterpreter } from './Interpreter';
+import { unParse } from './Parser';
 import { useLogoState, useLogoDispatch } from './LogoStateContext';
 import { ini_main, ini_exec } from './LogoControl';
 
 export var shared_globalState: LogoGlobalState;
 export var shared_dispatch: (action: any) => void;
+export var shared_LangCode: LanguageCode;
 
 export var inputString: string = '';
 var prompt: string;
@@ -113,7 +115,9 @@ prompt = '&gt;';
 				setHistory(prev => [...prev, { type: 'error', text: `ERRORE: ${result.error}` }]);
 			} else if (result.output) {
 				// setHistory(prev => [...prev, { type: 'output', text: JSON.stringify(result.output) }]);
-				setHistory(prev => [...prev, { type: 'output', text: result.output.toString() }]);
+				// setHistory(prev => [...prev, { type: 'output', text: result.output.toString() }]);
+			    console.log('output', unParse(result.output));
+				setHistory(prev => [...prev, { type: 'output', text: unParse(result.output) }]);
 			}
 	}
   };
@@ -162,6 +166,7 @@ prompt = '&gt;';
     const handleSetLanguage = (langCode: LanguageCode) => {
         setLanguage(langCode); // Questa funzione aggiorna lo stato della lingua usato da LocalizationMaps
         i18n.changeLanguage(langCode);
+        shared_LangCode = langCode;
         // changeLanguage(langCode); // Questa funzione aggiorna lo stato della lingua usato da i18n
         // Opzionale: Aggiungi un messaggio di sistema alla console history
         // dispatch({ type: 'SYSTEM_MESSAGE', text: `Lingua impostata su: ${lang.toUpperCase()}` }); 

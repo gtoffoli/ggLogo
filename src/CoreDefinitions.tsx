@@ -4,7 +4,7 @@
 
 
 import { _NOP, _REPEAT } from './LogoControl';
-import { _MAKE, _THING, _WORD, _LIST, _FIRST, _LAST } from './Structures';
+import { _MAKE, _THING, _WORD, _SENTENCE, _LIST, _FIRST, _LAST, _FPUT, _LPUT, _WORDP, _LISTP } from './Structures';
 import { _DEFINE, _TO, _END, _TEXT } from './LogoDefine';
 import { _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT } from './Math';
 import { _READER } from './Streams';
@@ -75,9 +75,10 @@ export enum CellType {
 	OPERATOR = 2,	// operatore
 	NUMBER = 3, 	// numero
 	WORD = 4,		// parola Logo
-	VAR = 5, 		// variabile Logo
-	SFUN = 6,		// funzione primitiva
-	UFUN = 7,		// funzione di utente (procedura)
+	BOOLEAN = 5,	// valore logico
+	VAR = 6, 		// variabile Logo
+	SFUN = 7,		// funzione primitiva
+	UFUN = 8,		// funzione di utente (procedura)
 }
 
 // typed token in the Parser output
@@ -151,6 +152,16 @@ export type ProcedureDef = {
 	parameters: string[];
 	body: any[][];
 }
+
+export enum keywordType {
+	BOOLEAN = 0,
+	PARAMETER = 1,
+}
+// Tipi per le Costanti
+export type Constant = {
+  type: keywordType;
+  value: any;
+};
 
 // Tipi per i parametri di configurazione
 export type ParamDef = {
@@ -260,6 +271,21 @@ export const CORE_DEFINITIONS = {
     args: [{ name: "arg1", type: 'string' }, { name: "arg2", type: 'any'}],
     ref: _LIST,
   } as CommandDef,
+  SENTENCE: {
+    signature: FunSignature.FUNCT,
+    args: [{ name: "arg1", type: 'string' }, { name: "arg2", type: 'any'}],
+    ref: _SENTENCE,
+  } as CommandDef,
+  FPUT: {
+    signature: FunSignature.FUNCT,
+    args: [{ name: "arg1", type: 'any' }, { name: "arg2", type: 'any'}],
+    ref: _FPUT,
+  } as CommandDef,
+  LPUT: {
+    signature: FunSignature.FUNCT,
+    args: [{ name: "arg1", type: 'any' }, { name: "arg2", type: 'any'}],
+    ref: _LPUT,
+  } as CommandDef,
   FIRST: {
     signature: FunSignature.FUNCT,
     args: [{ name: "word_or_list", type: 'any' }],
@@ -269,6 +295,16 @@ export const CORE_DEFINITIONS = {
     signature: FunSignature.FUNCT,
     args: [{ name: "word_or_list", type: 'any' }],
     ref: _LAST,
+  } as CommandDef,
+  WORDP: {
+    signature: FunSignature.FUNCT,
+    args: [{ name: "arg", type: 'any' }],
+    ref: _WORDP,
+  } as CommandDef,
+  LISTP: {
+    signature: FunSignature.FUNCT,
+    args: [{ name: "arg", type: 'any' }],
+    ref: _LISTP,
   } as CommandDef,
   MAKE: {
     // classes: [FunClass.DEF],
@@ -346,6 +382,14 @@ export const CORE_DEFINITIONS = {
     args: [{ name: "dividendo", type: 'number' }, { name: "divisore", type: 'number' }],
     ref: _QUOTIENT,
   } as CommandDef,
+  'FALSE': {
+	type: keywordType.BOOLEAN,
+    value: false,
+  } as Constant,
+  'TRUE': {
+	type: keywordType.BOOLEAN,
+    value: true,
+  } as Constant,
 /*
   // --- Parametri di Configurazione ---
   PENCOLOR: {

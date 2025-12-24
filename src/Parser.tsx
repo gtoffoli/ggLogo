@@ -5,6 +5,8 @@
 
 
 import { CellType, Cell } from './CoreDefinitions';
+import { LANGUAGE_MAPS } from './LocalizationMaps';
+import { shared_langCode } from './LogoShell';
 
 // A. STATI DELLA FSM (Righe della matrice)
 enum State {
@@ -240,6 +242,11 @@ export function Parse(input: string): any[] {
 	return parsed;
 }
 
+export function unParseBoolean (node: Cell): string {
+	const keyword = (node.type) ? 'TRUE' : 'FALSE';
+	return LANGUAGE_MAPS[shared_langCode][keyword];
+}
+
 export function unParse(body: any[]): any[] {
 	var output = "";
 	var node;
@@ -251,7 +258,9 @@ export function unParse(body: any[]): any[] {
 		else if (typeof node === 'string') {
 			output += node+' ';
 		}
-		else if (node.type === CellType.LIST)
+		else if (node.type === CellType.BOOLEAN)
+			output += unParseBoolean(node.val);
+		else if (node.type === CellType.LIST) 
 			output += '['+unParse(node.val)+']';
 		else {
 			value = node.val.toString();

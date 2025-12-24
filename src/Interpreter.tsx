@@ -57,9 +57,12 @@ export function logoInterpreter(activeLang: LanguageCode, lines: string[], { res
 	valuta_token(resolveCommand);
 
 	console.log('VALORI:', v_stack)
-	if (v_stack.length)
+	if (v_stack.length) {
 		// return v_stack;
-		return {output: v_stack.pop().val}
+		// return {output: v_stack.pop().val}
+		v_stack.reverse();
+		return {output: v_stack};
+	}
 	else
 		// return {output: `OK: Eseguito riga di comando.`};
 		return null;
