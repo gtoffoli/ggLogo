@@ -4,7 +4,7 @@
 
 
 import { _NOP, _REPEAT } from './LogoControl';
-import { _MAKE, _THING, _WORD, _SENTENCE, _LIST, _FIRST, _LAST, _FPUT, _LPUT, _WORDP, _LISTP } from './Structures';
+import { _MAKE, _THING, _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _BUTFIRST, _BUTLAST, _COUNT, _ITEM, _WORDP, _LISTP } from './Structures';
 import { _DEFINE, _TO, _END, _TEXT } from './LogoDefine';
 import { _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT } from './Math';
 import { _READER } from './Streams';
@@ -276,6 +276,11 @@ export const CORE_DEFINITIONS = {
     args: [{ name: "arg1", type: 'string' }, { name: "arg2", type: 'any'}],
     ref: _SENTENCE,
   } as CommandDef,
+  COUNT: {
+    signature: FunSignature.FUNCT,
+    args: [{ name: "sequence", type: 'any' }],
+    ref: _COUNT,
+  } as CommandDef,
   FPUT: {
     signature: FunSignature.FUNCT,
     args: [{ name: "arg1", type: 'any' }, { name: "arg2", type: 'any'}],
@@ -295,6 +300,21 @@ export const CORE_DEFINITIONS = {
     signature: FunSignature.FUNCT,
     args: [{ name: "word_or_list", type: 'any' }],
     ref: _LAST,
+  } as CommandDef,
+  BUTFIRST: {
+    signature: FunSignature.FUNCT,
+    args: [{ name: "word_or_list", type: 'any' }],
+    ref: _BUTFIRST,
+  } as CommandDef,
+  BUTLAST: {
+    signature: FunSignature.FUNCT,
+    args: [{ name: "word_or_list", type: 'any' }],
+    ref: _BUTLAST,
+  } as CommandDef,
+  ITEM: {
+    signature: FunSignature.FUNCT,
+    args: [{ name: "index", type: 'any' }, { name: "sequence", type: 'any'}],
+    ref: _ITEM,
   } as CommandDef,
   WORDP: {
     signature: FunSignature.FUNCT,
