@@ -26,6 +26,11 @@ export var userProcedures: Record<string, ProcedureDef> = {};
 export var mod_parola: ModParola;// modalita' di esecuzione di una parola LOGO
 var next_type: CellType | null;
 var next_val: any;
+var definition = null;	// definition of system function (primitive) or of user function (procedure)
+var signature = [];		// info  related to arguments and result of primitive
+var oneormore = false;	// true if primitive accepts an indefinite number of arguments 
+var is_function = false;// true if primitive returns a result
+const N_MINIMO = 1; // minimo numero di argomenti per la funzione corrente
 
 // Presupponiamo di avere accesso allo stato globale (GET) e al dispatcher (SET)
 interface InterpreterProps {
@@ -68,7 +73,8 @@ export function logoInterpreter(activeLang: LanguageCode, lines: string[], { res
 		return null;
 }
 
-function get_token(ctx) {
+// utility to collect in global variables some info related to the token following the one being processed
+function get_token(ctx: Context): void {
 	var next_token: Cell | null;
 	if (ctx.i_token >= ctx.block[ctx.i_line].length)
 		next_token = next_type = next_val = null;
@@ -78,6 +84,30 @@ function get_token(ctx) {
 		next_val = next_token.val;
 	}
 	console.log('>>> get_token >>>', next_token, next_type, next_val);
+}
+
+// utility to collect in global variables some info related to primitive definition
+function get_function(ctx: Context): void {
+	definition = ctx.funzione.definition;
+	signature = definition.signature;
+	if (signature) {
+		is_function = ((signature !== undefined) && (signature.includes(FunSignature.FUNCTION)));
+		oneormore =  (signature.includes(FunSignature.ONEORMORE));
+	} else {
+		is_function = false;
+		oneormore = false;
+	}
+}
+
+function get_values(ctx: Context): any[] {
+	var values: any[] = [];
+	console.log('GET_VALUES-1', v_stack)
+	for (var i=0; i<ctx.n_arg_trovati; i++) {
+		values.push(v_stack.pop());
+	}
+	values.reverse();
+	console.log('GET_VALUES-2', values)
+	return values;
 }
 
 export function valuta_token(resolveCommand) {
@@ -132,6 +162,7 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 		console.log('token-0', mod_parola);
 		console.log('token-1', liv_contesto, ctx.block, ctx.i_line, ctx.i_token, cell, mod_parola);
 		console.log('token-2', ctx);
+		ctx.i_token += 1; // next token!!!
 		switch (cell.type) {
 			case CellType.LIST:
 				push_arg(ctx, cell);
@@ -168,7 +199,7 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 							sf_in(ctx, funzione);
     					}
     					else if (Object.keys(userProcedures).includes(verb)) {
-							var definition: ProcedureDef = userProcedures[verb];
+							definition = userProcedures[verb];
 							funzione = { type: CellType.UFUN, name: verb, definition: definition}; 
 					        console.log('UFUN', verb, definition);
 							uf_in(ctx, funzione);
@@ -183,9 +214,49 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 				switch (cell.val) {
 					case Delimiter.DEL_PARSINISTRA:
 						parenin(ctx);
+						get_token(ctx);
+						console.log('DEL_PARSINISTRA', next_type, next_val);
+						if (   (next_type === CellType.WORD)
+							&& (resolveCommand(next_val))
+							) ctx.parentesi = ctx.liv_funzione + 1;
 						break;
 					case Delimiter.DEL_PARDESTRA:
-						parenout(ctx, 1);
+						// parenout(ctx, 1);
+						if (ctx.conto_parentesi == 0) {
+							console.log("errore (14, 0L, 0L)");
+						}
+						else if (ctx.parentesi === ctx.liv_funzione) {
+							// definition = ctx.funzione.definition;
+							// signature = definition.signature;
+							// is_function = ((signature !== undefined) && (signature.includes(FunSignature.FUNCTION)));
+							get_function(ctx);
+							if (ctx.n_arg_trovati < N_MINIMO) {
+								// errore (11, funzione, NULLP);
+							}
+							// else if ((!signature.includes(FunSignature.ONEORMORE)) && (ctx.n_arg_trovati > /*N_MASSIMO*/ ctx.n_arg_attesi)) {
+							else if ((!oneormore) && (ctx.n_arg_trovati > /*N_MASSIMO*/ ctx.n_arg_attesi)) {
+								// errore (11, funzione, NULLP);
+							}
+							else {
+								var values = get_values(ctx);
+								var result = null;
+								if (is_function) {
+									result = definition.ref(values);
+									console.log('+++ IS_FUNCTION', values, result);
+								}
+								else {
+									definition.ref(values);
+									console.log('--- NOT IS_FUNCTION', values);
+								}
+								sf_out(ctx);
+								if (result !== null) {
+									push_arg(ctx, result);
+								}
+								parenout(ctx, 1);
+							};
+						}
+						else
+							parenout (ctx, 1);
 						break;
 					default: // infix operator: + - * / ^  = < >
 					    console.log('DEFAULT', cell.val);
@@ -198,7 +269,7 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 				}
 				 
 			}
-		ctx.i_token += 1; // next token!!!
+		// ctx.i_token += 1; // next token!!!
       do {
 		result = null;
 		get_token(ctx); // => next_type, next_val
@@ -218,19 +289,25 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 			// if (ctx.parentesi == ctx.liv_funzione) ctx.parentesi = -1;	// coordinato con ...
 			ctx.i_token += 1;
 		}
-		if ((ctx.funzione) && (ctx.n_arg_trovati === ctx.n_arg_attesi)) {
+		if (ctx.funzione) {
+			// definition = ctx.funzione.definition;
+			// signature = definition.signature;
+			// if (signature) {
+			//	oneormore =  (signature.includes(FunSignature.ONEORMORE));
+			//	is_function = (signature.includes(FunSignature.FUNCTION));
+			//}
+			get_function(ctx);
+			console.log('CTX.FUNZIONE', oneormore, ctx.parentesi, ctx.liv_funzione);
+		}
+		if (   (ctx.funzione)
+            && (   (ctx.n_arg_trovati === ctx.n_arg_attesi)
+                && ((!oneormore) || (ctx.parentesi != ctx.liv_funzione))
+               )
+           ) {
 		  if (ctx.funzione.type === CellType.SFUN) {
 			console.log('eseguo FUNZIONE', ctx.funzione);
-			var values: any[] = [];
-			for (var i=0; i<ctx.n_arg_trovati; i++) {
-				// values.push(v_stack.pop().val);
-				values.push(v_stack.pop());
-				values.reverse();
-			}
+			var values = get_values(ctx);
 			console.log('VALUES', values);
-			definition = ctx.funzione.definition;
-			signature = definition.signature;
-			var is_function = ((signature !== undefined) && (signature || FunSignature.FUNCT));
 			var is_exec = false;
 			var classes = definition.classes || [];
 			if (ctx.funzione.coreKey === 'TO') {
@@ -303,7 +380,6 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 				sf_out(ctx);
 			if (result !== null) {
 				push_arg(ctx, result);
-				// ctx.n_arg_trovati += 1;
 			}
 		  }
 		  else if (ctx.funzione.type === CellType.UFUN) {

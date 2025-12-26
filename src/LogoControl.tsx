@@ -240,7 +240,8 @@ console.log('uf_call 1', parameters, body, ctx.block, ctx.block.length, ctx.i_li
     push_sc(n_parameters);
 	// svuota stack argomenti e ne copia il valore in locale
     for (var i=0; i<n_parameters; ++i)
-		argomenti.push(pop_sv().val);
+		// argomenti.push(pop_sv().val);
+		argomenti.push(pop_sv());
 	// binding temporaneo degli argomenti con salvataggio vecchio binding
     for (var i=0; i < n_parameters; ++i)
 		pushloc(parameters[i], argomenti[n_parameters-i-1]);

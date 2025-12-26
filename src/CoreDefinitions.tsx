@@ -182,7 +182,8 @@ export type ParamDef = {
 #define IS_PR_FUNZIONE	(descr_sf.descr & 0x2000)
 */
 export enum FunSignature {
-	FUNCT = 1,
+	FUNCTION = 1,	// primitive that outputs a result
+	ONEORMORE = 2,	// primitive with one or more arguments (max number undefined)
 }
 
 // codifica di classi di primitiva
@@ -241,7 +242,7 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
   PENCOLOR: {
     classes: [FunClass.TURT],
-    signature: FunSignature.FUNCT,
+    signature: [FunSignature.FUNCTION],
     // description: "Riporta il colore della penna.",
     ref: _PENCOLOR,
   } as CommandDef,
@@ -262,67 +263,67 @@ export const CORE_DEFINITIONS = {
     ref: _PENDOWN,
   } as CommandDef,
   WORD: {
-    signature: FunSignature.FUNCT,
+    signature: [FunSignature.FUNCTION, FunSignature.ONEORMORE],
     args: [{ name: "arg1", type: 'string' }, { name: "arg2", type: 'any'}],
     ref: _WORD,
   } as CommandDef,
   LIST: {
-    signature: FunSignature.FUNCT,
+    signature: [FunSignature.FUNCTION, FunSignature.ONEORMORE],
     args: [{ name: "arg1", type: 'string' }, { name: "arg2", type: 'any'}],
     ref: _LIST,
   } as CommandDef,
   SENTENCE: {
-    signature: FunSignature.FUNCT,
+    signature: [FunSignature.FUNCTION, FunSignature.ONEORMORE],
     args: [{ name: "arg1", type: 'string' }, { name: "arg2", type: 'any'}],
     ref: _SENTENCE,
   } as CommandDef,
   COUNT: {
-    signature: FunSignature.FUNCT,
+    signature: [FunSignature.FUNCTION],
     args: [{ name: "sequence", type: 'any' }],
     ref: _COUNT,
   } as CommandDef,
   FPUT: {
-    signature: FunSignature.FUNCT,
+    signature: [FunSignature.FUNCTION],
     args: [{ name: "arg1", type: 'any' }, { name: "arg2", type: 'any'}],
     ref: _FPUT,
   } as CommandDef,
   LPUT: {
-    signature: FunSignature.FUNCT,
+    signature: [FunSignature.FUNCTION],
     args: [{ name: "arg1", type: 'any' }, { name: "arg2", type: 'any'}],
     ref: _LPUT,
   } as CommandDef,
   FIRST: {
-    signature: FunSignature.FUNCT,
+    signature: [FunSignature.FUNCTION],
     args: [{ name: "word_or_list", type: 'any' }],
     ref: _FIRST,
   } as CommandDef,
   LAST: {
-    signature: FunSignature.FUNCT,
+    signature: [FunSignature.FUNCTION],
     args: [{ name: "word_or_list", type: 'any' }],
     ref: _LAST,
   } as CommandDef,
   BUTFIRST: {
-    signature: FunSignature.FUNCT,
+    signature: [FunSignature.FUNCTION],
     args: [{ name: "word_or_list", type: 'any' }],
     ref: _BUTFIRST,
   } as CommandDef,
   BUTLAST: {
-    signature: FunSignature.FUNCT,
+    signature: [FunSignature.FUNCTION],
     args: [{ name: "word_or_list", type: 'any' }],
     ref: _BUTLAST,
   } as CommandDef,
   ITEM: {
-    signature: FunSignature.FUNCT,
+    signature: [FunSignature.FUNCTION],
     args: [{ name: "index", type: 'any' }, { name: "sequence", type: 'any'}],
     ref: _ITEM,
   } as CommandDef,
   WORDP: {
-    signature: FunSignature.FUNCT,
+    signature: [FunSignature.FUNCTION],
     args: [{ name: "arg", type: 'any' }],
     ref: _WORDP,
   } as CommandDef,
   LISTP: {
-    signature: FunSignature.FUNCT,
+    signature: [FunSignature.FUNCTION],
     args: [{ name: "arg", type: 'any' }],
     ref: _LISTP,
   } as CommandDef,
@@ -333,7 +334,7 @@ export const CORE_DEFINITIONS = {
     ref: _MAKE,
   } as CommandDef,
   THING: {
-    signature: FunSignature.FUNCT,
+    signature: [FunSignature.FUNCTION],
     args: [{ name: "nome", type: 'string' }],
     ref: _THING,
   } as CommandDef,
@@ -356,7 +357,7 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
   TEXT: {
     classes: [FunClass.DEF],
-    signature: FunSignature.FUNCT,
+    signature: [FunSignature.FUNCTION],
     // description: "Riporta la definizione di una procedura.",
     args: [{ name: "nome", type: 'string' }],
     ref: _TEXT,
@@ -368,37 +369,61 @@ export const CORE_DEFINITIONS = {
     ref: _REPEAT,
   } as CommandDef,
   PRINT: {
-    classes: [FunClass.TXOU],
+    classes: [FunClass.TXOU, FunSignature.ONEORMORE],
     // description: "Visualizza un valore nella console.",
     args: [{ name: "valore", type: 'string' }],
     ref: _NOP,
   } as CommandDef,
   READER: {
-    signature: FunSignature.FUNCT,
+    signature: [FunSignature.FUNCTION],
     // description: "Riporta il device di lettura dei comandi.",
     ref: _READER,
   } as CommandDef,
-  '+': {
-    signature: FunSignature.FUNCT,
+  'SUM': {
+    signature: [FunSignature.FUNCTION, FunSignature.ONEORMORE],
     // description: "Riporta la somma di 2 o più numeri.",
     args: [{ name: "addendo_1", type: 'number' }, { name: "addendo_2", type: 'number' }],
     ref: _SUM,
   } as CommandDef,
-  '-': {
-    signature: FunSignature.FUNCT,
-    // description: "Riporta la somma di 2 o più numeri.",
+  '+': {
+    signature: [FunSignature.FUNCTION],
+    // description: "Riporta la somma di 2 numeri.",
+    args: [{ name: "addendo_1", type: 'number' }, { name: "addendo_2", type: 'number' }],
+    ref: _SUM,
+  } as CommandDef,
+  'DIFFERENCE': {
+    signature: [FunSignature.FUNCTION],
+    // description: "Riporta la differenza di 2 numeri.",
     args: [{ name: "minuendo", type: 'number' }, { name: "sottraendo", type: 'number' }],
     ref: _DIFFERENCE,
   } as CommandDef,
-  '*': {
-    signature: FunSignature.FUNCT,
+  '-': {
+    signature: [FunSignature.FUNCTION],
+    // description: "Riporta la differenza di 2 numeri.",
+    args: [{ name: "minuendo", type: 'number' }, { name: "sottraendo", type: 'number' }],
+    ref: _DIFFERENCE,
+  } as CommandDef,
+  'PRODUCT': {
+    signature: [FunSignature.FUNCTION, FunSignature.ONEORMORE],
     // description: "Riporta la somma di 2 o più numeri.",
     args: [{ name: "fattore_1", type: 'number' }, { name: "fattore_2", type: 'number' }],
     ref: _PRODUCT,
   } as CommandDef,
+  '*': {
+    signature: [FunSignature.FUNCTION],
+    // description: "Riporta la somma di 2 numeri.",
+    args: [{ name: "fattore_1", type: 'number' }, { name: "fattore_2", type: 'number' }],
+    ref: _PRODUCT,
+  } as CommandDef,
+  'QUOTIENT': {
+    signature: [FunSignature.FUNCTION],
+    // description: "Riporta il rapporto di 2 più numeri.",
+    args: [{ name: "dividendo", type: 'number' }, { name: "divisore", type: 'number' }],
+    ref: _QUOTIENT,
+  } as CommandDef,
   '/': {
-    signature: FunSignature.FUNCT,
-    // description: "Riporta la somma di 2 o più numeri.",
+    signature: [FunSignature.FUNCTION],
+    // description: "Riporta il rapporto di 2 più numeri.",
     args: [{ name: "dividendo", type: 'number' }, { name: "divisore", type: 'number' }],
     ref: _QUOTIENT,
   } as CommandDef,

@@ -29,7 +29,6 @@ export function _LIST(args: any[]): Cell {
 	console.log('function _LIST', args);
 	var list = [];
 	for (var i=0; i<args.length; i++)
-		// list.push(args[i].val);
 		list.push(args[i]);
 	return { type: CellType.LIST, val: list };
 }

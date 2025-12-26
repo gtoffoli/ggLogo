@@ -8,6 +8,7 @@ import { userProcedures } from './Interpreter';
 import { getLine } from './InterpreterCore';
 import { contesti, liv_contesto, sf_out } from './LogoControl';
 
+export var isProcedureDefinition: boolean = false;
 
 export function _DEFINE(values: any[]): void {
 	console.log('function _DEFINE', values[0],values[1]);
