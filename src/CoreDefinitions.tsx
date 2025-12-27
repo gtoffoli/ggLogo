@@ -6,7 +6,8 @@
 import { _NOP, _REPEAT } from './LogoControl';
 import { _MAKE, _THING, _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _BUTFIRST, _BUTLAST, _COUNT, _ITEM, _WORDP, _LISTP } from './Structures';
 import { _DEFINE, _TO, _END, _TEXT } from './LogoDefine';
-import { _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT } from './Math';
+import { _NOT, _EQUALP, _NOTEQUALP } from './Logic';
+import { _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
 import { _READER } from './Streams';
 import { _HOME, _CS, _FD, _BK, _RT, _LT, _PENUP, _PENDOWN, _PENCOLOR, _SETPENCOLOR } from './InterpreterCore';
 
@@ -379,6 +380,17 @@ export const CORE_DEFINITIONS = {
     // description: "Riporta il device di lettura dei comandi.",
     ref: _READER,
   } as CommandDef,
+
+  'SIGN': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg", type: 'number' }],
+    ref: _SUM,
+  } as CommandDef,
+  'MINUS': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg", type: 'number' }],
+    ref: _MINUS,
+  } as CommandDef,
   'SUM': {
     signature: [FunSignature.FUNCTION, FunSignature.ONEORMORE],
     // description: "Riporta la somma di 2 o più numeri.",
@@ -427,6 +439,43 @@ export const CORE_DEFINITIONS = {
     args: [{ name: "dividendo", type: 'number' }, { name: "divisore", type: 'number' }],
     ref: _QUOTIENT,
   } as CommandDef,
+
+  'NOT': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg", type: 'boolean' }],
+    ref: _NOT,
+  } as CommandDef,
+  'EQUALP': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    ref: _EQUALP,
+  } as CommandDef,
+  'NOTEQUALP': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    ref: _NOTEQUALP,
+  } as CommandDef,
+  'LESSP': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    ref: _LESSP,
+  } as CommandDef,
+  'LESSEQUALP': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    ref: _LESSEQUALP,
+  } as CommandDef,
+  'GREATERP': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    ref: _GREATERP,
+  } as CommandDef,
+  'GREATEREQUALP': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    ref: _GREATEREQUALP,
+  } as CommandDef,
+
   'FALSE': {
 	type: keywordType.BOOLEAN,
     value: false,

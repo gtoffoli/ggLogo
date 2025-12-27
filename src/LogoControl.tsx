@@ -67,7 +67,7 @@ function _esegui(ctx: Context, block: Cell[][]): void {
 function AssertContesto(ctx: Context): void {
 	if (! ((ctx.liv_procedura >= 0) && (ctx.liv_funzione >= 0) && (ctx.liv_esecuzione >= 0)
 	    && (ctx.conto_esegui >= 0) && (ctx.n_arg_attesi >= 0) && (ctx.n_arg_trovati >= 0)
-	    && (ctx.liv_procedura < 2) && (ctx.liv_funzione < 3) // solo per test
+	    // && (ctx.liv_procedura < 2) && (ctx.liv_funzione < 3) // solo per test
 	    )) {
 		console.log(ctx);
 		throw new Error("INVALID CONTEXT");

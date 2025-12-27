@@ -31,7 +31,7 @@ export function _FD(values: any[], state: TurtleState): TurtleState {
 
 export function _BK(values: any[], state: TurtleState): TurtleState {
 	// const distance: number = -values[0];
-	const distance: number = -values[0].val;
+	const distance: number = -(values[0].val);
 	return calculateForward(state, distance);
 }
 
@@ -44,7 +44,7 @@ export function _RT(values: any[], state: TurtleState): TurtleState {
 
 export function _LT(values: any[], state: TurtleState): TurtleState {
 	// const angle: number = -values[0];
-	const angle: number = -values[0].val;
+	const angle: number = -(values[0].val);
 	return calculateRight(state, angle);
 }
 

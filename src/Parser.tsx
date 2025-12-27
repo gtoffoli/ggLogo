@@ -71,7 +71,8 @@ const FSM_MATRIX: Transition[][] = [
         [State.START, Action.FINALISE_TOKEN],  // BLANKSPACE -> Append (stringhe NON mantengono spazi)
         // [State.START, Action.FINALISE_TOKEN], // QUOTE -> Finalizza (la virgoletta non viene inclusa nel token, ma l'azione andrebbe modificata)
         [State.IN_LITERAL, Action.ERROR], // QUOTE -> Errore (In Iperlogo il QUOTE non va chiuso)
-        [State.IN_LITERAL, Action.APPEND],  // SEPARATOR -> Append
+        // [State.IN_LITERAL, Action.APPEND],  // SEPARATOR -> Append
+        [State.START, Action.FINALISE_TOKEN],  // SEPARATOR -> Append
         [State.IN_LITERAL, Action.APPEND],  // COMMENT -> Append
         [State.IN_LITERAL, Action.APPEND],  // NEWLINE -> Append (le stringhe LOGO possono estendersi su più righe)
         [State.IN_LITERAL, Action.APPEND],  // OTHER -> Append, resta in LITERAL
@@ -242,9 +243,17 @@ export function Parse(input: string): any[] {
 	return parsed;
 }
 
-export function unParseBoolean (node: Cell): string {
-	const keyword = (node.type) ? 'TRUE' : 'FALSE';
-	return LANGUAGE_MAPS[shared_langCode][keyword];
+export function unParseBoolean (arg: boolean): string {
+	// const keyword = (node.type) ? 'TRUE' : 'FALSE';
+	// return LANGUAGE_MAPS[shared_langCode][keyword];
+	// const dict = LANGUAGE_MAPS[shared_langCode];
+	const dict = LANGUAGE_MAPS['it'];
+	// console.log('unParseBoolean', shared_langCode, dict);
+	const value = (arg) ? 'TRUE' : 'FALSE';
+	console.log('unParseBoolean', arg, value);
+	const localized = Object.keys(dict).find(key => dict[key] === value);
+	console.log('unParseBoolean', arg, value, localized);
+	return '\"'+localized;
 }
 
 export function unParse(body: any[]): any[] {

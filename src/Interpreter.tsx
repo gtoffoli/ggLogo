@@ -26,7 +26,8 @@ export var userProcedures: Record<string, ProcedureDef> = {};
 export var mod_parola: ModParola;// modalita' di esecuzione di una parola LOGO
 var next_type: CellType | null;
 var next_val: any;
-var definition = null;	// definition of system function (primitive) or of user function (procedure)
+var definition: CommandDef | ProcedureDef | null = null;	// definition of system function (primitive) or of user function (procedure)
+var classes = [];		// info related to primitive classificaztion
 var signature = [];		// info  related to arguments and result of primitive
 var oneormore = false;	// true if primitive accepts an indefinite number of arguments 
 var is_function = false;// true if primitive returns a result
@@ -90,8 +91,9 @@ function get_token(ctx: Context): void {
 function get_function(ctx: Context): void {
 	definition = ctx.funzione.definition;
 	signature = definition.signature;
+	classes = definition.classes || [];
 	if (signature) {
-		is_function = ((signature !== undefined) && (signature.includes(FunSignature.FUNCTION)));
+		is_function = (signature.includes(FunSignature.FUNCTION));
 		oneormore =  (signature.includes(FunSignature.ONEORMORE));
 	} else {
 		is_function = false;
@@ -116,8 +118,8 @@ export function valuta_token(resolveCommand) {
 	var locale: number;
 	var numeric: number;
     var coreKey: CoreDefinitionKeys;
-    var definition: CommandDef | ProcedureDef;
-    var signature: number;
+    // var definition: CommandDef | ProcedureDef;
+    // var signature: number;
     var result = null;
     var cell: Cell;
      
@@ -309,7 +311,7 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 			var values = get_values(ctx);
 			console.log('VALUES', values);
 			var is_exec = false;
-			var classes = definition.classes || [];
+			// var classes = definition.classes || [];
 			if (ctx.funzione.coreKey === 'TO') {
 				ctx.i_token -= 1;
 				definition.ref(values);
