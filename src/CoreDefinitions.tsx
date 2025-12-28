@@ -450,7 +450,17 @@ export const CORE_DEFINITIONS = {
     args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
     ref: _EQUALP,
   } as CommandDef,
+  '=': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    ref: _EQUALP,
+  } as CommandDef,
   'NOTEQUALP': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    ref: _NOTEQUALP,
+  } as CommandDef,
+  '<>': {
     signature: [FunSignature.FUNCTION],
     args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
     ref: _NOTEQUALP,
@@ -460,7 +470,17 @@ export const CORE_DEFINITIONS = {
     args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
     ref: _LESSP,
   } as CommandDef,
+  '<': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    ref: _LESSP,
+  } as CommandDef,
   'LESSEQUALP': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    ref: _LESSEQUALP,
+  } as CommandDef,
+  '<=': {
     signature: [FunSignature.FUNCTION],
     args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
     ref: _LESSEQUALP,
@@ -470,7 +490,17 @@ export const CORE_DEFINITIONS = {
     args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
     ref: _GREATERP,
   } as CommandDef,
+  '>': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    ref: _GREATERP,
+  } as CommandDef,
   'GREATEREQUALP': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    ref: _GREATEREQUALP,
+  } as CommandDef,
+  '>=': {
     signature: [FunSignature.FUNCTION],
     args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
     ref: _GREATEREQUALP,

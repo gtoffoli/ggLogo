@@ -4,7 +4,7 @@
 // 251107 - started extension of Parser
 
 
-import { CellType, Cell } from './CoreDefinitions';
+import { CellType, Cell, SEPARATORS } from './CoreDefinitions';
 import { LANGUAGE_MAPS } from './LocalizationMaps';
 import { shared_langCode } from './LogoShell';
 import { localizeBoolean } from './Logic';
@@ -139,17 +139,17 @@ function logoTokenizerFSM(input: string): string[] {
     const fullInput = input + '\0'; 
 
     while (currentState !== State.FINAL) {
-        const char = fullInput[i];
-        const charClass = getCharClass(char);
+        var char = fullInput[i];
+        var charClass = getCharClass(char);
         
         // Cerca la transizione nella matrice
-        const transition = FSM_MATRIX[currentState][charClass];
+        var transition = FSM_MATRIX[currentState][charClass];
         if (!transition) {
             console.error(`Errore di transizione non definita in stato ${currentState} con classe ${charClass}`);
             break;
         }
 
-        const [nextState, action] = transition;
+        var [nextState, action] = transition;
  
         // Esecuzione dell'Azione (Side Effect)
         switch (action) {
@@ -172,15 +172,20 @@ function logoTokenizerFSM(input: string): string[] {
                 currentToken = '';
                 break;
             case Action.NEW_TOKEN_APPEND:
-                if (currentToken.length > 0) {
-					// qui ci vuole un LOOK-AHEAD per separatori multi-carattere
-               	    if (charClass === CharClass.SEPARATOR){
-				    }
+                if (currentToken.length > 0)
                     tokens.push(currentToken); // Finalizza il precedente
-                }
                 currentToken = char; // Inizia il nuovo token con il carattere corrente
                 if ((charClass === CharClass.QUOTE) || (charClass === CharClass.SEPARATOR)){
-                    tokens.push(currentToken);
+					// LOOK-AHEAD per separatori multi-carattere
+               	    if (   (charClass === CharClass.SEPARATOR)
+                        && (i < fullInput.length)
+						&& (Object.keys(SEPARATORS).includes(currentToken + fullInput[i+1]))
+					    ) {
+							tokens.push(currentToken + fullInput[i+1]);
+							i++;
+				    	}
+				    else
+                    	tokens.push(currentToken);
                     currentToken = '';
                 }
                 break;
@@ -224,9 +229,10 @@ export function Parse(input: string): any[] {
 				parse_level -= 1;
 			}
 		} else {
-			if (token.length === 1) {
-				token_type = getCharClass(token);
-				// cell_type = (token_type === CharClass.OTHER) ? CellType.WORD : CellType.OPERATOR;
+			// if (token.length === 1) {
+			if ((token.length >= 1) && (token.length <= 2)) { // gestisci operatori di relazione multi-carattere! 
+				// token_type = getCharClass(token);
+				token_type = getCharClass(token[0]); // gestisci operatori di relazione multi-carattere! 
         		switch (token_type) {
             		case CharClass.QUOTE:
 						cell_type = CellType.QUOTE;
