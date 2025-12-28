@@ -7,6 +7,7 @@
 import { CellType, Cell } from './CoreDefinitions';
 import { LANGUAGE_MAPS } from './LocalizationMaps';
 import { shared_langCode } from './LogoShell';
+import { localizeBoolean } from './Logic';
 
 // A. STATI DELLA FSM (Righe della matrice)
 enum State {
@@ -172,6 +173,9 @@ function logoTokenizerFSM(input: string): string[] {
                 break;
             case Action.NEW_TOKEN_APPEND:
                 if (currentToken.length > 0) {
+					// qui ci vuole un LOOK-AHEAD per separatori multi-carattere
+               	    if (charClass === CharClass.SEPARATOR){
+				    }
                     tokens.push(currentToken); // Finalizza il precedente
                 }
                 currentToken = char; // Inizia il nuovo token con il carattere corrente
@@ -243,19 +247,6 @@ export function Parse(input: string): any[] {
 	return parsed;
 }
 
-export function unParseBoolean (arg: boolean): string {
-	// const keyword = (node.type) ? 'TRUE' : 'FALSE';
-	// return LANGUAGE_MAPS[shared_langCode][keyword];
-	// const dict = LANGUAGE_MAPS[shared_langCode];
-	const dict = LANGUAGE_MAPS['it'];
-	// console.log('unParseBoolean', shared_langCode, dict);
-	const value = (arg) ? 'TRUE' : 'FALSE';
-	console.log('unParseBoolean', arg, value);
-	const localized = Object.keys(dict).find(key => dict[key] === value);
-	console.log('unParseBoolean', arg, value, localized);
-	return '\"'+localized;
-}
-
 export function unParse(body: any[]): any[] {
 	var output = "";
 	var node;
@@ -268,7 +259,7 @@ export function unParse(body: any[]): any[] {
 			output += node+' ';
 		}
 		else if (node.type === CellType.BOOLEAN)
-			output += unParseBoolean(node.val);
+			output += localizeBoolean(node.val);
 		else if (node.type === CellType.LIST) 
 			output += '['+unParse(node.val)+']';
 		else {

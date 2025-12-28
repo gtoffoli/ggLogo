@@ -20,6 +20,7 @@ import { Parse, infix_operators } from './Parser';
 import { contesti, liv_contesto, liv_analisi, v_stack, is_stop } from './LogoControl';
 import { ini_valuta, push_arg, ini_exec, push_sv, pop_sv, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_out, parenin, parenout } from './LogoControl';
 import { isProcedureDefinition } from './LogoDefine';
+import { localizedTruthValues, normalizeBoolean } from './Logic';
 
 export var globalVariables: Record<string, any> = {};
 export var userProcedures: Record<string, ProcedureDef> = {};
@@ -177,6 +178,8 @@ console.log('-- conto_parentesi', ctx.conto_parentesi);
 				break;
 			case CellType.WORD:
 				if (mod_parola === ModParola.LITERAL) {
+					if (localizedTruthValues.includes(cell.val))
+						cell = {type: CellType.BOOLEAN, val: (normalizeBoolean(cell.val) === 'TRUE') ? true : false };
 					push_arg(ctx, cell);
 				}
 				else if (mod_parola === ModParola.VARIABLE) {

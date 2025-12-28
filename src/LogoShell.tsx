@@ -15,10 +15,11 @@ import { logoInterpreter } from './Interpreter';
 import { unParse } from './Parser';
 import { useLogoState, useLogoDispatch } from './LogoStateContext';
 import { ini_main, ini_exec } from './LogoControl';
+import { localizeTruthValues } from './Logic';
 
-export var shared_globalState: LogoGlobalState;
-export var shared_dispatch: (action: any) => void;
-export var shared_LangCode: LanguageCode;
+export var shared_globalState: LogoGlobalState;		// mirrors value in react state
+export var shared_dispatch: (action: any) => void;	// mirrors value in react state
+export var shared_langCode: LanguageCode;	// mirrors value in react-i18next state
 
 export var inputString: string = '';
 var prompt: string;
@@ -49,6 +50,8 @@ const LogoShell: React.FC = () => {
   const endOfHistoryRef = useRef<HTMLDivElement>(null);
 
   const { activeLang, activeMap, setLanguage, resolveCommand, resolveKeyword } = useLocalization('it'); 
+  shared_langCode = activeLang;
+  localizeTruthValues();
 
   ini_main();
   ini_exec();
@@ -165,9 +168,9 @@ prompt = '&gt;';
     // Azione 1: Imposta la lingua (usa l'hook di localizzazione)
     const handleSetLanguage = (langCode: LanguageCode) => {
         setLanguage(langCode); // Questa funzione aggiorna lo stato della lingua usato da LocalizationMaps
-        i18n.changeLanguage(langCode);
-        shared_LangCode = langCode;
-        // changeLanguage(langCode); // Questa funzione aggiorna lo stato della lingua usato da i18n
+        i18n.changeLanguage(langCode); // Questa funzione aggiorna lo stato della lingua usato da i18n
+        shared_langCode = langCode;
+        localizeTruthValues();
         // Opzionale: Aggiungi un messaggio di sistema alla console history
         // dispatch({ type: 'SYSTEM_MESSAGE', text: `Lingua impostata su: ${lang.toUpperCase()}` }); 
     };
