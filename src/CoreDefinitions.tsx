@@ -3,7 +3,7 @@
 // 251115 - added FunClass; added ref field to CommandDef
 
 
-import { _NOP, _REPEAT } from './LogoControl';
+import { _NOP, _ERROR, _STOP, _REPEAT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
 import { _MAKE, _THING, _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _BUTFIRST, _BUTLAST, _COUNT, _ITEM, _WORDP, _LISTP } from './Structures';
 import { _DEFINE, _TO, _END, _TEXT } from './LogoDefine';
 import { _NOT, _EQUALP, _NOTEQUALP } from './Logic';
@@ -363,12 +363,6 @@ export const CORE_DEFINITIONS = {
     args: [{ name: "nome", type: 'string' }],
     ref: _TEXT,
   } as CommandDef,
-  REPEAT: {
-    classes: [FunClass.EXEC],
-    // description: "Ripete una lista di comandi.",
-    args: [{ name: "volte", type: 'number' }, { name: "comandi", type: 'list'}],
-    ref: _REPEAT,
-  } as CommandDef,
   PRINT: {
     classes: [FunClass.TXOU, FunSignature.ONEORMORE],
     // description: "Visualizza un valore nella console.",
@@ -504,6 +498,46 @@ export const CORE_DEFINITIONS = {
     signature: [FunSignature.FUNCTION],
     args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
     ref: _GREATEREQUALP,
+  } as CommandDef,
+
+  ERROR: {
+    signature: [FunSignature.FUNCTION],
+    args: [],
+    ref: _ERROR,
+  } as CommandDef,
+  STOP: {
+    classes: [FunClass.EXEC],
+    args: [],
+    ref: _STOP,
+  } as CommandDef,
+  REPEAT: {
+    classes: [FunClass.EXEC],
+    args: [{ name: "times", type: 'number' }, { name: "block", type: 'list'}],
+    ref: _REPEAT,
+  } as CommandDef,
+  IF: {
+    classes: [FunClass.EXEC],
+    args: [{ name: "condition", type: 'booleean' }, { name: "block", type: 'list'}],
+    ref: _IF,
+  } as CommandDef,
+  IFELSE: {
+    classes: [FunClass.EXEC],
+    args: [{ name: "condition", type: 'booleean' }, { name: "block1", type: 'list'}, { name: "block2", type: 'list'}],
+    ref: _IFELSE,
+  } as CommandDef,
+  TEST: {
+    args: [{ name: "arg", type: 'boolean' }],
+    ref: _TEST,
+  } as CommandDef,
+  IFTRUE: {
+    classes: [FunClass.EXEC],
+    args: [{ name: "block", type: 'list'}],
+    ref: _IFTRUE,
+  } as CommandDef,
+  IFFALSE: {
+    classes: [FunClass.EXEC],
+    args: [{ name: "block", type: 'list'}],
+    ref: _IFFALSE,
   } as CommandDef,
 
   'FALSE': {
