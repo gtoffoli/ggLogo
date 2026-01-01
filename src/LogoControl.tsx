@@ -113,6 +113,7 @@ function _esegui(ctx: Context, block: Cell[][]): void {
 }
 
 export function AssertContesto(ctx: Context): void {
+  console.log('AssertContesto', c_stack, v_stack);
   if (! ((ctx.liv_procedura >= 0) && (ctx.liv_funzione >= 0) && (ctx.liv_esecuzione >= 0)
       && (ctx.conto_esegui >= 0) && (ctx.n_arg_attesi >= 0) && (ctx.n_arg_trovati >= 0)
       // && (ctx.liv_procedura < 2) && (ctx.liv_funzione < 3) // solo per test
@@ -283,8 +284,10 @@ export function uf_call(ctx: Context): void {
   console.log('uf_call 1', parameters, body, ctx.block, ctx.block.length, ctx.i_line, ctx.i_token);
   AssertContesto(ctx);
   var argomenti: any[] = [];
-  /*riconosce eventuale ricorsione di coda :*/
-  /* e proc. da attivare coincide con proc.attiva */
+  // riconosce eventuale ricorsione di coda: 
+  // e proc. da attivare coincide con proc.attiva
+  push_procedure_context(ctx);
+  ctx = contesti[liv_contesto];
   push_sc(n_parameters);
   // svuota stack argomenti e ne copia il valore in locale
   for (var i=0; i<n_parameters; ++i)
@@ -292,9 +295,11 @@ export function uf_call(ctx: Context): void {
   // binding temporaneo degli argomenti con salvataggio vecchio binding
   for (var i=0; i < n_parameters; ++i)
     pushloc(parameters[i], argomenti[n_parameters-i-1]);
+  /*
   ++ctx.liv_procedura;
-  stk_funzioni[ctx.liv_procedura] = ctx.funzione;
-  stk_livelli[ctx.liv_procedura] = ctx.liv_funzione;
+  stk_funzioni.push(ctx.funzione);
+  stk_livelli.push(ctx.funzione);
+  */
   is_stop = false;
   ctx.n_arg_attesi = ctx.n_arg_trovati = 0;
   block_exec(ctx, body);
@@ -304,16 +309,26 @@ export function uf_call(ctx: Context): void {
 // finalizza l' esecuzione di una procedura LOGO con pop di uno stack-frame
 export function uf_ret(ctx: Context): void {
   console.log('uf_ret in', ctx.block.length, ctx);
-  var procedura; // valore attualmente non usato
   AssertContesto(ctx);
   is_funzione = is_riporta;
   is_riporta = false;
-  procedura = stk_funzioni[ctx.liv_procedura];
+  /*
+  var procedura; // valore attualmente non usato
+  procedura = stk_funzioni.pop();
+  stk_livelli.pop();
   --ctx.liv_procedura;
+  */
+  // esce da tutti i blochhi in procedura corrente
+  while (ctx.liv_esecuzione > 0) {
+    if (ctx.conto_parentesi > 0) break;
+    blk_out (ctx);
+  };
+  // spurga le variabili argomento
   const n_parameters = pop_sc();  // numero delle variabili argomento
   poploc(ctx, n_parameters);      // spurgo delle variabili argomento
   is_stop = false;
-  f_out(ctx);
+  ctx = pop_procedure_context();
+  // f_out(ctx);
   console.log('uf_ret out', ctx.block.length, ctx);
 }
 
@@ -536,4 +551,22 @@ export function ini_valuta(ctx: Context): void {
    ctx.parentesi = -1;    /* = liv_funzione se sfun corr. e' preceduta da "("*/
   is_stop = false;    /* se vero e' terminata esecuz. procedura corrente */
   v_stack = [];
+}
+
+// crea nuovo contesto, che eredita parzialmente dal precedente e lo mette sullo stack
+// delega a blk_in (richiamato da block_exec) l'inizializzazione di parecchi elementi
+function push_procedure_context(ctx: Context): void {
+  var ctx: Context = contesti[liv_contesto];
+  ctx.id_contesto = contextType.CT_PROCEDURE;
+  ctx.liv_procedura += 1;
+  ctx.liv_esecuzione = 0;
+  contesti.push(ctx);
+  liv_contesto += 1;
+  is_nestedExec = false;
+}
+
+function pop_procedure_context(): Context {
+  var ctx: Context = contesti.pop();
+  liv_contesto -= 1;
+  return ctx;  
 }

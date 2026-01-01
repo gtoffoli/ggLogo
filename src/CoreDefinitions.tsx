@@ -98,7 +98,8 @@ export enum contextType {
 	CT_TOP = 0,			// contesto iniziale (top_level)
 	CT_PAUSA = 1,		// contesto attivato da PAUSA
 	CT_RECUPERA = 2,	// contesto attivato da RECUPERA
-	CT_EVENT = 3,
+	CT_PROCEDURE = 3, // procedura di utente
+	CT_EVENT = 4,
 }
 
 // see contesti in Contesti.h of il32
