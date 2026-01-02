@@ -222,7 +222,6 @@ function f_in(ctx: Context, funzione): void {
   ctx.funzione = funzione;
   ctx.n_arg_trovati = 0;
   ++ctx.liv_funzione;
-  // err_token = prev_token;
   AssertContesto(ctx);
 }
 
@@ -232,7 +231,6 @@ function f_out (ctx: Context): void {
   console.log('f_out -> popco');
   popco(ctx);
   ctx.funzione = pop_sc();
-  // VALID(funzione);
   // if (is_funzione)
   //    push_arg(pop_sv());
   --ctx.liv_funzione;
@@ -295,7 +293,7 @@ export function uf_call(ctx: Context): void {
   // binding temporaneo degli argomenti con salvataggio vecchio binding
   for (var i=0; i < n_parameters; ++i)
     pushloc(parameters[i], argomenti[n_parameters-i-1]);
-  /*
+  /* this was replaced by push_procedure_context
   ++ctx.liv_procedura;
   stk_funzioni.push(ctx.funzione);
   stk_livelli.push(ctx.funzione);
@@ -312,13 +310,13 @@ export function uf_ret(ctx: Context): void {
   AssertContesto(ctx);
   is_funzione = is_riporta;
   is_riporta = false;
-  /*
+  /*  this was replaced by pop_procedure_context
   var procedura; // valore attualmente non usato
   procedura = stk_funzioni.pop();
   stk_livelli.pop();
   --ctx.liv_procedura;
   */
-  // esce da tutti i blochhi in procedura corrente
+  // esce da tutti i blocchi in procedura corrente
   while (ctx.liv_esecuzione > 0) {
     if (ctx.conto_parentesi > 0) break;
     blk_out (ctx);
@@ -328,7 +326,7 @@ export function uf_ret(ctx: Context): void {
   poploc(ctx, n_parameters);      // spurgo delle variabili argomento
   is_stop = false;
   ctx = pop_procedure_context();
-  // f_out(ctx);
+  f_out(ctx);
   console.log('uf_ret out', ctx.block.length, ctx);
 }
 
@@ -452,8 +450,8 @@ export function blk_out(ctx: Context): void {
   var block: Cell[][];
   AssertContesto(ctx);
   parenout(ctx, ctx.conto_parentesi);
-  poploc(ctx, n_locali);
   n_locali = pop_sc ();
+  poploc(ctx, n_locali);
   locale = ctx.n_arg_trovati;
   console.log('blk_out -> popco');
   popco(ctx);
@@ -548,7 +546,7 @@ export function ini_valuta(ctx: Context): void {
   ctx.n_arg_attesi = 0;  /* numero di parametri atteso dalla funzione corrente*/
   ctx.n_arg_trovati = 0;  /* numero di oggetti sullo stack per la fun corrente*/
   ctx.conto_parentesi = 0;
-   ctx.parentesi = -1;    /* = liv_funzione se sfun corr. e' preceduta da "("*/
+  ctx.parentesi = -1;    /* = liv_funzione se sfun corr. e' preceduta da "("*/
   is_stop = false;    /* se vero e' terminata esecuz. procedura corrente */
   v_stack = [];
 }
@@ -556,17 +554,17 @@ export function ini_valuta(ctx: Context): void {
 // crea nuovo contesto, che eredita parzialmente dal precedente e lo mette sullo stack
 // delega a blk_in (richiamato da block_exec) l'inizializzazione di parecchi elementi
 function push_procedure_context(ctx: Context): void {
-  var ctx: Context = contesti[liv_contesto];
+  contesti.push(Object.assign({}, ctx)); // aggiungo una copia in cima
+  liv_contesto += 1;
+  var ctx: Context = contesti[liv_contesto]; // prendo riferimento alla copia e lo aggiorno
   ctx.id_contesto = contextType.CT_PROCEDURE;
   ctx.liv_procedura += 1;
   ctx.liv_esecuzione = 0;
-  contesti.push(ctx);
-  liv_contesto += 1;
   is_nestedExec = false;
 }
 
 function pop_procedure_context(): Context {
-  var ctx: Context = contesti.pop();
+  var ctx = contesti.pop();
   liv_contesto -= 1;
-  return ctx;  
+  return contesti[liv_contesto];  
 }

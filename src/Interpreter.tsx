@@ -145,6 +145,7 @@ export function valuta_token(resolveCommand) {
           }
           else if (ctx.liv_procedura > 0) { // poi chiudo le procedure
             uf_ret(ctx);
+            ctx = contesti[liv_contesto];
             continue;
           }
           else {
@@ -384,10 +385,12 @@ export function valuta_token(resolveCommand) {
         else if (ctx.funzione.type === CellType.UFUN) {
           console.log('valuta_token UFUN', ctx.n_arg_trovati, ctx.n_arg_attesi);
           uf_call(ctx);
+          ctx = contesti[liv_contesto];
         }
         if (is_stop) {
           console.log('is_stop');
           uf_ret(ctx);
+          ctx = contesti[liv_contesto];
         }
       }
     } while (result);
