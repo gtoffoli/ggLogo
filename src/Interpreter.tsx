@@ -17,7 +17,7 @@ import { LANGUAGE_MAPS } from './LocalizationMaps';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
 import { shared_globalState, shared_dispatch } from './LogoShell';
 import { Parse, infix_operators } from './Parser';
-import { contesti, liv_contesto, liv_analisi, v_stack, is_stop } from './LogoControl';
+import { contesti, liv_contesto, liv_analisi, v_stack, is_stop, risultato } from './LogoControl';
 import { push_sv, pop_sv,  push_arg, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_out, parenin, parenout } from './LogoControl';
 import { ini_valuta,ini_exec, AssertContesto } from './LogoControl';
 import { isProcedureDefinition } from './LogoDefine';
@@ -116,7 +116,7 @@ function get_values(ctx: Context): any[] {
 
 export function valuta_token(resolveCommand) {
   var ctx: Context;
-  var locale: number;
+  // var locale: number;
   var numeric: number;
   var coreKey: CoreDefinitionKeys;
   // var definition: CommandDef | ProcedureDef;
@@ -169,6 +169,7 @@ export function valuta_token(resolveCommand) {
     console.log('token-1', liv_contesto, ctx.block, ctx.i_line, ctx.i_token, cell, mod_parola);
     console.log('token-2', ctx);
     ctx.i_token += 1; // next token!!!
+    coreKey = null;
     switch (cell.type) {
       case CellType.LIST:
         push_arg(ctx, cell);
@@ -214,8 +215,12 @@ export function valuta_token(resolveCommand) {
             }
           }
         }
-        locale = mod_parola;
-        mod_parola = ModParola.VERB;
+        // locale = mod_parola;
+        // la keyword TO quota il nome di procedura
+        if (coreKey && (coreKey === 'TO'))
+          mod_parola = ModParola.LITERAL;
+        else
+          mod_parola = ModParola.VERB;
         break;
       case CellType.OPERATOR:
         console.log('OPERATOR-1', cell.val);
@@ -391,6 +396,9 @@ export function valuta_token(resolveCommand) {
           console.log('is_stop');
           uf_ret(ctx);
           ctx = contesti[liv_contesto];
+          if (risultato) {
+            push_arg(ctx, risultato);
+          }
         }
       }
     } while (result);

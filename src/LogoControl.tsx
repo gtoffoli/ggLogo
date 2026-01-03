@@ -22,14 +22,14 @@ export var liv_contesto: number = 0; /* livello di nidificazione dei contesti */
 var ha_blocco_valore: boolean = false;
 var is_ripeti: boolean = false;
 var is_funzione: boolean = false;
-export var liv_analisi: number;    // parentesi non chiuse
+export var liv_analisi: number; // parentesi non chiuse
 var is_nestedExec: boolean;
-var n_locali: number = 0;        // numero variabili locali nella procedura
-var n_argomenti: number;      // numero argomenti della procedura
+var n_locali: number = 0;       // numero variabili locali nella procedura
+var n_argomenti: number;        // numero argomenti della procedura
 var is_vai: boolean = false;    // appena incontrato comando VAI
-var risultato: any;          // risultato della primitiva corrente
+export var risultato: any;      // risultato della procedura corrente
 export var is_stop: boolean;    // incontrata fine di valutazione di procedura (UFUN)
-export var is_riporta: boolean;    // procedura termina con RIPORTA
+var is_riporta: boolean; // procedura termina con RIPORTA
 
 var c_stack: any[] = [];
 export var v_stack: any[] = [];
@@ -49,10 +49,12 @@ export function _STOP(ctx: Context, values: any[]): void {
   sf_out(ctx); // anticipo, per non confliggere con uf_ret
 }
 
-export function _OUTPUT(values: any[]): void {
+export function _OUTPUT(ctx: Context, values: any[]): void {
+  console.log('function _OUTPUT', values);
+  risultato = values[0];
   is_stop = true;
   is_riporta = true;
-  return values[0];
+  sf_out(ctx); // anticipo, per non confliggere con uf_ret
 }
 
 export function _REPEAT(ctx: Context, values: any[]): void {
@@ -299,6 +301,7 @@ export function uf_call(ctx: Context): void {
   stk_livelli.push(ctx.funzione);
   */
   is_stop = false;
+  risultato = null;
   ctx.n_arg_attesi = ctx.n_arg_trovati = 0;
   block_exec(ctx, body);
   AssertContesto(ctx);
