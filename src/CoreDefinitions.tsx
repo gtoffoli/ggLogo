@@ -41,30 +41,6 @@ export function isSeparator(s: string): boolean {
 	return Object.keys(SEPARATORS).includes(s);
 }
 
-// codifica dei device MLOGO
-export enum devCode {
-	CONSOLE = 0,	// codice di console
-	STAMPANTE = 1,	// codice di stampante
-	FOGLIO = 2,		// codice di device del foglio di editor
-	TARTALFA = 3,	// codice di schermo TARTA usato per output alfanum.
-	COM1 = 4,		// codice di porta comunicazione n. 1
-	MIN_DEV = 6, 	// minimo codice di device non preallocato
-}
-
-// codifica dei bit di stato MLOGO (_stato) per file C
-export enum devType {
-	NULL_DEV = -1,
-	O_BINARIO = 1,	// file aperto in modalita' binario
-					// 2 riservato futuri usi per file 
-					// 4 riservato futuri usi per file
-	O_FINESTRA = 8,	// device corrispondente a viewport del GFX
-	O_TARTA = 16,	// finestra di tipo tarta
-	O_FOGLIO = 32,	// finestra di tipo foglio
-	O_ARCHIVIO = 64,// device di tipo archivio
-	O_PLAYER = 128,	// player MCI
-	O_BROWSER = 256,// browser HTML
-}
-
 export enum ModParola {
 	VERB = 1,		// parola non preceduta da modificatore
 	LITERAL = 2,	// parola preceduta da QUOTE

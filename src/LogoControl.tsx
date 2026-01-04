@@ -3,8 +3,9 @@
 // 251129 - of resolveCommand also to functions calling valuta_token
 // 251230 - converted TAB to spaces
 
-import { devCode, devType, contextType, Context, Cell, CommandDef, ModParola, ProcedureDef } from './CoreDefinitions';
+import { devType, contextType, Context, Cell, CommandDef, ModParola, ProcedureDef } from './CoreDefinitions';
 import { valuta_token, globalVariables, userProcedures } from './Interpreter';
+import { ini_streams } from './Streams';
 
 // codifica dei tipi di contesto (id_contesto)
 const CT_TOP = 0;      // contesto iniziale (top_level)
@@ -511,9 +512,10 @@ export function ini_main(): void {
 
 // inizializzazione quasi totale di Commander
 export function ini_exec(): void {
+  console.log('ini_exec - 1');
   var ctx: Context = {
     'id_contesto': contextType.CT_TOP,
-    'dev_recupera': devCode.CONSOLE,
+    // 'dev_recupera': devCode.CONSOLE,
     'liv_procedura': 0,
     'in_liv_proc': 0,
     'liv_funzione': 0,
@@ -534,6 +536,8 @@ export function ini_exec(): void {
     'i_line': 0,
   };
   ini_valuta(ctx);
+  ini_streams(ctx);
+  console.log('ini_exec - 2', ctx);
   contesti.push(ctx);
   liv_contesto += 1;
   liv_analisi = 0;

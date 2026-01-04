@@ -5,7 +5,8 @@ import { shared_globalState, shared_dispatch } from './LogoShell';
 import { CellType, Cell, Context, ProcedureDef } from './CoreDefinitions';
 import { Parse, unParse } from './Parser';
 import { userProcedures } from './Interpreter';
-import { getLine } from './InterpreterCore';
+// import { getLine } from './Streams';
+import { getCommandLine, getConsoleLine } from './Streams';
 import { contesti, liv_contesto, sf_out } from './LogoControl';
 
 export var isProcedureDefinition: boolean = false;
@@ -16,16 +17,16 @@ export function _DEFINE(values: any[]): void {
 	var value = values[1].val;
 	userProcedures[name] = value;
 }
-
+/*
 // La funzione getLine sarà accessibile solo se forniamo un dispatcher
 interface InterpreterDispatch {
     dispatch: (action: any) => void;
 }
-
+*/
 export async function _TO(values: any[]): void {
 	// const procedureName = values[0]; // procedure name
 	const procedureName = values[0].val; // procedure name
-	console.log('async function _TO', procedureName, values);
+	console.log('async function _TO - 1', procedureName, values);
 	var ctx = contesti[liv_contesto];
 	var declaration = ctx.block[0];
 	var cell: Cell;
@@ -56,7 +57,9 @@ export async function _TO(values: any[]): void {
     // Entra nel loop di lettura asincrona del procedure body
     do {
         // La chiamata ASINCRONA SOSPENDE l'esecuzione qui
-        s = await getLine('TO> ', shared_dispatch); 
+        console.log('async function _TO - 2'); 
+        s = await getConsoleLine('TO> ', shared_dispatch); 
+        // s = await getCommandLine('TO> ', shared_dispatch); 
         if (s !== 'END') {
 			parsedLine = Parse(s);
             procedureBody.push(parsedLine);
