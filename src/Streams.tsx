@@ -35,8 +35,8 @@ export type deviceDescription = {
 }
 
 export var DEVICES = {
-  CONSOLE: { name: 'CONSOLE', handle: 0, state: 0 } as deviceDescription,
-  TARTALFA: { name: 'TURTLE', handle: 0, state: 0 } as deviceDescription
+  0: { name: 'CONSOLE', handle: 0, state: 0 } as deviceDescription,
+  1: { name: 'TURTLE', handle: 0, state: 0 } as deviceDescription
 }
 
 export var is_recupera: boolean;
@@ -73,11 +73,69 @@ export function getConsoleLine(prompt: string, dispatch: InterpreterDispatch['di
     });
 }
 
-export function getCommandLine(prompt: string, dispatch: InterpreterDispatch['dispatch']): string {
+export async function getCommandLine(prompt: string, dispatch: InterpreterDispatch['dispatch']): string {
   var ctx = contesti[liv_contesto];
   console.log('getCommandLine', liv_contesto, ctx.dev_recupera, ctx, DEVICES);
   var device = DEVICES[ctx.dev_recupera];
-  // var line: string;
+   var line: string;
   if (device.handle === 0)
-    return getConsoleLine(prompt, dispatch);
+    line = await getConsoleLine(prompt, dispatch);
+  return line;
 }
+
+/* SOURCES */
+
+export interface InputSource {
+//  type: 'SHELL' | 'BUFFER' | 'PROCEDURE';
+  type: 'SHELL' | 'BUFFER';
+  // Restituisce una stringa o null se la sorgente è esaurita (EOF)
+  getLine(): Promise<string | null>;
+  // Un nome descrittivo (es. il nome del file o "Console")
+  name: string;
+}
+
+export class BufferSource implements InputSource {
+  type: 'BUFFER'; // as const;
+  private lines: string[];
+  private currentIndex: number = 0;
+  name: string;
+
+  constructor(content: string, name: string) {
+    // Divide il testo in righe
+    this.lines = content.split(/\r?\n/);
+    this.name = name;
+  }
+
+  async getLine(): Promise<string | null> {
+    if (this.currentIndex < this.lines.length) {
+      return this.lines[this.currentIndex++];
+    }
+    return null; // Fine del buffer
+  }
+}
+
+export class ShellSource implements InputSource {
+  type: 'SHELL'; // as const;
+  name: string = "Console";
+  private resolveNextLine: ((line: string) => void) | null = null;
+
+  // Questa funzione verrà chiamata dal componente React (LogoShell) 
+  // quando l'utente preme INVIO
+  public provideInput(line: string) {
+    if (this.resolveNextLine) {
+      const resolve = this.resolveNextLine;
+      this.resolveNextLine = null;
+      resolve(line);
+    }
+  }
+
+  async getLine(): Promise<string | null> {
+    return new Promise((resolve) => {
+      this.resolveNextLine = resolve;
+      // Qui potresti emettere un evento per dire alla UI di mostrare il prompt
+    });
+  }
+}
+
+
+

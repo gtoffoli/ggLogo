@@ -101,7 +101,8 @@ prompt = '&gt;';
 	    console.log(command);
 
 	    // Invoca l'interprete con lo stato e il dispatcher
-	    const result = logoInterpreter(activeLang, [command], { resolveCommand });
+	    // const result = logoInterpreter(activeLang, [command], { resolveCommand });
+      const result = logoInterpreter([command], resolveCommand);
 	
 	    // ... logica di visualizzazione del risultato (result) ...
 	    console.log(t('msg.interpreter_result'), result);
@@ -156,7 +157,8 @@ prompt = '&gt;';
         const text = e.target.result;
         textOutput.value += text;
         var lines = text.split('\n');
-        const result = logoInterpreter(activeLang, lines, { resolveCommand });
+        // const result = logoInterpreter(activeLang, lines, { resolveCommand });
+        const result = logoInterpreter(lines, resolveCommand);
       };
       reader.readAsText(file);
     }

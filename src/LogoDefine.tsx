@@ -24,6 +24,7 @@ interface InterpreterDispatch {
 }
 */
 export async function _TO(values: any[]): void {
+// export function _TO(values: any[]): void {
 	// const procedureName = values[0]; // procedure name
 	const procedureName = values[0].val; // procedure name
 	console.log('async function _TO - 1', procedureName, values);
@@ -59,7 +60,7 @@ export async function _TO(values: any[]): void {
         // La chiamata ASINCRONA SOSPENDE l'esecuzione qui
         console.log('async function _TO - 2'); 
         s = await getConsoleLine('TO> ', shared_dispatch); 
-        // s = await getCommandLine('TO> ', shared_dispatch); 
+        // s = getCommandLine('TO> ', shared_dispatch); 
         if (s !== 'END') {
 			parsedLine = Parse(s);
             procedureBody.push(parsedLine);

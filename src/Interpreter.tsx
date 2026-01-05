@@ -44,8 +44,9 @@ interface InterpreterProps {
 }
 
 // L'interprete riceve la riga e lo stato/dispatcher
-export function logoInterpreter(activeLang: LanguageCode, lines: string[], { resolveCommand }: InterpreterProps): any {
-  console.log('logoInterpreter', activeLang, lines.length);
+// export function logoInterpreter(activeLang: LanguageCode, lines: string[], { resolveCommand }: InterpreterProps): any {
+export function logoInterpreter(lines: string[], resolveCommand: (commandName: string) => CoreDefinitionKeys | undefined): any {
+  console.log('logoInterpreter', lines.length);
   // from Ilmain.execute()
   if (liv_analisi > 0) {
     ini_exec ();
@@ -405,4 +406,46 @@ export function valuta_token(resolveCommand) {
   }
 }
 
-export function err_arg1() { console.log('ERROR: bad argument') }
+export class AsynchronousLogoInterpreter {
+  private sourceStack: InputSource[] = [];
+
+  constructor(initialSource: InputSource) {
+    this.sourceStack.push(initialSource);
+  }
+
+  // Metodo per cambiare canale (es. comando "CARICA" o "LEGGI")
+  public pushSource(source: InputSource) {
+    this.sourceStack.push(source);
+  }
+
+  // Ciclo principale di esecuzione
+  public async run() {
+    while (this.sourceStack.length > 0) {
+      const currentSource = this.sourceStack[this.sourceStack.length - 1];
+      const line = await currentSource.getLine();
+
+      if (line === null) {
+        // La sorgente attuale è finita
+        this.sourceStack.pop();
+        continue;
+      }
+
+      if (line.trim() === "") continue;
+
+      // ESECUZIONE DEL COMANDO
+      try {
+        await this.executeLine(line);
+      } catch (err) {
+        console.error("Errore durante l'esecuzione:", err);
+        // In caso di errore critico potresti voler svuotare la pila 
+        // per tornare alla Shell
+      }
+    }
+  }
+
+  private async executeLine(line: string) {
+    // Qui invochi il tuo "parser sintattico avanzato"
+    console.log(`Eseguo da ${this.sourceStack[this.sourceStack.length-1].name}: ${line}`);
+    // Se il comando è "LEGGI", chiamerai this.pushSource(...)
+  }
+}

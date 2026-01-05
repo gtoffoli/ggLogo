@@ -2,7 +2,7 @@
 // 251222 - 1st version: inspired to Ilparlis.cpp of IperLogo
 
 import { CellType, Cell } from './CoreDefinitions';
-import { globalVariables, err_arg1 } from './Interpreter';
+import { globalVariables } from './Interpreter';
 
 export function _MAKE(args: any[]): void {
 	console.log('function _SET', args[0],args[1]);
@@ -82,7 +82,7 @@ export function _FIRST(args: any[]): Cell {
 		if (word.length)
 			return { type: CellType.WORD, val: word.substring(0,1) };
 	}
-	err_arg1();
+	// err_arg1();
 }
 export function _LAST(args: any[]): Cell {
 	console.log('function _LAST', args);
@@ -98,7 +98,7 @@ export function _LAST(args: any[]): Cell {
 		if (word.length)
 			return { type: CellType.WORD, val: word.slice(-1) };
 	}
-	err_arg1();
+	// err_arg1();
 }
 
 export function _BUTFIRST(args: any[]): Cell {
@@ -111,7 +111,7 @@ export function _BUTFIRST(args: any[]): Cell {
 		else
 			return { type: CellType.WORD, val: value.toString().slice(1) };
 	}
-	err_arg1(); 
+	// err_arg1(); 
 }
 export function _BUTLAST(args: any[]): Cell {
 	console.log('function _BUTLAST', args);
@@ -123,7 +123,7 @@ export function _BUTLAST(args: any[]): Cell {
 		else
 			return { type: CellType.WORD, val: value.toString().slice(0, -1) };
 	}
-	err_arg1(); 
+	// err_arg1(); 
 }
 
 export function _ITEM(args: any[]): Cell {

@@ -10,11 +10,15 @@ import PanelContainer from './PanelContainer';
 import LogoShell from './LogoShell'; // Il tuo componente B (da Gemini)
 import Canvas from './TurtleCanvas'; // Il tuo componente A (da DeepSeek)
 import Editor from './LogoEditor'; // Il tuo componente C (da DeepSeek)
+import { AsynchronousLogoInterpreter } from './Interpreter';
+import { ShellSource } from './Streams';
 import "./style.css"; // (da Gemini)
 
 import { LogoStateProvider } from './LogoStateContext';
 
 const App: React.FC = () => {
+  let initialSource = new ShellSource;
+  let interpreter = new AsynchronousLogoInterpreter(initialSource);
   return (
     // NOTA: I componenti React popolano i div con gli ID definiti nel CSS
   <I18nextProvider i18n={i18n} defaultNS={'translation'}>
