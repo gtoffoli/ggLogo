@@ -83,7 +83,7 @@ export async function getCommandLine(prompt: string, dispatch: InterpreterDispat
   return line;
 }
 
-/* SOURCES */
+/* IMPLEMENTATION OF SOURCES PATTERN */
 
 export interface InputSource {
 //  type: 'SHELL' | 'BUFFER' | 'PROCEDURE';
@@ -122,6 +122,7 @@ export class ShellSource implements InputSource {
   // Questa funzione verrà chiamata dal componente React (LogoShell) 
   // quando l'utente preme INVIO
   public provideInput(line: string) {
+    console.log('ShellSource - provideInput', line);
     if (this.resolveNextLine) {
       const resolve = this.resolveNextLine;
       this.resolveNextLine = null;

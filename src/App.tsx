@@ -10,22 +10,36 @@ import PanelContainer from './PanelContainer';
 import LogoShell from './LogoShell'; // Il tuo componente B (da Gemini)
 import Canvas from './TurtleCanvas'; // Il tuo componente A (da DeepSeek)
 import Editor from './LogoEditor'; // Il tuo componente C (da DeepSeek)
-import { AsynchronousLogoInterpreter } from './Interpreter';
+import { useLocalization, LanguageCode } from './UseLocalization';
 import { ShellSource } from './Streams';
+import { AsynchronousLogoInterpreter } from './Interpreter';
+import { ini_main, ini_exec } from './LogoControl';
+import { localizeTruthValues } from './Logic';
 import "./style.css"; // (da Gemini)
 
 import { LogoStateProvider } from './LogoStateContext';
+export var shared_langCode: LanguageCode; // mirrors value in react-i18next state
 
 const App: React.FC = () => {
-  let initialSource = new ShellSource;
-  let interpreter = new AsynchronousLogoInterpreter(initialSource);
+
+  const { activeLang, activeMap, setLanguage, resolveCommand, resolveKeyword } = useLocalization('it'); 
+  shared_langCode = activeLang;
+
+  var initialSource = new ShellSource;
+  var asynchronousInterpreter = new AsynchronousLogoInterpreter(initialSource, resolveCommand);
+  asynchronousInterpreter.run();
+
+  localizeTruthValues(activeLang);
+  ini_main();
+  ini_exec();
+
   return (
     // NOTA: I componenti React popolano i div con gli ID definiti nel CSS
   <I18nextProvider i18n={i18n} defaultNS={'translation'}>
     <LogoStateProvider>
      <>
       <div id="area-destra">
-        <LogoShell />
+        <LogoShell activeLang={ activeLang } setLanguage={ setLanguage } initialSource={ initialSource } />
         <Editor /> 
       </div>
       <Canvas windowId="TARTA" />

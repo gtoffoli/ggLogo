@@ -11,19 +11,13 @@ import { useTranslation } from 'react-i18next';
 import PanelContainer from './PanelContainer';
 import { LogoGlobalState } from './LogoState';
 import { useLocalization, LanguageCode } from './UseLocalization';
-import { logoInterpreter } from './Interpreter';
+// import { initialSource,  } from './App';
+import { logoInterpreter, AsynchronousLogoInterpreter } from './Interpreter';
 import { unParse } from './Parser';
 import { useLogoState, useLogoDispatch } from './LogoStateContext';
+import { ShellSource } from './Streams';
 import { ini_main, ini_exec } from './LogoControl';
 import { localizeTruthValues } from './Logic';
-
-export var shared_globalState: LogoGlobalState;		// mirrors value in react state
-export var shared_dispatch: (action: any) => void;	// mirrors value in react state
-export var shared_langCode: LanguageCode;	// mirrors value in react-i18next state
-
-export var inputString: string = '';
-var prompt: string;
-
 
 // Definisci il tipo per i messaggi di input/output (History)
 type Message = {
@@ -31,7 +25,13 @@ type Message = {
   text: string;
 };
 
-const LogoShell: React.FC = () => {
+export var shared_globalState: LogoGlobalState;		// mirrors value in react state
+export var shared_dispatch: (action: any) => void;	// mirrors value in react state
+export var inputString: string = '';
+var prompt: string;
+
+const LogoShell: React.FC = ({ activeLang, setLanguage, initialSource }) => {
+  console.log('LogoShell - starting', activeLang);
   // DA CommandInterpreter della versione 251026 di Gemini
   // Ottieni lo stato e il dispatcher dal Context/Redux
   const globalState = useLogoState();
@@ -49,12 +49,7 @@ const LogoShell: React.FC = () => {
   // Riferimento per scrollare automaticamente in basso
   const endOfHistoryRef = useRef<HTMLDivElement>(null);
 
-  const { activeLang, activeMap, setLanguage, resolveCommand, resolveKeyword } = useLocalization('it'); 
-  shared_langCode = activeLang;
-  localizeTruthValues();
-
-  ini_main();
-  ini_exec();
+  // const { activeLang, activeMap, setLanguage, resolveCommand, resolveKeyword } = useLocalization('it'); 
 
   // Auto-scroll alla fine ogni volta che l'history cambia
   useEffect(() => {
@@ -98,12 +93,12 @@ prompt = '&gt;';
 	    setHistory(prev => [...prev, { type: 'input', text: `> ${command}` }]);
 	
 	    // 2. Esegui il comando tramite l'interprete
-	    console.log(command);
+	    console.log('LogoShell - command:', command);
 
 	    // Invoca l'interprete con lo stato e il dispatcher
-	    // const result = logoInterpreter(activeLang, [command], { resolveCommand });
-      const result = logoInterpreter([command], resolveCommand);
-	
+      // const result = logoInterpreter([command], resolveCommand);
+      initialSource.provideInput(command);
+/*	
 	    // ... logica di visualizzazione del risultato (result) ...
 	    console.log(t('msg.interpreter_result'), result);
 	
@@ -123,6 +118,7 @@ prompt = '&gt;';
 			    console.log('output', unParse(result.output));
 				setHistory(prev => [...prev, { type: 'output', text: unParse(result.output) }]);
 			}
+*/
 	}
   };
 
@@ -131,7 +127,7 @@ prompt = '&gt;';
     if (event.key === 'Enter') {
       event.preventDefault(); // Impedisce il submit standard del form
       executeCommand(currentCommand);
-	  setCurrentCommand(''); // Pulisce l'input dopo l'invio
+	    setCurrentCommand(''); // Pulisce l'input dopo l'invio
     }
   };
 

@@ -3,7 +3,7 @@
 
 import { CellType, Cell } from './CoreDefinitions';
 import { LANGUAGE_MAPS } from './LocalizationMaps';
-import { shared_langCode } from './LogoShell';
+import { shared_langCode } from './App';
 import { equalNumbers, unEqualNumbers } from './Math';
 
 export var localizedTruthValues: string[]; // list of strings representing localized truth values
@@ -23,9 +23,9 @@ export function localizeBoolean (arg: boolean): string {
 }
 
 // puts in the global variable localizedTruthValues a list of strings representing localized truth values
-export function localizeTruthValues(): void {
+export function localizeTruthValues(langCode): void {
 	const keywords = ['FALSE', 'TRUE'];
-	const dict = LANGUAGE_MAPS[shared_langCode];
+	const dict = LANGUAGE_MAPS[langCode];
 	localizedTruthValues = [];
 	var localized;
 	for (var i=0; i<keywords.length; i++) {

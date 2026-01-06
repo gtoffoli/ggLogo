@@ -22,6 +22,7 @@ import { push_sv, pop_sv,  push_arg, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_
 import { ini_valuta,ini_exec, AssertContesto } from './LogoControl';
 import { isProcedureDefinition } from './LogoDefine';
 import { localizedTruthValues, normalizeBoolean } from './Logic';
+import { InputSource } from './Streams';
 
 export var globalVariables: Record<string, any> = {};
 export var userProcedures: Record<string, ProcedureDef> = {};
@@ -408,9 +409,13 @@ export function valuta_token(resolveCommand) {
 
 export class AsynchronousLogoInterpreter {
   private sourceStack: InputSource[] = [];
+  private commandResolver: (commandName: string) => CoreDefinitionKeys | undefined; 
 
-  constructor(initialSource: InputSource) {
+  constructor(initialSource: InputSource, resolveCommand: (commandName: string) => CoreDefinitionKeys | undefined) {
     this.sourceStack.push(initialSource);
+    this.commandResolver = resolveCommand;
+    // ini_exec();
+    console.log('AsynchronousLogoInterpreter CREATED');
   }
 
   // Metodo per cambiare canale (es. comando "CARICA" o "LEGGI")
@@ -420,12 +425,16 @@ export class AsynchronousLogoInterpreter {
 
   // Ciclo principale di esecuzione
   public async run() {
+     console.log('AsynchronousLogoInterpreter - Ciclo principale di esecuzione');
     while (this.sourceStack.length > 0) {
+      console.log('AsynchronousLogoInterpreter WAITING:');
       const currentSource = this.sourceStack[this.sourceStack.length - 1];
       const line = await currentSource.getLine();
+      console.log('AsynchronousLogoInterpreter LINE:', line);
 
       if (line === null) {
         // La sorgente attuale è finita
+        console.log('La sorgente attuale è finita');
         this.sourceStack.pop();
         continue;
       }
@@ -447,5 +456,13 @@ export class AsynchronousLogoInterpreter {
     // Qui invochi il tuo "parser sintattico avanzato"
     console.log(`Eseguo da ${this.sourceStack[this.sourceStack.length-1].name}: ${line}`);
     // Se il comando è "LEGGI", chiamerai this.pushSource(...)
+    contesti[liv_contesto].block.push(Parse(line));
+    console.log('LINE:', line)
+    valuta_token(this.commandResolver);
+    console.log('VALORI:', v_stack)
+    if (v_stack.length) {
+      v_stack.reverse();
+      // return {output: v_stack};
+    }
   }
 }

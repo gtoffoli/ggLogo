@@ -536,7 +536,7 @@ export function ini_exec(): void {
     'i_line': 0,
   };
   ini_valuta(ctx);
-  ini_streams(ctx);
+  // ini_streams(ctx);
   console.log('ini_exec - 2', ctx);
   contesti.push(ctx);
   liv_contesto += 1;
