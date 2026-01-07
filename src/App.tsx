@@ -39,7 +39,7 @@ const App: React.FC = () => {
     <LogoStateProvider>
      <>
       <div id="area-destra">
-        <LogoShell activeLang={ activeLang } setLanguage={ setLanguage } initialSource={ initialSource } />
+        <LogoShell activeLang={ activeLang } setLanguage={ setLanguage } initialSource={ initialSource } resolveKeyword={ resolveKeyword } />
         <Editor /> 
       </div>
       <Canvas windowId="TARTA" />

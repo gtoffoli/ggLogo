@@ -456,7 +456,10 @@ export class AsynchronousLogoInterpreter {
     // Qui invochi il tuo "parser sintattico avanzato"
     console.log(`Eseguo da ${this.sourceStack[this.sourceStack.length-1].name}: ${line}`);
     // Se il comando è "LEGGI", chiamerai this.pushSource(...)
-    contesti[liv_contesto].block.push(Parse(line));
+    const ctx: Context = contesti[liv_contesto];
+    if (! isProcedureDefinition)
+      ini_valuta(ctx);
+    ctx.block.push(Parse(line));
     console.log('LINE:', line)
     valuta_token(this.commandResolver);
     console.log('VALORI:', v_stack)
