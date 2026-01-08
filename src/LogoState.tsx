@@ -3,6 +3,12 @@
 // 251101 - 2nd version: added DrawingCommand according to Gemini 251024
 
 
+export interface ShellLine {
+  id: string;
+  text: string;
+  type: 'input' | 'output' | 'error' | 'system';
+}
+
 // Definisce un comando di disegno elementare
 export type DrawingCommand = 
   | { type: 'MOVE_TO', x: number, y: number }

@@ -22,7 +22,7 @@ import { push_sv, pop_sv,  push_arg, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_
 import { ini_valuta,ini_exec, AssertContesto } from './LogoControl';
 import { isProcedureDefinition } from './LogoDefine';
 import { localizedTruthValues, normalizeBoolean } from './Logic';
-import { InputSource } from './Streams';
+import { InputSource, OutputChannel } from './Streams';
 
 export var globalVariables: Record<string, any> = {};
 export var userProcedures: Record<string, ProcedureDef> = {};
@@ -409,12 +409,13 @@ export function valuta_token(resolveCommand) {
 
 export class AsynchronousLogoInterpreter {
   private sourceStack: InputSource[] = [];
+  private outputStack: OutputChannel[] = [];
   private commandResolver: (commandName: string) => CoreDefinitionKeys | undefined; 
 
-  constructor(initialSource: InputSource, resolveCommand: (commandName: string) => CoreDefinitionKeys | undefined) {
+  constructor(initialSource: InputSource, initialOutput: OutputChannel, resolveCommand: (commandName: string) => CoreDefinitionKeys | undefined) {
     this.sourceStack.push(initialSource);
+    this.outputStack.push(initialOutput);
     this.commandResolver = resolveCommand;
-    // ini_exec();
     console.log('AsynchronousLogoInterpreter CREATED');
   }
 
@@ -457,6 +458,7 @@ export class AsynchronousLogoInterpreter {
     console.log(`Eseguo da ${this.sourceStack[this.sourceStack.length-1].name}: ${line}`);
     // Se il comando è "LEGGI", chiamerai this.pushSource(...)
     const ctx: Context = contesti[liv_contesto];
+    const currentOutput = this.outputStack[this.outputStack.length - 1];
     if (! isProcedureDefinition)
       ini_valuta(ctx);
     ctx.block.push(Parse(line));
@@ -467,5 +469,28 @@ export class AsynchronousLogoInterpreter {
       v_stack.reverse();
       // return {output: v_stack};
     }
+    // currentOutput.writeLine("CIAO");
   }
+
+  // private get currentOutput(): OutputChannel {
+  private getCurrentOutput(): OutputChannel {
+    return this.outputStack[this.outputStack.length - 1];
+  }
+
+  // Esempio d'uso nell'esecuzione
+  public print(text: string) {
+    this.currentOutput.writeLine(text);
+  }
+
+  public reportError(err: string) {
+    this.currentOutput.error(err);
+  }
+  
+  // Primitiva SCRIVISU "FILE.TXT
+  public pushOutput(channel: OutputChannel) {
+    this.outputStack.push(channel);
+  }
+
 }
+
+

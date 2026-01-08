@@ -92,6 +92,14 @@ export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlo
         case 'CLEAR_WAITER':
             // Rimuove il gestore di attesa e torna alla modalità normale
             return { ...state, inputWaiter: null };
+        case 'APPEND_SHELL_LINE':
+          return {
+            ...state,
+            shellHistory: [
+              ...state.shellHistory, 
+              { id: crypto.randomUUID(), ...action.payload }
+            ]
+          };
 
         default:
             return state;

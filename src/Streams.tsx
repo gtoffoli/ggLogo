@@ -138,5 +138,44 @@ export class ShellSource implements InputSource {
   }
 }
 
+export interface OutputChannel {
+  type: 'SHELL' | 'BUFFER' | 'NULL';
+  write(text: string): void;
+  writeLine(text: string): void;
+  error(text: string): void;
+  name: string;
+}
+
+export class ShellOutput implements OutputChannel {
+  type: 'SHELL'; // as const;
+  name: string = "Console";
+  
+  // Passiamo il dispatcher per aggiornare lo stato di React
+  // Accettiamo il dispatch come argomento
+  constructor(private dispatch: (action: any) => void) {}
+
+  write(text: string) {
+    // this.dispatch({ type: 'APPEND_TO_SHELL', text });
+    this.dispatch({ 
+      type: 'APPEND_SHELL_LINE', 
+      payload: { text, type: 'output' } 
+    });
+  }
+
+  writeLine(text: string) {
+    // this.write(text + "\n");
+    this.write(text); // In un log a righe, write e writeLine spesso coincidono
+  }
+
+  error(text: string) {
+    // this.dispatch({ type: 'SHELL_ERROR', text: `ERRORE: ${text}` });
+    this.dispatch({ 
+      type: 'APPEND_SHELL_LINE', 
+      payload: { text, type: 'error' } 
+    });
+  }
+}
+
+
 
 
