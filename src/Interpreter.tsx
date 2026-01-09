@@ -16,7 +16,7 @@ import { UserFunction, ProcedureDef } from './CoreDefinitions';
 import { LANGUAGE_MAPS } from './LocalizationMaps';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
 import { shared_globalState, shared_dispatch } from './LogoShell';
-import { Parse, infix_operators } from './Parser';
+import { Parse, infix_operators, unParse } from './Parser';
 import { contesti, liv_contesto, liv_analisi, v_stack, is_stop, risultato } from './LogoControl';
 import { push_sv, pop_sv,  push_arg, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_out, parenin, parenout } from './LogoControl';
 import { ini_valuta,ini_exec, AssertContesto } from './LogoControl';
@@ -36,45 +36,28 @@ var oneormore = false;  // true if primitive accepts an indefinite number of arg
 var is_function = false;// true if primitive returns a result
 const N_MINIMO = 1; // minimo numero di argomenti per la funzione corrente
 
-// Presupponiamo di avere accesso allo stato globale (GET) e al dispatcher (SET)
-interface InterpreterProps {
-  // globalState: LogoGlobalState;
-  // dispatch: (action: any) => void;
-  // activeLang: LanguageCode;
-  resolveCommand: (commandName: string) => CoreDefinitionKeys | undefined;
-}
 
 // L'interprete riceve la riga e lo stato/dispatcher
-// export function logoInterpreter(activeLang: LanguageCode, lines: string[], { resolveCommand }: InterpreterProps): any {
 export function logoInterpreter(lines: string[], resolveCommand: (commandName: string) => CoreDefinitionKeys | undefined): any {
-  console.log('logoInterpreter', lines.length);
   // from Ilmain.execute()
   if (liv_analisi > 0) {
     ini_exec ();
     mod_parola = ModParola.VERB;    // parola non preceduta da modificatore
     return 'parentesi non chiuse';
   }
-
   var ctx: Context = contesti[liv_contesto];
   if (! isProcedureDefinition)
     ini_valuta(ctx);
-
-    // 1. Tokenizzazione
+  // 1. Tokenizzazione
   mod_parola = ModParola.VERB;    // parola non preceduta da modificatore
   for (var i_line=0; i_line<lines.length; i_line++)
     ctx.block.push(Parse(lines[i_line]));
-
   valuta_token(resolveCommand);
-
-  console.log('VALORI:', v_stack)
   if (v_stack.length) {
-    // return v_stack;
-    // return {output: v_stack.pop().val}
     v_stack.reverse();
     return {output: v_stack};
   }
   else
-    // return {output: `OK: Eseguito riga di comando.`};
     return null;
 }
 
@@ -426,7 +409,7 @@ export class AsynchronousLogoInterpreter {
 
   // Ciclo principale di esecuzione
   public async run() {
-     console.log('AsynchronousLogoInterpreter - Ciclo principale di esecuzione');
+    console.log('AsynchronousLogoInterpreter - Ciclo principale di esecuzione');
     while (this.sourceStack.length > 0) {
       console.log('AsynchronousLogoInterpreter WAITING:');
       const currentSource = this.sourceStack[this.sourceStack.length - 1];
@@ -459,6 +442,7 @@ export class AsynchronousLogoInterpreter {
     // Se il comando è "LEGGI", chiamerai this.pushSource(...)
     const ctx: Context = contesti[liv_contesto];
     const currentOutput = this.outputStack[this.outputStack.length - 1];
+    currentOutput.writeLine(line);
     if (! isProcedureDefinition)
       ini_valuta(ctx);
     ctx.block.push(Parse(line));
@@ -468,8 +452,8 @@ export class AsynchronousLogoInterpreter {
     if (v_stack.length) {
       v_stack.reverse();
       // return {output: v_stack};
+      currentOutput.writeLine(unParse(v_stack));
     }
-    // currentOutput.writeLine("CIAO");
   }
 
   // private get currentOutput(): OutputChannel {

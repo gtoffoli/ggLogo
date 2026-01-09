@@ -11,7 +11,6 @@ import { useTranslation } from 'react-i18next';
 import PanelContainer from './PanelContainer';
 import { LogoGlobalState } from './LogoState';
 import { useLocalization, LanguageCode } from './UseLocalization';
-// import { initialSource,  } from './App';
 import { logoInterpreter, AsynchronousLogoInterpreter } from './Interpreter';
 import { unParse } from './Parser';
 import { useLogoState, useLogoDispatch } from './LogoStateContext';
@@ -30,7 +29,7 @@ export var shared_dispatch: (action: any) => void;	// mirrors value in react sta
 export var inputString: string = '';
 var prompt: string;
 
-const LogoShell: React.FC = ({ activeLang, setLanguage, initialSource, resolveKeyword }) => {
+const LogoShell: React.FC = ({ activeLang, setLanguage, initialSource, resolveKeyword, history }) => {
   console.log('LogoShell - starting', activeLang);
   // DA CommandInterpreter della versione 251026 di Gemini
   // Ottieni lo stato e il dispatcher dal Context/Redux
@@ -39,17 +38,11 @@ const LogoShell: React.FC = ({ activeLang, setLanguage, initialSource, resolveKe
   const dispatch = useLogoDispatch();
   shared_dispatch = dispatch;
 
-  // Stato per l'history dei comandi e risultati
-  // const [history, setHistory] = useState<Message[]>([{ type: 'output', text: "Wellcome in the LOGO Interpreter!" }]);
-  const [history, setHistory] = useState<Message[]>([]);
-
   // Stato per l'input corrente
   const [currentCommand, setCurrentCommand] = useState('');
   
   // Riferimento per scrollare automaticamente in basso
   const endOfHistoryRef = useRef<HTMLDivElement>(null);
-
-  // const { activeLang, activeMap, setLanguage, resolveCommand, resolveKeyword } = useLocalization('it'); 
 
   // Auto-scroll alla fine ogni volta che l'history cambia
   useEffect(() => {
@@ -62,7 +55,7 @@ const LogoShell: React.FC = ({ activeLang, setLanguage, initialSource, resolveKe
     if (globalState.inputWaiter) {
         
 	    // 1. Modalità: C'è qualcuno in attesa (es. la primitiva TO)?
-prompt = globalState.inputWaiter.prompt;
+        prompt = globalState.inputWaiter.prompt;
         // Verifica la condizione di terminazione del corpo procedura (END)
         // if (command.toUpperCase() === 'END') {
         var keyword = resolveKeyword(command.trim());
@@ -90,7 +83,7 @@ prompt = '&gt;';
 	    if (!command.trim()) return;
 	
 	    // 1. Aggiungi il comando all'history come 'input'
-	    setHistory(prev => [...prev, { type: 'input', text: `> ${command}` }]);
+	    //  setHistory(prev => [...prev, { type: 'input', text: `> ${command}` }]);
 	
 	    // 2. Esegui il comando tramite l'interprete
 	    console.log('LogoShell - command:', command);

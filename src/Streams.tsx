@@ -46,12 +46,6 @@ export function _READER(values: any[]): Cell {
 	return { cellType: CellType.NUMBER, val: device };
 }
 
-export function ini_streams(ctx: Context): void {
-  console.log('ini_streams');
-  is_recupera = false;
-  ctx['dev_recupera'] = devCode.CONSOLE;
-}
-
 // La funzione getLine sarà accessibile solo se forniamo un dispatcher
 interface InterpreterDispatch {
     dispatch: (action: any) => void;
@@ -71,16 +65,6 @@ export function getConsoleLine(prompt: string, dispatch: InterpreterDispatch['di
         
         // La Promise è ora sospesa, in attesa che l'azione venga gestita dal LogoShell.
     });
-}
-
-export async function getCommandLine(prompt: string, dispatch: InterpreterDispatch['dispatch']): string {
-  var ctx = contesti[liv_contesto];
-  console.log('getCommandLine', liv_contesto, ctx.dev_recupera, ctx, DEVICES);
-  var device = DEVICES[ctx.dev_recupera];
-   var line: string;
-  if (device.handle === 0)
-    line = await getConsoleLine(prompt, dispatch);
-  return line;
 }
 
 /* IMPLEMENTATION OF SOURCES PATTERN */

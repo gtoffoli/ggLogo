@@ -5,7 +5,6 @@
 
 import { devType, contextType, Context, Cell, CommandDef, ModParola, ProcedureDef } from './CoreDefinitions';
 import { valuta_token, globalVariables, userProcedures } from './Interpreter';
-import { ini_streams } from './Streams';
 
 // codifica dei tipi di contesto (id_contesto)
 const CT_TOP = 0;      // contesto iniziale (top_level)
@@ -536,7 +535,6 @@ export function ini_exec(): void {
     'i_line': 0,
   };
   ini_valuta(ctx);
-  // ini_streams(ctx);
   console.log('ini_exec - 2', ctx);
   contesti.push(ctx);
   liv_contesto += 1;

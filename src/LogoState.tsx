@@ -47,6 +47,13 @@ export type InputWaiter = {
     prompt: string; 
 };
 
+// Definisce l'interfaccia per una linea di output su Shell
+export interface ShellLine {
+  id: string;
+  text: string;
+  lineType: 'input' | 'output' | 'error' | 'system';
+}
+
 // 2. Definisce lo Stato Globale dell'Interprete
 export interface LogoGlobalState {
   // Mappa di tutte le finestre grafiche
@@ -66,4 +73,7 @@ export interface LogoGlobalState {
 
   // NUOVO CAMPO: Gestisce l'attesa asincrona
   inputWaiter: InputWaiter | null;
+
+  // Storia dell'output su Shell
+  shellHistory: ShellLine[];
 }

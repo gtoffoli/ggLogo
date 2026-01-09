@@ -28,6 +28,7 @@ const initialWindowState: GraphicWindowState = {
 export const initialLogoState: LogoGlobalState = {
     windows: { "TARTA": initialWindowState },
     activeWindowId: "TARTA",
+    shellHistory: [{ type: 'output', text: "Wellcome in the LOGO Interpreter!" }],
     userProcedures: {},
     globalVariables: {},
     configParams: {}
@@ -39,7 +40,8 @@ type LogoAction =
     | { type: 'ADD_DRAWING_COMMAND', windowId: string, command: DrawingCommand }
     | { type: 'REGISTER_CANVAS', windowId: string, context: CanvasRenderingContext2D, canvas: HTMLCanvasElement }
     | { type: 'WAIT_FOR_INPUT', waiter: InputWaiter }
-    | { type: 'CLEAR_WAITER' };
+    | { type: 'CLEAR_WAITER' }
+    | { type: 'APPEND_SHELL_LINE', lineType: 'input' | 'output' | 'error' | 'system', text: string };
 
 
 export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlobalState {
