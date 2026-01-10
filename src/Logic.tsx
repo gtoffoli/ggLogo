@@ -3,7 +3,7 @@
 
 import { CellType, Cell } from './CoreDefinitions';
 import { LANGUAGE_MAPS } from './LocalizationMaps';
-import { shared_langCode } from './App';
+import { shared_langCode } from './LogoShell';
 import { equalNumbers, unEqualNumbers } from './Math';
 
 export var localizedTruthValues: string[]; // list of strings representing localized truth values

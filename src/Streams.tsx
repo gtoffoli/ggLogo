@@ -79,10 +79,11 @@ export interface InputSource {
 }
 
 export class BufferSource implements InputSource {
-  type: 'BUFFER'; // as const;
+  // type: 'BUFFER'; // as const;
+  private type: string = 'BUFFER';
   private lines: string[];
   private currentIndex: number = 0;
-  name: string;
+  private name: string;
 
   constructor(content: string, name: string) {
     // Divide il testo in righe
@@ -99,8 +100,9 @@ export class BufferSource implements InputSource {
 }
 
 export class ShellSource implements InputSource {
-  type: 'SHELL'; // as const;
-  name: string = "Console";
+  // type: 'SHELL'; // as const;
+  private type: string = 'SHELL';
+  private name: string = "Console";
   private resolveNextLine: ((line: string) => void) | null = null;
 
   // Questa funzione verrà chiamata dal componente React (LogoShell) 

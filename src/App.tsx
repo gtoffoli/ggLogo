@@ -19,13 +19,11 @@ import { localizeTruthValues } from './Logic';
 import "./style.css"; // (da Gemini)
 
 import { LogoStateProvider } from './LogoStateContext';
-export var shared_langCode: LanguageCode; // mirrors value in react-i18next state
 
 const App: React.FC = () => {
 
   const [state, dispatch] = useReducer(logoReducer, initialLogoState); 
   const { activeLang, activeMap, setLanguage, resolveCommand, resolveKeyword } = useLocalization('it'); 
-  shared_langCode = activeLang;
 
   const initialSource = new ShellSource();
   const initialOutput = new ShellOutput(dispatch);
@@ -45,7 +43,7 @@ const App: React.FC = () => {
       <LogoStateProvider>
        <>
         <div id="area-destra">
-          <LogoShell activeLang={ activeLang } setLanguage={ setLanguage } initialSource={ initialSource } resolveKeyword={ resolveKeyword } history={state.shellHistory} />
+          <LogoShell activeLang={ activeLang } setLanguage={ setLanguage } initialSource={ initialSource } resolveKeyword={ resolveKeyword } history={state.shellHistory} interpreter={ asynchronousInterpreter } />
           <Editor /> 
         </div>
         <Canvas windowId="TARTA" />

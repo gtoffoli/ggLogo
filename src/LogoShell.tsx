@@ -14,7 +14,7 @@ import { useLocalization, LanguageCode } from './UseLocalization';
 import { logoInterpreter, AsynchronousLogoInterpreter } from './Interpreter';
 import { unParse } from './Parser';
 import { useLogoState, useLogoDispatch } from './LogoStateContext';
-import { ShellSource } from './Streams';
+import { ShellSource , BufferSource } from './Streams';
 import { ini_main, ini_exec } from './LogoControl';
 import { localizeTruthValues } from './Logic';
 
@@ -26,10 +26,12 @@ type Message = {
 
 export var shared_globalState: LogoGlobalState;		// mirrors value in react state
 export var shared_dispatch: (action: any) => void;	// mirrors value in react state
+export var shared_langCode: LanguageCode; // mirrors value in react-i18next state
 export var inputString: string = '';
 var prompt: string;
 
-const LogoShell: React.FC = ({ activeLang, setLanguage, initialSource, resolveKeyword, history }) => {
+// const LogoShell: React.FC = ({ activeLang, setLanguage, initialSource, resolveKeyword, history }) => {
+const LogoShell: React.FC = ({ activeLang, setLanguage, initialSource, resolveKeyword, history, interpreter }) => {
   console.log('LogoShell - starting', activeLang);
   // DA CommandInterpreter della versione 251026 di Gemini
   // Ottieni lo stato e il dispatcher dal Context/Redux
@@ -37,6 +39,7 @@ const LogoShell: React.FC = ({ activeLang, setLanguage, initialSource, resolveKe
   shared_globalState = globalState;
   const dispatch = useLogoDispatch();
   shared_dispatch = dispatch;
+  shared_langCode = activeLang;
 
   // Stato per l'input corrente
   const [currentCommand, setCurrentCommand] = useState('');
@@ -142,12 +145,20 @@ prompt = '&gt;';
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        const textOutput = document.getElementById('editor-area');
+        // const textOutput = document.getElementById('editor-area');
         const text = e.target.result;
-        textOutput.value += text;
-        var lines = text.split('\n');
-        // const result = logoInterpreter(activeLang, lines, { resolveCommand });
-        const result = logoInterpreter(lines, resolveCommand);
+        // textOutput.value += text;
+        const filename =  file.name;
+        console.log('handleFileChange', filename, text)
+        var fileSource = new BufferSource(text, filename);
+        interpreter.pushSource(fileSource);
+        interpreter.run();
+        if (false) {
+          // var lines = text.split('\n');
+          // const result = logoInterpreter(lines, resolveCommand); // NON RIMUOVERE !!!
+          // const result = logoInterpreter;
+          logoInterpreter;  // NON RIMUOVERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        }
       };
       reader.readAsText(file);
     }
@@ -161,7 +172,7 @@ prompt = '&gt;';
         setLanguage(langCode); // Questa funzione aggiorna lo stato della lingua usato da LocalizationMaps
         i18n.changeLanguage(langCode); // Questa funzione aggiorna lo stato della lingua usato da i18n
         shared_langCode = langCode;
-        localizeTruthValues();
+        localizeTruthValues(langCode);
         // Opzionale: Aggiungi un messaggio di sistema alla console history
         // dispatch({ type: 'SYSTEM_MESSAGE', text: `Lingua impostata su: ${lang.toUpperCase()}` }); 
     };

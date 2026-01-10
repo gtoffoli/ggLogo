@@ -405,6 +405,7 @@ export class AsynchronousLogoInterpreter {
   // Metodo per cambiare canale (es. comando "CARICA" o "LEGGI")
   public pushSource(source: InputSource) {
     this.sourceStack.push(source);
+    console.log('pushSource', this.sourceStack);
   }
 
   // Ciclo principale di esecuzione
