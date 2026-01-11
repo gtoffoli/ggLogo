@@ -5,8 +5,9 @@ import React, { useState } from 'react';
 import './i18n';
 import { useTranslation } from 'react-i18next';
 import PanelContainer from './PanelContainer';
+import { BufferSource } from './Streams';
 
-const Editor: React.FC = () => {
+const Editor: React.FC = ({ interpreter }) => {
 	const [code, setCode] = useState('');
 	// 't' è la funzione di traduzione
 	const { t, i18n } = useTranslation();
@@ -39,6 +40,24 @@ const Editor: React.FC = () => {
 
   const handleFileSave = () => { console.log('Salvataggio file LOGO...'); };
 
+  const handleRunSelection = () => {
+    const element = document.getElementById('editor-area');
+    const text = element.value.substring(element.selectionStart, element.selectionEnd);
+    if (text) {
+      const editorSource = new BufferSource(text, 'Editor');
+      interpreter.pushSource(editorSource);
+      interpreter.run();
+    }
+  };
+
+  const handleRunAll = () => {
+    const element = document.getElementById('editor-area');
+    const text = element.value;
+    const editorSource = new BufferSource(text, 'Editor');
+    interpreter.pushSource(editorSource);
+    interpreter.run();
+  };
+
   // Menu per l'Area C (Editor LOGO)
   const menuC = [
   { label: 'File', submenu: [
@@ -47,14 +66,14 @@ const Editor: React.FC = () => {
     { label: t('menu.save'), action: handleFileSave },
   ]},
   { label: t('menu.edit'), submenu: [
-    { label: t('menu.undo'), action: () => alert('Esecuzione del codice nell\'Editor...') },
+    { label: t('menu.undo'), action: () => alert("Annulla effetto di ultima azione in Editor...") },
   ]},
   { label: t('menu.set'), submenu: [
-    { label: t('menu.char'), action: () => alert('Esecuzione del codice nell\'Editor...') },
+    { label: t('menu.char'), action: () => alert("Imposta carattere in Editor...") },
   ]},
   { label: t('menu.test'), submenu: [
-    { label: t('menu.run_selection'), action: () => alert('Esecuzione del codice nell\'Editor...') },
-    { label: t('menu.run_all'), action: () => alert('Esecuzione del codice nell\'Editor...') },
+    { label: t('menu.run_selection'), action: handleRunSelection },
+    { label: t('menu.run_all'), action: handleRunAll },
   ]},
   ];
 

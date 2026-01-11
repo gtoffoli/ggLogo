@@ -20,7 +20,7 @@ import { Parse, infix_operators, unParse } from './Parser';
 import { contesti, liv_contesto, liv_analisi, v_stack, is_stop, risultato } from './LogoControl';
 import { push_sv, pop_sv,  push_arg, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_out, parenin, parenout } from './LogoControl';
 import { ini_valuta,ini_exec, AssertContesto } from './LogoControl';
-import { isProcedureDefinition } from './LogoDefine';
+import { isProcedureDefinition, iniDefine, pushProcedureLine } from './LogoDefine';
 import { localizedTruthValues, normalizeBoolean } from './Logic';
 import { InputSource, OutputChannel } from './Streams';
 
@@ -36,7 +36,7 @@ var oneormore = false;  // true if primitive accepts an indefinite number of arg
 var is_function = false;// true if primitive returns a result
 const N_MINIMO = 1; // minimo numero di argomenti per la funzione corrente
 
-
+/*
 // L'interprete riceve la riga e lo stato/dispatcher
 export function logoInterpreter(lines: string[], resolveCommand: (commandName: string) => CoreDefinitionKeys | undefined): any {
   // from Ilmain.execute()
@@ -60,6 +60,7 @@ export function logoInterpreter(lines: string[], resolveCommand: (commandName: s
   else
     return null;
 }
+*/
 
 // utility to collect in global variables some info related to the token following the one being processed
 function get_token(ctx: Context): void {
@@ -395,10 +396,11 @@ export class AsynchronousLogoInterpreter {
   private outputStack: OutputChannel[] = [];
   private commandResolver: (commandName: string) => CoreDefinitionKeys | undefined; 
 
-  constructor(initialSource: InputSource, initialOutput: OutputChannel, resolveCommand: (commandName: string) => CoreDefinitionKeys | undefined) {
+  constructor(initialSource: InputSource, initialOutput: OutputChannel, resolveCommand: (commandName: string) => CoreDefinitionKeys | undefined, resolveKeyword) {
     this.sourceStack.push(initialSource);
     this.outputStack.push(initialOutput);
     this.commandResolver = resolveCommand;
+    this.keywordResolver = resolveKeyword;
     console.log('AsynchronousLogoInterpreter CREATED');
   }
 
@@ -443,17 +445,24 @@ export class AsynchronousLogoInterpreter {
     // Se il comando è "LEGGI", chiamerai this.pushSource(...)
     const ctx: Context = contesti[liv_contesto];
     const currentOutput = this.outputStack[this.outputStack.length - 1];
-    currentOutput.writeLine(line);
-    if (! isProcedureDefinition)
-      ini_valuta(ctx);
-    ctx.block.push(Parse(line));
     console.log('LINE:', line)
-    valuta_token(this.commandResolver);
-    console.log('VALORI:', v_stack)
-    if (v_stack.length) {
-      v_stack.reverse();
-      // return {output: v_stack};
-      currentOutput.writeLine(unParse(v_stack));
+    currentOutput.writeLine(line);
+    const keyword = this.keywordResolver(line.trim());
+    const parsedLine = Parse(line);
+    if (isProcedureDefinition && (keyword !== 'END')) {
+      pushProcedureLine(parsedLine);
+    }
+    else {
+      ini_valuta(ctx);
+      // iniDefine();
+      ctx.block.push(parsedLine);
+      valuta_token(this.commandResolver);
+      console.log('VALORI:', v_stack)
+      if (v_stack.length) {
+        v_stack.reverse();
+        // return {output: v_stack};
+        currentOutput.writeLine(unParse(v_stack));
+      }
     }
   }
 

@@ -27,7 +27,7 @@ const App: React.FC = () => {
 
   const initialSource = new ShellSource();
   const initialOutput = new ShellOutput(dispatch);
-  const asynchronousInterpreter = new AsynchronousLogoInterpreter(initialSource, initialOutput, resolveCommand);
+  const asynchronousInterpreter = new AsynchronousLogoInterpreter(initialSource, initialOutput, resolveCommand, resolveKeyword);
   asynchronousInterpreter.run();
 
   // Facciamo partire il ciclo dell'interprete al primo avvio
@@ -44,7 +44,7 @@ const App: React.FC = () => {
        <>
         <div id="area-destra">
           <LogoShell activeLang={ activeLang } setLanguage={ setLanguage } initialSource={ initialSource } resolveKeyword={ resolveKeyword } history={state.shellHistory} interpreter={ asynchronousInterpreter } />
-          <Editor /> 
+          <Editor  interpreter={ asynchronousInterpreter } /> 
         </div>
         <Canvas windowId="TARTA" />
        </>
