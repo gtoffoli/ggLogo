@@ -37,6 +37,7 @@ export interface GraphicWindowState {
   canvasRef: any;     // Aggiunto per l'associazione al DOM (vedi punto 3)
 }
 
+/*
 // Definisce l'interfaccia per il gestore di input in sospeso
 export type InputWaiter = {
     // La funzione 'resolve' della Promise che verrà chiamata con l'input dell'utente
@@ -46,6 +47,7 @@ export type InputWaiter = {
     // Un prompt di feedback per l'utente, es. "TO>" o "?"
     prompt: string; 
 };
+*/
 
 // Definisce l'interfaccia per una linea di output su Shell
 export interface ShellLine {
@@ -72,7 +74,7 @@ export interface LogoGlobalState {
   configParams: Record<string, any>; 
 
   // NUOVO CAMPO: Gestisce l'attesa asincrona
-  inputWaiter: InputWaiter | null;
+  // inputWaiter: InputWaiter | null;
 
   // Storia dell'output su Shell
   shellHistory: ShellLine[];

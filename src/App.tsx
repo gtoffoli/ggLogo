@@ -22,6 +22,7 @@ import { LogoStateProvider } from './LogoStateContext';
 
 const App: React.FC = () => {
 
+  console.log('App');
   const [state, dispatch] = useReducer(logoReducer, initialLogoState); 
   const { activeLang, activeMap, setLanguage, resolveCommand, resolveKeyword } = useLocalization('it'); 
 
@@ -44,7 +45,7 @@ const App: React.FC = () => {
        <>
         <div id="area-destra">
           <LogoShell activeLang={ activeLang } setLanguage={ setLanguage } initialSource={ initialSource } resolveKeyword={ resolveKeyword } history={state.shellHistory} interpreter={ asynchronousInterpreter } />
-          <Editor  interpreter={ asynchronousInterpreter } /> 
+          <Editor interpreter={ asynchronousInterpreter } /> 
         </div>
         <Canvas windowId="TARTA" />
        </>

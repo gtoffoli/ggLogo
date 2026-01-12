@@ -11,11 +11,12 @@ import { useTranslation } from 'react-i18next';
 import PanelContainer from './PanelContainer';
 import { LogoGlobalState } from './LogoState';
 import { useLocalization, LanguageCode } from './UseLocalization';
-import { logoInterpreter, AsynchronousLogoInterpreter } from './Interpreter';
+// import { logoInterpreter, AsynchronousLogoInterpreter } from './Interpreter';
+import { logoInterpreter } from './Interpreter';
 import { unParse } from './Parser';
 import { useLogoState, useLogoDispatch } from './LogoStateContext';
 import { ShellSource , BufferSource } from './Streams';
-import { ini_main, ini_exec } from './LogoControl';
+// import { ini_main, ini_exec } from './LogoControl';
 import { localizeTruthValues } from './Logic';
 
 // Definisci il tipo per i messaggi di input/output (History)
@@ -55,6 +56,7 @@ const LogoShell: React.FC = ({ activeLang, setLanguage, initialSource, resolveKe
   // Funzione per eseguire il comando
   const executeCommand = (command: string) => {
 
+/*
     if (globalState.inputWaiter) {
         
 	    // 1. Modalità: C'è qualcuno in attesa (es. la primitiva TO)?
@@ -79,7 +81,7 @@ const LogoShell: React.FC = ({ activeLang, setLanguage, initialSource, resolveKe
         // ... logica per mostrare ">" o il prompt nell'history ...
         
     } else {
-
+*/
 		// 2. Modalità: Esecuzione standard del comando
 prompt = '&gt;';
 
@@ -115,7 +117,7 @@ prompt = '&gt;';
 				setHistory(prev => [...prev, { type: 'output', text: unParse(result.output) }]);
 			}
 */
-	}
+/*	} */
   };
 
   // Gestore per l'invio del comando (tasto INVIO)
@@ -129,14 +131,17 @@ prompt = '&gt;';
 
   // --- DEFINIZIONE DEI MENU (Hook per l'esecuzione dei comandi) ---
 
-  const handleConsoleClear = () => { alert('Console Clear: La cronologia B verrà cancellata.'); };
+  const handleConsoleClear = () => {
+     alert('Console Clear: La cronologia B verrà cancellata.');
+     dispatch({ type: 'CLEAR_SHELL_HISTORY' });
+  };
 
-    // Azione 2: Recupera (simula l'apertura del file dialog)
-    const handleFileLoad = () => {
-        // Logica per aprire un input file nascosto
-        const fileInput = document.getElementById('logo-file-input') as HTMLInputElement;
-        fileInput?.click();
-    };
+  // Azione 2: Recupera (simula l'apertura del file dialog)
+  const handleFileLoad = () => {
+      // Logica per aprire un input file nascosto
+      const fileInput = document.getElementById('logo-file-input') as HTMLInputElement;
+      fileInput?.click();
+  };
 
   const [text, setText] = useState('');
 

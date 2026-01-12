@@ -36,31 +36,6 @@ var oneormore = false;  // true if primitive accepts an indefinite number of arg
 var is_function = false;// true if primitive returns a result
 const N_MINIMO = 1; // minimo numero di argomenti per la funzione corrente
 
-/*
-// L'interprete riceve la riga e lo stato/dispatcher
-export function logoInterpreter(lines: string[], resolveCommand: (commandName: string) => CoreDefinitionKeys | undefined): any {
-  // from Ilmain.execute()
-  if (liv_analisi > 0) {
-    ini_exec ();
-    mod_parola = ModParola.VERB;    // parola non preceduta da modificatore
-    return 'parentesi non chiuse';
-  }
-  var ctx: Context = contesti[liv_contesto];
-  if (! isProcedureDefinition)
-    ini_valuta(ctx);
-  // 1. Tokenizzazione
-  mod_parola = ModParola.VERB;    // parola non preceduta da modificatore
-  for (var i_line=0; i_line<lines.length; i_line++)
-    ctx.block.push(Parse(lines[i_line]));
-  valuta_token(resolveCommand);
-  if (v_stack.length) {
-    v_stack.reverse();
-    return {output: v_stack};
-  }
-  else
-    return null;
-}
-*/
 
 // utility to collect in global variables some info related to the token following the one being processed
 function get_token(ctx: Context): void {
@@ -419,7 +394,8 @@ export class AsynchronousLogoInterpreter {
       const line = await currentSource.getLine();
       console.log('AsynchronousLogoInterpreter LINE:', line);
 
-      if (line === null) {
+      // if (line === null) {
+      if ((line === null) && (this.sourceStack.length > 1)) { // la console source iniziale va lasciata?
         // La sorgente attuale è finita
         console.log('La sorgente attuale è finita');
         this.sourceStack.pop();
@@ -430,7 +406,7 @@ export class AsynchronousLogoInterpreter {
 
       // ESECUZIONE DEL COMANDO
       try {
-        await this.executeLine(line);
+        await this.executeLine(line.trim());
       } catch (err) {
         console.error("Errore durante l'esecuzione:", err);
         // In caso di errore critico potresti voler svuotare la pila 
@@ -445,11 +421,9 @@ export class AsynchronousLogoInterpreter {
     // Se il comando è "LEGGI", chiamerai this.pushSource(...)
     const ctx: Context = contesti[liv_contesto];
     const currentOutput = this.outputStack[this.outputStack.length - 1];
-    console.log('LINE:', line)
     currentOutput.writeLine(line);
-    const keyword = this.keywordResolver(line.trim());
     const parsedLine = Parse(line);
-    if (isProcedureDefinition && (keyword !== 'END')) {
+    if (isProcedureDefinition && (this.keywordResolver(line) !== 'END')) {
       pushProcedureLine(parsedLine);
     }
     else {
