@@ -4,8 +4,8 @@
 
 
 import { _NOP, _ERROR, _STOP, _OUTPUT, _REPEAT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
-import { _MAKE, _THING, _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _BUTFIRST, _BUTLAST, _COUNT, _ITEM, _WORDP, _LISTP } from './Structures';
-import { _DEFINE, _TO, _END, _TEXT } from './LogoDefine';
+import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _BUTFIRST, _BUTLAST, _COUNT, _ITEM, _WORDP, _LISTP } from './Structures';
+import { _DEFINE, _TO, _END, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
 import { _NOT, _EQUALP, _NOTEQUALP } from './Logic';
 import { _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
 import { _READER } from './Streams';
@@ -100,6 +100,7 @@ export type Context = {
 	i_line: number;
 	i_token: number;
 	ini_token:  number | null;
+  localVariables: Record<string, any>;
 };
 
 // Tipi per i comandi
@@ -340,6 +341,11 @@ export const CORE_DEFINITIONS = {
     args: [{ name: "nome", type: 'string' }],
     ref: _TEXT,
   } as CommandDef,
+  LOCAL: {
+    classes: [FunSignature.ONEORMORE],
+    args: [{ name: "valore", type: 'string' }],
+    ref: _LOCAL,
+  } as CommandDef,
   PRINT: {
     classes: [FunClass.TXOU, FunSignature.ONEORMORE],
     // description: "Visualizza un valore nella console.",
@@ -481,6 +487,10 @@ export const CORE_DEFINITIONS = {
     signature: [FunSignature.FUNCTION],
     args: [],
     ref: _ERROR,
+  } as CommandDef,
+  NOP: {
+    args: [],
+    ref: _NOP,
   } as CommandDef,
   STOP: {
     classes: [FunClass.EXEC],

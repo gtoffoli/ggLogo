@@ -2,20 +2,7 @@
 // 251222 - 1st version: inspired to Ilparlis.cpp of IperLogo
 
 import { CellType, Cell } from './CoreDefinitions';
-import { globalVariables } from './Interpreter';
 
-export function _MAKE(args: any[]): void {
-	console.log('function _SET', args[0],args[1]);
-	const name = args[0].val;
-	const value = args[1];
-	globalVariables[name] = value;
-}
-
-export function _THING(args: any[]): Cell {
-	console.log('function _THING', args[0]);
-	const name = args[0].val;
-	return globalVariables[name];
-}
 
 export function _WORD(args: any[]): Cell {
 	console.log('function _WORD', args);

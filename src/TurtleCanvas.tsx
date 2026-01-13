@@ -17,6 +17,7 @@ interface TurtleCanvasProps {
 
 // const TurtleCanvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
 const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
+    console.log('TurtleCanvas - starting');
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const dispatch = useLogoDispatch();
     const state = useLogoState();

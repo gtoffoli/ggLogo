@@ -1,12 +1,13 @@
 // LogoDefine.tsx
 // 2511120 - 1st version: inspired to Ildef.cpp of IperLogo
 
-import { shared_globalState, shared_dispatch } from './LogoShell';
-import { CellType, Cell, Context, ProcedureDef } from './CoreDefinitions';
+// import { shared_globalState, shared_dispatch } from './LogoShell';
+import { CellType, Cell, contextType, Context, ProcedureDef } from './CoreDefinitions';
 import { Parse, unParse } from './Parser';
-import { userProcedures } from './Interpreter';
+import { userProcedures, globalVariables } from './Interpreter';
 import { getConsoleLine } from './Streams';
 import { contesti, liv_contesto, sf_out } from './LogoControl';
+
 
 export var isProcedureDefinition: boolean = false;
 export var procedureName: string | null;
@@ -101,4 +102,48 @@ export function _TEXT(values: any[]): Cell {
 	console.log('TESTO DI', procedureName, ' : ', procedureDef);
 	var text = unParse([[procedureDef.parameters, procedureDef.body]]);
 	return { type: CellType.WORD, val: text };
+}
+
+function getProcedureCtx(): Context | null {
+  var liv = liv_contesto;
+  while (liv > 0) {
+    if (contesti[liv].id === contextType.CT_PROCEDURE)
+      return contesti[liv];
+    --liv;
+  }
+  return null;
+}
+
+export function _MAKE(args: any[]): void {
+  console.log('function _SET', args[0],args[1]);
+  const name = args[0].val;
+  const value = args[1];
+  const localCtx = getProcedureCtx();
+  if (localCtx && typeof localCtx.localVariables[name] !== "undefined")
+    localCtx.localVariables[name] = value;
+  else
+    globalVariables[name] = value;
+}
+
+export function _THING(args: any[]): Cell {
+  console.log('function _THING', args[0]);
+  const name = args[0].val;
+  const localCtx = getProcedureCtx();
+  if (localCtx && typeof localCtx.localVariables[name] !== "undefined")
+    return localCtx.localVariables[name];
+  else
+    return globalVariables[name];
+}
+
+export function _LOCAL(args: any[]): Cell {
+  const localCtx = getProcedureCtx();
+  var localName;
+  if (localCtx)
+    for (var i=0; i<values.length; i++) {
+      localName = values[i].val;
+      localCtx.localVariables[localName] = null;
+    }
+  else {
+    console.log('non siamo dentro una procedura')
+  }
 }

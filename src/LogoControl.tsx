@@ -533,6 +533,7 @@ export function ini_exec(): void {
     'conto_parentesi': 0,
     'block': [],
     'i_line': 0,
+    'localVariables': {},
   };
   ini_valuta(ctx);
   console.log('ini_exec - 2', ctx);
