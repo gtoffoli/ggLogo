@@ -23,6 +23,8 @@ import { ini_valuta,ini_exec, AssertContesto } from './LogoControl';
 import { isProcedureDefinition, iniDefine, pushProcedureLine } from './LogoDefine';
 import { localizedTruthValues, normalizeBoolean } from './Logic';
 import { InputSource, OutputChannel } from './Streams';
+import { ShellSource, ShellOutput } from './Streams';
+import { keywordResolver, commandResolver } from './UseLocalization';
 
 export var globalVariables: Record<string, any> = {};
 export var userProcedures: Record<string, ProcedureDef> = {};
@@ -40,16 +42,12 @@ const N_MINIMO = 1; // minimo numero di argomenti per la funzione corrente
 export class AsynchronousLogoInterpreter {
   private sourceStack: InputSource[] = [];
   private outputStack: OutputChannel[] = [];
-  private commandResolver: (commandName: string) => CoreDefinitionKeys | undefined; 
 
-  // constructor(initialSource: InputSource, initialOutput: OutputChannel, resolveCommand: (commandName: string) => CoreDefinitionKeys | undefined, resolveKeyword) {
-  constructor(state, dispatch, initialSource: InputSource, initialOutput: OutputChannel, resolveCommand: (commandName: string) => CoreDefinitionKeys | undefined, resolveKeyword) {
+  constructor(state, dispatch, initialSource) {
     this.state = state;
     this.dispatch = dispatch;
     this.sourceStack.push(initialSource);
-    this.outputStack.push(initialOutput);
-    this.commandResolver = resolveCommand;
-    this.keywordResolver = resolveKeyword;
+    this.outputStack.push(new ShellOutput(dispatch));
     console.log('AsynchronousLogoInterpreter CREATED');
   }
 
@@ -97,15 +95,13 @@ export class AsynchronousLogoInterpreter {
     const currentOutput = this.outputStack[this.outputStack.length - 1];
     currentOutput.writeLine(line);
     const parsedLine = Parse(line);
-    if (isProcedureDefinition && (this.keywordResolver(line) !== 'END')) {
+    if (isProcedureDefinition && (keywordResolver(line) !== 'END')) {
       pushProcedureLine(parsedLine);
     }
     else {
       ini_valuta(ctx);
       // iniDefine();
       ctx.block.push(parsedLine);
-      // valuta_token(this.commandResolver);
-      // this.valuta_token(this.state, this.dispatch, this.commandResolver);
       this.valuta_token();
       console.log('VALORI:', v_stack)
       if (v_stack.length) {
@@ -262,7 +258,7 @@ export class AsynchronousLogoInterpreter {
             else {
               var verb = cell.val;
               var funzione;
-              coreKey = this.commandResolver(verb);
+              coreKey = commandResolver(verb);
               if (coreKey) {
                 definition = CORE_DEFINITIONS[coreKey];
                 funzione = { type: CellType.SFUN, coreKey: coreKey, definition: definition};
@@ -292,7 +288,7 @@ export class AsynchronousLogoInterpreter {
               this.get_token(ctx);
               console.log('DEL_PARSINISTRA', next_type, next_val);
               if (   (next_type === CellType.WORD)
-                && (this.commandResolver(next_val))
+                && (commandResolver(next_val))
                 ) ctx.parentesi = ctx.liv_funzione + 1;
               break;
             case Delimiter.DEL_PARDESTRA:

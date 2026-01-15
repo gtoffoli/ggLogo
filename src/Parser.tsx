@@ -6,7 +6,6 @@
 
 import { CellType, Cell, SEPARATORS } from './CoreDefinitions';
 import { LANGUAGE_MAPS } from './LocalizationMaps';
-import { shared_langCode } from './LogoShell';
 import { localizeBoolean } from './Logic';
 
 // A. STATI DELLA FSM (Righe della matrice)

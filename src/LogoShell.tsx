@@ -28,8 +28,7 @@ export var shared_dispatch: (action: any) => void;	// mirrors value in react sta
 export var shared_langCode: LanguageCode; // mirrors value in react-i18next state
 export var inputString: string = '';
 
-// const LogoShell: React.FC = ({ activeLang, setLanguage, initialSource, resolveKeyword, history }) => {
-const LogoShell: React.FC = ({ activeLang, setLanguage, initialSource, resolveKeyword, history, interpreter }) => {
+const LogoShell: React.FC = ({ activeLang, setLanguage, initialSource, history, interpreter }) => {
   console.log('LogoShell - starting', activeLang);
   // DA CommandInterpreter della versione 251026 di Gemini
   // Ottieni lo stato e il dispatcher dal Context/Redux

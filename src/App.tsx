@@ -27,9 +27,7 @@ const App: React.FC = () => {
   const { activeLang, activeMap, setLanguage, resolveCommand, resolveKeyword } = useLocalization('it'); 
 
   const initialSource = new ShellSource();
-  const initialOutput = new ShellOutput(dispatch);
-  // const asynchronousInterpreter = new AsynchronousLogoInterpreter(initialSource, initialOutput, resolveCommand, resolveKeyword);
-  const asynchronousInterpreter = new AsynchronousLogoInterpreter(state, dispatch, initialSource, initialOutput, resolveCommand, resolveKeyword);
+  const asynchronousInterpreter = new AsynchronousLogoInterpreter(state, dispatch, initialSource);
   asynchronousInterpreter.run();
 
   // Facciamo partire il ciclo dell'interprete al primo avvio
@@ -45,7 +43,7 @@ const App: React.FC = () => {
       <LogoStateProvider>
        <>
         <div id="area-destra">
-          <LogoShell activeLang={ activeLang } setLanguage={ setLanguage } initialSource={ initialSource } resolveKeyword={ resolveKeyword } history={state.shellHistory} interpreter={ asynchronousInterpreter } />
+          <LogoShell activeLang={ activeLang } setLanguage={ setLanguage } initialSource={ initialSource } history={state.shellHistory} interpreter={ asynchronousInterpreter } />
           <Editor interpreter={ asynchronousInterpreter } /> 
         </div>
         <Canvas windowId="TARTA" />
