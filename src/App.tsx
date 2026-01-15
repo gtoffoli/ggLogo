@@ -28,7 +28,8 @@ const App: React.FC = () => {
 
   const initialSource = new ShellSource();
   const initialOutput = new ShellOutput(dispatch);
-  const asynchronousInterpreter = new AsynchronousLogoInterpreter(initialSource, initialOutput, resolveCommand, resolveKeyword);
+  // const asynchronousInterpreter = new AsynchronousLogoInterpreter(initialSource, initialOutput, resolveCommand, resolveKeyword);
+  const asynchronousInterpreter = new AsynchronousLogoInterpreter(state, dispatch, initialSource, initialOutput, resolveCommand, resolveKeyword);
   asynchronousInterpreter.run();
 
   // Facciamo partire il ciclo dell'interprete al primo avvio

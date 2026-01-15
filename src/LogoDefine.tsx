@@ -1,7 +1,6 @@
 // LogoDefine.tsx
 // 2511120 - 1st version: inspired to Ildef.cpp of IperLogo
 
-// import { shared_globalState, shared_dispatch } from './LogoShell';
 import { CellType, Cell, contextType, Context, ProcedureDef } from './CoreDefinitions';
 import { Parse, unParse } from './Parser';
 import { userProcedures, globalVariables } from './Interpreter';
@@ -62,29 +61,6 @@ export function _TO(values: any[]): void {
 	if (parameter_expected)
 		console.log('procedure declaration error');
 	isProcedureDefinition = true;
-
-/*
-  var parsedLine: Cell[] = []
-    // Entra nel loop di lettura asincrona del procedure body
-    do {
-        // La chiamata ASINCRONA SOSPENDE l'esecuzione qui
-        console.log('async function _TO - 2'); 
-        s = await getConsoleLine('TO> ', shared_dispatch); 
-        if (s !== 'END') {
-			parsedLine = Parse(s);
-            procedureBody.push(parsedLine);
-        }
-    } while (s !== 'END');
-    var procedureDef = {parameters: procedureParameters, body: procedureBody};
-	userProcedures[procedureName] = procedureDef;
-	console.log('_TO - userProcedures:', userProcedures, Object.keys(userProcedures));
-	isProcedureDefinition = false;
-	// sf_out(ctx);    
-	console.log(`Procedura ${procedureName} definita come`, procedureDef);
-    
-    // Una volta usciti dal loop (trovato END), la Promise è finita.
-    // L'azione CLEAR_WAITER è stata gestita nel CommandInterpreter per END.
-*/
 }
 
 export function _END(values: any[]): void {
@@ -96,7 +72,6 @@ export function _END(values: any[]): void {
 }
 
 export function _TEXT(values: any[]): Cell {
-	// const procedureName = values[0];
 	const procedureName = values[0].val;
 	const procedureDef = userProcedures[procedureName];
 	console.log('TESTO DI', procedureName, ' : ', procedureDef);

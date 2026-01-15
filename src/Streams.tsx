@@ -46,27 +46,6 @@ export function _READER(values: any[]): Cell {
 	return { cellType: CellType.NUMBER, val: device };
 }
 
-// La funzione getLine sarà accessibile solo se forniamo un dispatcher
-interface InterpreterDispatch {
-    dispatch: (action: any) => void;
-}
-
-/**
- * Funzione asincrona che l'interprete (es. la primitiva TO) può chiamare 
- * per ottenere la prossima riga di input in modo non bloccante.
- */
-export function getConsoleLine(prompt: string, dispatch: InterpreterDispatch['dispatch']): Promise<string> {
-    return new Promise((resolve, reject) => {
-        // 1. Istruisce lo stato globale a mettersi in attesa
-        dispatch({
-            type: 'WAIT_FOR_INPUT',
-            waiter: { resolve, reject, prompt }
-        });
-        
-        // La Promise è ora sospesa, in attesa che l'azione venga gestita dal LogoShell.
-    });
-}
-
 /* IMPLEMENTATION OF SOURCES PATTERN */
 
 export interface InputSource {
@@ -141,7 +120,6 @@ export class ShellOutput implements OutputChannel {
   constructor(private dispatch: (action: any) => void) {}
 
   write(text: string) {
-    // this.dispatch({ type: 'APPEND_TO_SHELL', text });
     this.dispatch({ 
       type: 'APPEND_SHELL_LINE', 
       payload: { text, type: 'output' } 
@@ -154,7 +132,6 @@ export class ShellOutput implements OutputChannel {
   }
 
   error(text: string) {
-    // this.dispatch({ type: 'SHELL_ERROR', text: `ERRORE: ${text}` });
     this.dispatch({ 
       type: 'APPEND_SHELL_LINE', 
       payload: { text, type: 'error' } 

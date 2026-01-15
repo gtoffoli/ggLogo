@@ -37,18 +37,6 @@ export interface GraphicWindowState {
   canvasRef: any;     // Aggiunto per l'associazione al DOM (vedi punto 3)
 }
 
-/*
-// Definisce l'interfaccia per il gestore di input in sospeso
-export type InputWaiter = {
-    // La funzione 'resolve' della Promise che verrà chiamata con l'input dell'utente
-    resolve: (line: string) => void; 
-    // La funzione 'reject' (per errori o interruzione)
-    reject: (error: Error) => void;
-    // Un prompt di feedback per l'utente, es. "TO>" o "?"
-    prompt: string; 
-};
-*/
-
 // Definisce l'interfaccia per una linea di output su Shell
 export interface ShellLine {
   id: string;
@@ -64,18 +52,6 @@ export interface LogoGlobalState {
   // ID della finestra attualmente selezionata/in uso dall'interprete LOGO
   activeWindowId: string; 
   
-  // Definizioni di procedura create dall'utente (es. TO CASA)
-  userProcedures: Record<string, any>; 
-  
-  // Variabili globali LOGO
-  globalVariables: Record<string, any>; 
-  
-  // Parametri di configurazione (es. PENCOLOR) - vedi l'esempio precedente
-  configParams: Record<string, any>; 
-
-  // NUOVO CAMPO: Gestisce l'attesa asincrona
-  // inputWaiter: InputWaiter | null;
-
   // Storia dell'output su Shell
   shellHistory: ShellLine[];
 }

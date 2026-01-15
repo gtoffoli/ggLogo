@@ -11,12 +11,10 @@ import { useTranslation } from 'react-i18next';
 import PanelContainer from './PanelContainer';
 import { LogoGlobalState } from './LogoState';
 import { useLocalization, LanguageCode } from './UseLocalization';
-// import { logoInterpreter, AsynchronousLogoInterpreter } from './Interpreter';
 import { logoInterpreter } from './Interpreter';
 import { unParse } from './Parser';
 import { useLogoState, useLogoDispatch } from './LogoStateContext';
 import { ShellSource , BufferSource } from './Streams';
-// import { ini_main, ini_exec } from './LogoControl';
 import { localizeTruthValues } from './Logic';
 
 // Definisci il tipo per i messaggi di input/output (History)
@@ -29,7 +27,6 @@ export var shared_globalState: LogoGlobalState;		// mirrors value in react state
 export var shared_dispatch: (action: any) => void;	// mirrors value in react state
 export var shared_langCode: LanguageCode; // mirrors value in react-i18next state
 export var inputString: string = '';
-var prompt: string;
 
 // const LogoShell: React.FC = ({ activeLang, setLanguage, initialSource, resolveKeyword, history }) => {
 const LogoShell: React.FC = ({ activeLang, setLanguage, initialSource, resolveKeyword, history, interpreter }) => {
@@ -56,34 +53,7 @@ const LogoShell: React.FC = ({ activeLang, setLanguage, initialSource, resolveKe
   // Funzione per eseguire il comando
   const executeCommand = (command: string) => {
 
-/*
-    if (globalState.inputWaiter) {
-        
-	    // 1. Modalità: C'è qualcuno in attesa (es. la primitiva TO)?
-        prompt = globalState.inputWaiter.prompt;
-        // Verifica la condizione di terminazione del corpo procedura (END)
-        // if (command.toUpperCase() === 'END') {
-        var keyword = resolveKeyword(command.trim());
-        if (keyword === 'END') {
-            // Risolvi la Promise con la riga "END"
-            globalState.inputWaiter.resolve(keyword);
-            // Pulisci il waiter (torna al Command Mode)
-            dispatch({ type: 'CLEAR_WAITER' });
-        } else {
-            // Risolvi la Promise con la riga di comando LOGO
-            globalState.inputWaiter.resolve(command);
-            // NOTA: Non puliamo il waiter qui! La primitiva TO chiamerà getLine() di nuovo 
-            // per aspettare la riga successiva, mantenendo la modalità attiva.
-        }
-        
-        // Aggiungi la riga all'history locale per feedback
-        // (La logica di esecuzione è gestita all'interno della Promise risolta)
-        // ... logica per mostrare ">" o il prompt nell'history ...
-        
-    } else {
-*/
 		// 2. Modalità: Esecuzione standard del comando
-prompt = '&gt;';
 
 	    if (!command.trim()) return;
 	

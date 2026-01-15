@@ -75,13 +75,11 @@ function get_values(ctx: Context): any[] {
   return values;
 }
 
-export function valuta_token(resolveCommand) {
+// export function valuta_token(resolveCommand) {
+function valuta_token(state, dispatch, resolveCommand) {
   var ctx: Context;
-  // var locale: number;
   var numeric: number;
   var coreKey: CoreDefinitionKeys;
-  // var definition: CommandDef | ProcedureDef;
-  // var signature: number;
   var result = null;
   var cell: Cell;
    
@@ -289,14 +287,14 @@ export function valuta_token(resolveCommand) {
             is_exec = true;
           }
           else if (classes.includes(FunClass.TURT)) {
-            const activeWin = shared_globalState.windows[shared_globalState.activeWindowId];
+            // const activeWin = shared_globalState.windows[shared_globalState.activeWindowId];
+            const activeWin = state.windows[state.activeWindowId];
             if (!activeWin)
             console.log("ERRORE: Nessuna finestra grafica attiva.");
             let turtleStroke: boolean = (turtleStrokes.includes(ctx.funzione.coreKey));
             var newTurtleState: TurtleState;
             var drawingCommand: DrawingCommand;
             if (turtleStroke) {
-              // [ newTurtleState, drawingCommand ] = definition.ref(definition, values, activeWin.turtleState);
               [ newTurtleState, drawingCommand ] = definition.ref(values, activeWin.turtleState);
               console.log('turtleStroke', newTurtleState, drawingCommand);
             } else {
@@ -304,7 +302,6 @@ export function valuta_token(resolveCommand) {
                 result = definition.ref(values, activeWin.turtleState);
               }
               else {
-                // newTurtleState = definition.ref(definition, values, activeWin.turtleState);
                 newTurtleState = definition.ref(values, activeWin.turtleState);
                 console.log('No turtleStroke', newTurtleState);
               }
@@ -314,16 +311,20 @@ export function valuta_token(resolveCommand) {
             if (newTurtleState !== undefined) {
               console.log('NEWSTATE', newTurtleState);
               shared_dispatch({ 
+              // dispatch({ 
                   type: 'UPDATE_TURTLE_STATE', 
-                  windowId: shared_globalState.activeWindowId,
+                  // windowId: shared_globalState.activeWindowId,
+                  windowId: state.activeWindowId,
                   newState: newTurtleState 
               });
             }
             if (turtleStroke) {
               console.log('drawingCommand', drawingCommand);
               shared_dispatch({ 
+              // dispatch({ 
                 type: 'ADD_DRAWING_COMMAND', 
-                windowId: shared_globalState.activeWindowId,
+                // windowId: shared_globalState.activeWindowId,
+                windowId: state.activeWindowId,
                 command: drawingCommand 
               });
             }
@@ -371,7 +372,10 @@ export class AsynchronousLogoInterpreter {
   private outputStack: OutputChannel[] = [];
   private commandResolver: (commandName: string) => CoreDefinitionKeys | undefined; 
 
-  constructor(initialSource: InputSource, initialOutput: OutputChannel, resolveCommand: (commandName: string) => CoreDefinitionKeys | undefined, resolveKeyword) {
+  // constructor(initialSource: InputSource, initialOutput: OutputChannel, resolveCommand: (commandName: string) => CoreDefinitionKeys | undefined, resolveKeyword) {
+  constructor(state, dispatch, initialSource: InputSource, initialOutput: OutputChannel, resolveCommand: (commandName: string) => CoreDefinitionKeys | undefined, resolveKeyword) {
+    this.state = state;
+    this.dispatch = dispatch;
     this.sourceStack.push(initialSource);
     this.outputStack.push(initialOutput);
     this.commandResolver = resolveCommand;
@@ -430,7 +434,8 @@ export class AsynchronousLogoInterpreter {
       ini_valuta(ctx);
       // iniDefine();
       ctx.block.push(parsedLine);
-      valuta_token(this.commandResolver);
+      // valuta_token(this.commandResolver);
+      valuta_token(this.state, this.dispatch, this.commandResolver);
       console.log('VALORI:', v_stack)
       if (v_stack.length) {
         v_stack.reverse();
