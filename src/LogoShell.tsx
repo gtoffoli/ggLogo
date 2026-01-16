@@ -9,7 +9,6 @@ import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import './i18n';
 import { useTranslation } from 'react-i18next';
 import PanelContainer from './PanelContainer';
-import { LogoGlobalState } from './LogoState';
 import { useLocalization, LanguageCode } from './UseLocalization';
 import { logoInterpreter } from './Interpreter';
 import { unParse } from './Parser';
@@ -23,17 +22,15 @@ type Message = {
   text: string;
 };
 
-export var shared_globalState: LogoGlobalState;		// mirrors value in react state
 export var shared_dispatch: (action: any) => void;	// mirrors value in react state
 export var shared_langCode: LanguageCode; // mirrors value in react-i18next state
 export var inputString: string = '';
 
-const LogoShell: React.FC = ({ activeLang, setLanguage, initialSource, history, interpreter }) => {
+const LogoShell: React.FC = ({ activeLang, setLanguage, source, history, interpreter }) => {
   console.log('LogoShell - starting', activeLang);
+  localizeTruthValues(activeLang);
   // DA CommandInterpreter della versione 251026 di Gemini
   // Ottieni lo stato e il dispatcher dal Context/Redux
-  const globalState = useLogoState();
-  shared_globalState = globalState;
   const dispatch = useLogoDispatch();
   shared_dispatch = dispatch;
   shared_langCode = activeLang;
@@ -62,9 +59,9 @@ const LogoShell: React.FC = ({ activeLang, setLanguage, initialSource, history, 
 	    // 2. Esegui il comando tramite l'interprete
 	    console.log('LogoShell - command:', command);
 
-	    // Invoca l'interprete con lo stato e il dispatcher
+	    // Invocava l'interprete con lo stato e il dispatcher
       // const result = logoInterpreter([command], resolveCommand);
-      initialSource.provideInput(command);
+      source.provideInput(command);
 /*	
 	    // ... logica di visualizzazione del risultato (result) ...
 	    console.log(t('msg.interpreter_result'), result);

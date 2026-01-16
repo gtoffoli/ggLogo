@@ -15,11 +15,11 @@ import { SEPARATORS, isSeparator, SystemFunction, CORE_DEFINITIONS, CommandDef, 
 import { UserFunction, ProcedureDef } from './CoreDefinitions';
 import { LANGUAGE_MAPS } from './LocalizationMaps';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
-import { shared_globalState, shared_dispatch } from './LogoShell';
+import { shared_dispatch } from './LogoShell';
 import { Parse, infix_operators, unParse } from './Parser';
 import { contesti, liv_contesto, liv_analisi, v_stack, is_stop, risultato } from './LogoControl';
 import { push_sv, pop_sv,  push_arg, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_out, parenin, parenout } from './LogoControl';
-import { ini_valuta,ini_exec, AssertContesto } from './LogoControl';
+import { ini_main,ini_exec, ini_valuta, AssertContesto } from './LogoControl';
 import { isProcedureDefinition, iniDefine, pushProcedureLine } from './LogoDefine';
 import { localizedTruthValues, normalizeBoolean } from './Logic';
 import { InputSource, OutputChannel } from './Streams';
@@ -44,6 +44,8 @@ export class AsynchronousLogoInterpreter {
   private outputStack: OutputChannel[] = [];
 
   constructor(state, dispatch, initialSource) {
+    ini_main();
+    ini_exec();
     this.state = state;
     this.dispatch = dispatch;
     this.sourceStack.push(initialSource);
@@ -100,7 +102,6 @@ export class AsynchronousLogoInterpreter {
     }
     else {
       ini_valuta(ctx);
-      // iniDefine();
       ctx.block.push(parsedLine);
       this.valuta_token();
       console.log('VALORI:', v_stack)
@@ -172,9 +173,6 @@ export class AsynchronousLogoInterpreter {
     return values;
   }
 
-  // export function valuta_token(resolveCommand) {
-  // function valuta_token(state, dispatch, resolveCommand) {
-  // private valuta_token(state, dispatch, resolveCommand) {
   private valuta_token() {
     var ctx: Context;
     var numeric: number;
@@ -273,7 +271,6 @@ export class AsynchronousLogoInterpreter {
               }
             }
           }
-          // locale = mod_parola;
           // la keyword TO quota il nome di procedura
           if (coreKey && (coreKey === 'TO'))
             mod_parola = ModParola.LITERAL;
@@ -301,7 +298,6 @@ export class AsynchronousLogoInterpreter {
                 if (ctx.n_arg_trovati < N_MINIMO) {
                   // errore (11, funzione, NULLP);
                 }
-                // else if ((!signature.includes(FunSignature.ONEORMORE)) && (ctx.n_arg_trovati > /*N_MASSIMO*/ ctx.n_arg_attesi))
                 else if ((!oneormore) && (ctx.n_arg_trovati > /*N_MASSIMO*/ ctx.n_arg_attesi)) {
                   // errore (11, funzione, NULLP);
                 }
@@ -386,7 +382,6 @@ export class AsynchronousLogoInterpreter {
               is_exec = true;
             }
             else if (classes.includes(FunClass.TURT)) {
-              // const activeWin = shared_globalState.windows[shared_globalState.activeWindowId];
               const activeWin = this.state.windows[this.state.activeWindowId];
               if (!activeWin)
               console.log("ERRORE: Nessuna finestra grafica attiva.");
@@ -410,9 +405,8 @@ export class AsynchronousLogoInterpreter {
               if (newTurtleState !== undefined) {
                 console.log('NEWSTATE', newTurtleState);
                 shared_dispatch({ 
-                // dispatch({ 
+                // this.dispatch({ 
                     type: 'UPDATE_TURTLE_STATE', 
-                    // windowId: shared_globalState.activeWindowId,
                     windowId: this.state.activeWindowId,
                     newState: newTurtleState 
                 });
@@ -420,9 +414,8 @@ export class AsynchronousLogoInterpreter {
               if (turtleStroke) {
                 console.log('drawingCommand', drawingCommand);
                 shared_dispatch({ 
-                // dispatch({ 
+                // this.dispatch({ 
                   type: 'ADD_DRAWING_COMMAND', 
-                  // windowId: shared_globalState.activeWindowId,
                   windowId: this.state.activeWindowId,
                   command: drawingCommand 
                 });
