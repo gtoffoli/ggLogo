@@ -46,7 +46,7 @@ const Editor: React.FC = ({ interpreter }) => {
     if (text) {
       const editorSource = new BufferSource(text, 'Editor');
       interpreter.pushSource(editorSource);
-      interpreter.run();
+      // interpreter.run();
     }
   };
 

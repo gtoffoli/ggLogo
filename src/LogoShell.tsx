@@ -46,44 +46,11 @@ const LogoShell: React.FC = ({ activeLang, setLanguage, source, history, interpr
     endOfHistoryRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [history]);
 
-  // Funzione per eseguire il comando
+  // Era la unzione per eseguire il comando
   const executeCommand = (command: string) => {
-
-		// 2. Modalità: Esecuzione standard del comando
-
-	    if (!command.trim()) return;
-	
-	    // 1. Aggiungi il comando all'history come 'input'
-	    //  setHistory(prev => [...prev, { type: 'input', text: `> ${command}` }]);
-	
-	    // 2. Esegui il comando tramite l'interprete
-	    console.log('LogoShell - command:', command);
-
-	    // Invocava l'interprete con lo stato e il dispatcher
-      // const result = logoInterpreter([command], resolveCommand);
-      source.provideInput(command);
-/*	
-	    // ... logica di visualizzazione del risultato (result) ...
-	    console.log(t('msg.interpreter_result'), result);
-	
-	    // Gestione speciale per 'clear' (pulisce la console)
-	    if (command.trim().toLowerCase() === 'clear') {
-	        setHistory([]); // Pulisce lo stato history
-	        return;
-	    }
-
-		// 3. Aggiungi l'output (o l'errore) all'history
-		if (result)
-			if (result.error) {
-				setHistory(prev => [...prev, { type: 'error', text: `ERRORE: ${result.error}` }]);
-			} else if (result.output) {
-				// setHistory(prev => [...prev, { type: 'output', text: JSON.stringify(result.output) }]);
-				// setHistory(prev => [...prev, { type: 'output', text: result.output.toString() }]);
-			    console.log('output', unParse(result.output));
-				setHistory(prev => [...prev, { type: 'output', text: unParse(result.output) }]);
-			}
-*/
-/*	} */
+    if (!command.trim()) return;
+    console.log('LogoShell - command:', command);
+    source.provideInput(command);
   };
 
   // Gestore per l'invio del comando (tasto INVIO)

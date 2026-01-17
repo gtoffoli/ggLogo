@@ -43,12 +43,12 @@ export class AsynchronousLogoInterpreter {
   private sourceStack: InputSource[] = [];
   private outputStack: OutputChannel[] = [];
 
-  constructor(state, dispatch, initialSource) {
+  constructor(state, dispatch, source) {
     ini_main();
     ini_exec();
     this.state = state;
     this.dispatch = dispatch;
-    this.sourceStack.push(initialSource);
+    this.sourceStack.push(source);
     this.outputStack.push(new ShellOutput(dispatch));
     console.log('AsynchronousLogoInterpreter CREATED');
   }
@@ -68,18 +68,20 @@ export class AsynchronousLogoInterpreter {
       const line = await currentSource.getLine();
       console.log('AsynchronousLogoInterpreter LINE:', line);
 
-      // if (line === null) {
-      if ((line === null) && (this.sourceStack.length > 1)) { // la console source iniziale va lasciata?
-        // La sorgente attuale è finita
-        console.log('La sorgente attuale è finita');
-        this.sourceStack.pop();
-        continue;
+      if (line === null) {
+        if (currentSource.type !== 'SHELL') {
+          // La sorgente attuale è finita
+          console.log('La sorgente attuale è finita');
+          this.sourceStack.pop();
+          continue;
+        }
       }
 
       if (line.trim() === "") continue;
 
       // ESECUZIONE DEL COMANDO
       try {
+        // await this.executeLine(line.trim());
         await this.executeLine(line.trim());
       } catch (err) {
         console.error("Errore durante l'esecuzione:", err);

@@ -3,6 +3,7 @@
 // 251128 - moved PanelContainer for LogoShell to LogoShell module
 
 import React, { useReducer, useMemo, useEffect } from 'react';
+import { createRoot } from 'react-dom/client';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
 import "./index.css"; // (da installazione bundle Bum-React)
@@ -10,26 +11,23 @@ import PanelContainer from './PanelContainer';
 import LogoShell from './LogoShell'; // Il tuo componente B (da Gemini)
 import Canvas from './TurtleCanvas'; // Il tuo componente A (da DeepSeek)
 import Editor from './LogoEditor'; // Il tuo componente C (da DeepSeek)
+import { LogoStateProvider } from './LogoStateContext';
 import { initialLogoState, logoReducer } from './logoReducer';
 import { useLocalization, LanguageCode } from './UseLocalization';
 import { ShellSource, ShellOutput } from './Streams';
 import { AsynchronousLogoInterpreter } from './Interpreter';
 import "./style.css"; // (da Gemini)
 
-import { LogoStateProvider } from './LogoStateContext';
+const source = new ShellSource();
 
 const App: React.FC = () => {
-
   console.log('App');
   const { activeLang, activeMap, setLanguage } = useLocalization('it'); 
-
   const [state, dispatch] = useReducer(logoReducer, initialLogoState); 
-  const source = new ShellSource();
 
   const interpreter = useMemo(() => {
     return new AsynchronousLogoInterpreter(state, dispatch, source);
-  }, [dispatch]);
-
+  }, []);
   // Facciamo partire il ciclo dell'interprete al primo avvio
   useEffect(() => { interpreter.run(); }, [interpreter]);
 
@@ -49,8 +47,5 @@ const App: React.FC = () => {
   );
 };
 
-// AI Overview: come inserire in html un componente react definito in un modulo tsx
-import { createRoot } from 'react-dom/client';
-const container = document.getElementById('root');
-const root = createRoot(container);
+const root = createRoot(document.getElementById('root'));
 root.render(<App />);

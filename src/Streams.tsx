@@ -87,7 +87,7 @@ export class ShellSource implements InputSource {
   // Questa funzione verrà chiamata dal componente React (LogoShell) 
   // quando l'utente preme INVIO
   public provideInput(line: string) {
-    console.log('ShellSource - provideInput', line);
+    console.log('ShellSource - provideInput', line, this.resolveNextLine);
     if (this.resolveNextLine) {
       const resolve = this.resolveNextLine;
       this.resolveNextLine = null;
@@ -96,6 +96,7 @@ export class ShellSource implements InputSource {
   }
 
   async getLine(): Promise<string | null> {
+    console.log('ShellSource - getLine');
     return new Promise((resolve) => {
       this.resolveNextLine = resolve;
       // Qui potresti emettere un evento per dire alla UI di mostrare il prompt
