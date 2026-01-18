@@ -29,6 +29,7 @@ export const initialLogoState: LogoGlobalState = {
     windows: { "TARTA": initialWindowState },
     activeWindowId: "TARTA",
     shellHistory: [{ type: 'output', text: "Wellcome in the LOGO Interpreter!" }],
+    editorContent: '',
 };
 
 // Tipi di Azione
@@ -36,8 +37,9 @@ type LogoAction =
     | { type: 'UPDATE_TURTLE_STATE', windowId: string, newState: Partial<TurtleState> }
     | { type: 'ADD_DRAWING_COMMAND', windowId: string, command: DrawingCommand }
     | { type: 'REGISTER_CANVAS', windowId: string, context: CanvasRenderingContext2D, canvas: HTMLCanvasElement }
-    | { type: 'CLEAR_WAITER' }
-    | { type: 'APPEND_SHELL_LINE', lineType: 'input' | 'output' | 'error' | 'system', text: string };
+    | { type: 'APPEND_SHELL_LINE', lineType: 'input' | 'output' | 'error' | 'system', text: string }
+    | { type: 'CLEAR_EDITOR_CONTENT' }
+    | { type: 'APPEND_TO_EDITOR_CONTENT', text: string };
 
 
 export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlobalState {
@@ -96,6 +98,17 @@ export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlo
               ...state.shellHistory, 
               { id: crypto.randomUUID(), ...action.payload }
             ]
+          };
+        case 'CLEAR_EDITOR_CONTENT':
+          return {
+            ...state,
+            editorContent: ''
+          };
+        case 'APPEND_TO_EDITOR_CONTENT':
+          return {
+            ...state,
+            editorContent: 
+              state.editorContent + action.text
           };
 
         default:

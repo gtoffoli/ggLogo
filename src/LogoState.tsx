@@ -48,10 +48,10 @@ export interface ShellLine {
 export interface LogoGlobalState {
   // Mappa di tutte le finestre grafiche
   windows: Record<string, GraphicWindowState>; 
-  
   // ID della finestra attualmente selezionata/in uso dall'interprete LOGO
   activeWindowId: string; 
-  
   // Storia dell'output su Shell
   shellHistory: ShellLine[];
+  // Testo contenuto nell'Editor panel
+  editorContent: string;
 }

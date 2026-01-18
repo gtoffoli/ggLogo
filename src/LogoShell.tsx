@@ -12,7 +12,7 @@ import PanelContainer from './PanelContainer';
 import { useLocalization, LanguageCode } from './UseLocalization';
 import { logoInterpreter } from './Interpreter';
 import { unParse } from './Parser';
-import { useLogoState, useLogoDispatch } from './LogoStateContext';
+import { useLogoDispatch } from './LogoStateContext';
 import { ShellSource , BufferSource } from './Streams';
 import { localizeTruthValues } from './Logic';
 
@@ -83,9 +83,7 @@ const LogoShell: React.FC = ({ activeLang, setLanguage, source, history, interpr
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        // const textOutput = document.getElementById('editor-area');
         const text = e.target.result;
-        // textOutput.value += text;
         const filename =  file.name;
         console.log('handleFileChange', filename, text)
         var fileSource = new BufferSource(text, filename);

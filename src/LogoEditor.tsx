@@ -3,50 +3,82 @@
 
 import React, { useState } from 'react';
 import './i18n';
+import { useLogoDispatch, useLogoState } from './LogoStateContext';
 import { useTranslation } from 'react-i18next';
 import PanelContainer from './PanelContainer';
 import { BufferSource } from './Streams';
 
 const Editor: React.FC = ({ interpreter }) => {
 	const [code, setCode] = useState('');
+  const state = useLogoState();
+  const dispatch = useLogoDispatch();
 	// 't' è la funzione di traduzione
 	const { t, i18n } = useTranslation();
 
+  const [selectedText, setSelectedText] = useState('');
+  const [isSelecting, setIsSelecting] = useState(false);
+
+  const handleSelect = (event: React.SyntheticEvent<HTMLTextAreaElement>) => {
+    const { selectionStart, selectionEnd } = event.currentTarget;
+    const selected = event.currentTarget.value.substring(selectionStart, selectionEnd);
+    // Se la selezione è vuota (selectionStart === selectionEnd) e non eravamo già in selezione,
+    // significa che il cursore si è spostato o la selezione è terminata/annullata.
+    // Se c'è del testo selezionato, aggiorniamo il nostro stato.
+    if (selectionStart !== selectionEnd) {
+      setSelectedText(selected);
+      setIsSelecting(true);
+      console.log(`Selezione attiva: "${selected}"`);
+    } else {
+      setIsSelecting(false);
+      // Potresti voler svuotare selectedText qui o con onBlur
+      setSelectedText(''); 
+      console.log("Nessun testo selezionato / Cursore spostato.");
+    }
+  };
+
+  const handleBlur = (event: React.FocusEvent<HTMLTextAreaElement>) => {
+    setIsSelecting(false);
+    // Qui puoi decidere se mantenere l'ultimo testo selezionato o pulirlo
+    // setSelectedText(''); 
+    console.log("Perduto focus dalla textarea.");
+  };
+
   // --- DEFINIZIONE DEI MENU (Hook per l'esecuzione dei comandi) ---
 
-    const handleClear = () => {
-		const textOutput = document.getElementById('editor-area');
-		textOutput.value = '';
-    };
+  const handleClear = () => {
+    dispatch({ type: 'CLEAR_EDITOR_CONTENT' });
+  };
 
-    const handleFileLoad = () => {
-        // Logica per aprire un input file nascosto
-        const fileInput = document.getElementById('editor-file-input') as HTMLInputElement;
-        fileInput?.click();
-    };
+
+  const handleFileLoad = () => {
+      // Logica per aprire un input file nascosto
+      const fileInput = document.getElementById('editor-file-input') as HTMLInputElement;
+      fileInput?.click();
+  };
 
 	const handleFileChange = (event) => {
 		const file = event.target.files[0];
 		if (file) {
 			const reader = new FileReader();
 			reader.onload = (e) => {
-			const textOutput = document.getElementById('editor-area');
-			const text = e.target.result;
-			textOutput.value += text;
-		};
-		reader.readAsText(file);
-	}
+  			const text = e.target.result;
+        dispatch({ type: 'CLEAR_EDITOR_CONTENT' });
+        dispatch({ 
+            type: 'APPEND_TO_EDITOR_CONTENT', 
+            text: text
+        });
+  		};
+  		reader.readAsText(file);
+  	}
   };
 
   const handleFileSave = () => { console.log('Salvataggio file LOGO...'); };
 
   const handleRunSelection = () => {
-    const element = document.getElementById('editor-area');
-    const text = element.value.substring(element.selectionStart, element.selectionEnd);
-    if (text) {
-      const editorSource = new BufferSource(text, 'Editor');
+    if (selectedText) {
+      const editorSource = new BufferSource(selectedText, 'Editor');
       interpreter.pushSource(editorSource);
-      // interpreter.run();
+      interpreter.run();
     }
   };
 
@@ -88,8 +120,10 @@ const Editor: React.FC = ({ interpreter }) => {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <textarea
         id="editor-area"
-        value={code}
+        value={state.editorContent}
         onChange={(e) => setCode(e.target.value)}
+        onSelect={handleSelect}
+        onBlur={handleBlur}
         style={{ flex: 1, background: '#1e1e1e', color: 'white', border: 'none', padding: '10px' }}
         placeholder={t('msg.code_placeholder')}
       />
