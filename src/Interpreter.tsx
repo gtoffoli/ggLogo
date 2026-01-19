@@ -42,15 +42,22 @@ const N_MINIMO = 1; // minimo numero di argomenti per la funzione corrente
 export class AsynchronousLogoInterpreter {
   private sourceStack: InputSource[] = [];
   private outputStack: OutputChannel[] = [];
+  private getState: () => LogoGlobalState; // Il tipo della funzione
+  private dispatch: React.Dispatch<any>;
+  private source: ShellSource;
 
-  constructor(state, dispatch, source) {
-    ini_main();
-    ini_exec();
-    this.state = state;
+  // constructor(state, dispatch, source) {
+    // this.state = state;
+  constructor(getState: () => LogoGlobalState, dispatch: React.Dispatch<any>, source: ShellSource) {
+    this.getState = getState;
+    this.source = source;
     this.dispatch = dispatch;
     this.sourceStack.push(source);
     this.outputStack.push(new ShellOutput(dispatch));
     console.log('AsynchronousLogoInterpreter CREATED');
+    ini_main();
+    ini_exec();
+    this.run();
   }
 
   // Metodo per cambiare canale (es. comando "CARICA" o "LEGGI")
@@ -115,8 +122,12 @@ export class AsynchronousLogoInterpreter {
     }
   }
 
+  public getCurrentSource(): InputSource {
+    return this.sourceStack[this.sourceStack.length - 1];
+  }
+
   // private get currentOutput(): OutputChannel {
-  private getCurrentOutput(): OutputChannel {
+  public getCurrentOutput(): OutputChannel {
     return this.outputStack[this.outputStack.length - 1];
   }
 
@@ -384,7 +395,8 @@ export class AsynchronousLogoInterpreter {
               is_exec = true;
             }
             else if (classes.includes(FunClass.TURT)) {
-              const activeWin = this.state.windows[this.state.activeWindowId];
+              // const activeWin = this.state.windows[this.state.activeWindowId];
+              const activeWin = this.getState().windows[this.getState().activeWindowId];
               if (!activeWin)
               console.log("ERRORE: Nessuna finestra grafica attiva.");
               let turtleStroke: boolean = (turtleStrokes.includes(ctx.funzione.coreKey));
@@ -406,19 +418,21 @@ export class AsynchronousLogoInterpreter {
               // Dispatch (Aggiornamento dello Stato Globale)
               if (newTurtleState !== undefined) {
                 console.log('NEWSTATE', newTurtleState);
-                shared_dispatch({ 
-                // this.dispatch({ 
+                // shared_dispatch({ 
+                this.dispatch({ 
                     type: 'UPDATE_TURTLE_STATE', 
-                    windowId: this.state.activeWindowId,
+                    // windowId: this.state.activeWindowId,
+                    windowId: this.getState().activeWindowId,
                     newState: newTurtleState 
                 });
               }
               if (turtleStroke) {
                 console.log('drawingCommand', drawingCommand);
-                shared_dispatch({ 
-                // this.dispatch({ 
+                // shared_dispatch({ 
+                this.dispatch({ 
                   type: 'ADD_DRAWING_COMMAND', 
-                  windowId: this.state.activeWindowId,
+                  // windowId: this.state.activeWindowId,
+                  windowId: this.getState().activeWindowId,
                   command: drawingCommand 
                 });
               }

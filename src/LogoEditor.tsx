@@ -8,10 +8,14 @@ import { useTranslation } from 'react-i18next';
 import PanelContainer from './PanelContainer';
 import { BufferSource } from './Streams';
 
-const Editor: React.FC = ({ interpreter }) => {
+// const Editor: React.FC = ({ interpreter }) => {
+const Editor: React.FC = () => {
 	const [code, setCode] = useState('');
+	/*
   const state = useLogoState();
   const dispatch = useLogoDispatch();
+  */
+  const { state, dispatch, interpreter } = useLogoState();
 	// 't' è la funzione di traduzione
 	const { t, i18n } = useTranslation();
 

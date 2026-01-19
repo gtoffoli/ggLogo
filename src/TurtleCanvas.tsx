@@ -17,13 +17,16 @@ interface TurtleCanvasProps {
 
 // const TurtleCanvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
 const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
-    console.log('TurtleCanvas - starting');
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const dispatch = useLogoDispatch();
-    const state = useLogoState();
+  console.log('TurtleCanvas - starting');
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  /*
+  const dispatch = useLogoDispatch();
+  const state = useLogoState();
+  */
+  const { state, dispatch, interpreter } = useLogoState();
     
-    // Ottiene la finestra grafica specifica da Redux
-    const windowState = state.windows[windowId];
+  // Ottiene la finestra grafica specifica da Redux
+  const windowState = state.windows[windowId];
 
 	// 't' è la funzione di traduzione
 	const { t, i18n } = useTranslation();

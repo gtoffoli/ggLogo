@@ -8,11 +8,11 @@ import React, { createContext, useReducer, useRef, useEffect, useMemo } from 're
 import { initialLogoState, logoReducer } from './logoReducer';
 import { LogoGlobalState } from './LogoState'; // I tuoi tipi di stato
 import { TurtleState, GraphicWindowState, GraphicWindowState } from './LogoState';
+import { AsynchronousLogoInterpreter } from './Interpreter';
+import { ShellSource } from './Streams';
 
 // Definiamo i tipi per il Context
 export const LogoStateContext = createContext<LogoGlobalState | undefined>(undefined);
-export const LogoDispatchContext = createContext<React.Dispatch<any> | undefined>(undefined);
-
 
 // Hook personalizzato per l'uso più semplice
 export const useLogoState = () => {
@@ -23,22 +23,32 @@ export const useLogoState = () => {
   return context;
 };
 
-export const useLogoDispatch = () => {
-  const context = React.useContext(LogoDispatchContext);
-  if (context === undefined) {
-    throw new Error('useLogoDispatch deve essere usato all\'interno di un LogoStateProvider');
-  }
-  return context;
-};
+export const LogoStateProvider: React.FC = ({ children }) => {
+  const [state, dispatch] = useReducer(logoReducer, initialLogoState);
+  const source = new ShellSource();
+  // 1. Creiamo la "scatola" (il riferimento allo stato)
+  const stateRef = useRef(state);
 
-export const LogoStateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [state, dispatch] = useReducer(logoReducer, initialLogoState); 
-    
-    return (
-        <LogoStateContext.Provider value={state}>
-            <LogoDispatchContext.Provider value={dispatch}>
-                {children}
-            </LogoDispatchContext.Provider>
-        </LogoStateContext.Provider>
+  // 2. Ogni volta che lo stato cambia, aggiorniamo il contenuto della scatola
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
+  // 3. Creiamo l'interprete passando una funzione che legge dalla scatola
+  const interpreter = useMemo(() => {
+    // Passiamo una freccia () => stateRef.current
+    // Questa funzione restituirà SEMPRE l'ultimo stato aggiornato
+    return new AsynchronousLogoInterpreter(
+      () => stateRef.current, // Questa è la nostra getState()
+      dispatch, 
+      source
     );
+  }, [dispatch, source]); 
+  // Nota: source e dispatch non cambiano mai, quindi l'interprete non viene mai ricreato
+
+  return (
+    <LogoStateContext.Provider value={{ state, dispatch, interpreter }}>
+      {children}
+    </LogoStateContext.Provider>
+  );
 };

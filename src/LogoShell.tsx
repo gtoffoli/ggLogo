@@ -10,9 +10,7 @@ import './i18n';
 import { useTranslation } from 'react-i18next';
 import PanelContainer from './PanelContainer';
 import { useLocalization, LanguageCode } from './UseLocalization';
-import { logoInterpreter } from './Interpreter';
-import { unParse } from './Parser';
-import { useLogoState, useLogoDispatch } from './LogoStateContext';
+import { useLogoState } from './LogoStateContext';
 import { ShellSource , BufferSource } from './Streams';
 import { localizeTruthValues } from './Logic';
 
@@ -22,19 +20,16 @@ type Message = {
   text: string;
 };
 
-export var shared_dispatch: (action: any) => void;	// mirrors value in react state
+// export var shared_dispatch: (action: any) => void;	// mirrors value in react state
 export var shared_langCode: LanguageCode; // mirrors value in react-i18next state
 export var inputString: string = '';
 
-// const LogoShell: React.FC = ({ activeLang, setLanguage, source, history, interpreter }) => {
-const LogoShell: React.FC = ({ activeLang, setLanguage, source, interpreter }) => {
+const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
   console.log('LogoShell - starting', activeLang);
   localizeTruthValues(activeLang);
   // DA CommandInterpreter della versione 251026 di Gemini
   // Ottieni lo stato e il dispatcher dal Context/Redux
-  const state = useLogoState();
-  const dispatch = useLogoDispatch();
-  shared_dispatch = dispatch;
+  const { state, dispatch, interpreter } = useLogoState();
   shared_langCode = activeLang;
 
   // Stato per l'input corrente
@@ -53,7 +48,7 @@ const LogoShell: React.FC = ({ activeLang, setLanguage, source, interpreter }) =
   const executeCommand = (command: string) => {
     if (!command.trim()) return;
     console.log('LogoShell - command:', command);
-    source.provideInput(command);
+    interpreter.getCurrentSource().provideInput(command);
   };
 
   // Gestore per l'invio del comando (tasto INVIO)
@@ -88,16 +83,9 @@ const LogoShell: React.FC = ({ activeLang, setLanguage, source, interpreter }) =
       reader.onload = (e) => {
         const text = e.target.result;
         const filename =  file.name;
-        console.log('handleFileChange', filename, text)
         var fileSource = new BufferSource(text, filename);
         interpreter.pushSource(fileSource);
         interpreter.run();
-        if (false) {
-          // var lines = text.split('\n');
-          // const result = logoInterpreter(lines, resolveCommand); // NON RIMUOVERE !!!
-          // const result = logoInterpreter;
-          logoInterpreter;  // NON RIMUOVERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        }
       };
       reader.readAsText(file);
     }
