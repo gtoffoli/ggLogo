@@ -12,7 +12,7 @@ import PanelContainer from './PanelContainer';
 import { useLocalization, LanguageCode } from './UseLocalization';
 import { logoInterpreter } from './Interpreter';
 import { unParse } from './Parser';
-import { useLogoDispatch } from './LogoStateContext';
+import { useLogoState, useLogoDispatch } from './LogoStateContext';
 import { ShellSource , BufferSource } from './Streams';
 import { localizeTruthValues } from './Logic';
 
@@ -26,11 +26,13 @@ export var shared_dispatch: (action: any) => void;	// mirrors value in react sta
 export var shared_langCode: LanguageCode; // mirrors value in react-i18next state
 export var inputString: string = '';
 
-const LogoShell: React.FC = ({ activeLang, setLanguage, source, history, interpreter }) => {
+// const LogoShell: React.FC = ({ activeLang, setLanguage, source, history, interpreter }) => {
+const LogoShell: React.FC = ({ activeLang, setLanguage, source, interpreter }) => {
   console.log('LogoShell - starting', activeLang);
   localizeTruthValues(activeLang);
   // DA CommandInterpreter della versione 251026 di Gemini
   // Ottieni lo stato e il dispatcher dal Context/Redux
+  const state = useLogoState();
   const dispatch = useLogoDispatch();
   shared_dispatch = dispatch;
   shared_langCode = activeLang;
@@ -44,7 +46,8 @@ const LogoShell: React.FC = ({ activeLang, setLanguage, source, history, interpr
   // Auto-scroll alla fine ogni volta che l'history cambia
   useEffect(() => {
     endOfHistoryRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [history]);
+  }, [state.shellHistory]);
+  // }, [history]);
 
   // Era la unzione per eseguire il comando
   const executeCommand = (command: string) => {
@@ -153,7 +156,7 @@ const LogoShell: React.FC = ({ activeLang, setLanguage, source, history, interpr
       {/* Visualizzazione dell'History dei Comandi e Risultati */}
       <div className="history"
 		style={{ display: 'block', flexGrow: 4 }}>
-        {history.map((msg, index) => (
+        {state.shellHistory.map((msg, index) => (
           <div key={index} style={{
             color: msg.type === 'error' ? '#f00' : 
                    msg.type === 'input' ? '#aaa' : '#0f0' 

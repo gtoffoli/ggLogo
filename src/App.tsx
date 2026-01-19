@@ -37,7 +37,7 @@ const App: React.FC = () => {
       <LogoStateProvider>
        <>
         <div id="area-destra">
-          <LogoShell activeLang={ activeLang } setLanguage={ setLanguage } source={ source } history={state.shellHistory} interpreter={ interpreter } />
+          <LogoShell activeLang={ activeLang } setLanguage={ setLanguage } source={ source } interpreter={ interpreter } />
           <Editor interpreter={ interpreter } /> 
         </div>
         <Canvas windowId="TARTA" />

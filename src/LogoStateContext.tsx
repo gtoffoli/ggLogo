@@ -2,7 +2,8 @@
 // 251025 - 1st version: from LogoStateContext.tsx proposed by Gemini on 251021
 // 251031 - 2nd version: from LogoStateContext.tsx proposed by Gemini on 251021
 
-import React, { createContext, useReducer } from 'react';
+// import React, { createContext, useReducer } from 'react';
+import React, { createContext, useReducer, useRef, useEffect, useMemo } from 'react';
 
 import { initialLogoState, logoReducer } from './logoReducer';
 import { LogoGlobalState } from './LogoState'; // I tuoi tipi di stato
