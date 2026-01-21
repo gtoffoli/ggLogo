@@ -394,6 +394,9 @@ export class AsynchronousLogoInterpreter {
               definition.ref(ctx, values);
               is_exec = true;
             }
+            else if (classes.includes(FunClass.TXOU)) {
+              definition.ref(this.getCurrentOutput(), values);
+            }
             else if (classes.includes(FunClass.TURT)) {
               // const activeWin = this.state.windows[this.state.activeWindowId];
               const activeWin = this.getState().windows[this.getState().activeWindowId];

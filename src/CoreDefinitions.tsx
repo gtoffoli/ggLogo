@@ -8,8 +8,8 @@ import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _BUTFIRST, _BUTLA
 import { _DEFINE, _TO, _END, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
 import { _NOT, _EQUALP, _NOTEQUALP } from './Logic';
 import { _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
-import { _READER } from './Streams';
 import { _HOME, _CS, _FD, _BK, _RT, _LT, _PENUP, _PENDOWN, _PENCOLOR, _SETPENCOLOR } from './InterpreterCore';
+import { _PRINT, _TYPE, _SHOW, _WRITECHAR } from './Communication';
 
 export const SEPARATORS = {
 	// "\t\r\":()+-*/^<=> "
@@ -348,14 +348,23 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
   PRINT: {
     classes: [FunClass.TXOU, FunSignature.ONEORMORE],
-    // description: "Visualizza un valore nella console.",
-    args: [{ name: "valore", type: 'string' }],
-    ref: _NOP,
+    args: [{ name: "valore", type: 'any' }],
+    ref: _PRINT,
   } as CommandDef,
-  READER: {
-    signature: [FunSignature.FUNCTION],
-    // description: "Riporta il device di lettura dei comandi.",
-    ref: _READER,
+  TYPE: {
+    classes: [FunClass.TXOU, FunSignature.ONEORMORE],
+    args: [{ name: "valore", type: 'any' }],
+    ref: _TYPE,
+  } as CommandDef,
+  SHOW: {
+    classes: [FunClass.TXOU, FunSignature.ONEORMORE],
+    args: [{ name: "valore", type: 'any' }],
+    ref: _SHOW,
+  } as CommandDef,
+  WRITECHAR: {
+    classes: [FunClass.TXOU],
+    args: [{ name: "valore", type: 'string' }],
+    ref: _WRITECHAR,
   } as CommandDef,
 
   'SIGN': {

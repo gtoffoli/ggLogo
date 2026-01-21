@@ -3,7 +3,7 @@
 // 251129 - of resolveCommand also to functions calling valuta_token
 // 251230 - converted TAB to spaces
 
-import { devType, contextType, Context, Cell, CommandDef, ModParola, ProcedureDef } from './CoreDefinitions';
+import { contextType, Context, Cell, CommandDef, ModParola, ProcedureDef } from './CoreDefinitions';
 import { valuta_token, globalVariables, userProcedures } from './Interpreter';
 
 // codifica dei tipi di contesto (id_contesto)
@@ -173,14 +173,17 @@ function push_contesto(ctx: Context, id: number): void {
 }
 
 function pop_contesto(ctx: Context) {
-  var locale: number;
   AssertContesto(ctx);
+/*
+  var locale: number;
   locale = ctx.dev_recupera;
-    // trap(liv_contesto > 0);
-    --liv_contesto;
+  trap(liv_contesto > 0);
+*/
+  --liv_contesto;
   ctx = contesti.pop();
   ctx.id_contesto = (liv_contesto == 0) ?
     0 : (contesti [liv_contesto]).id_contesto;  // contesto 0 e' riservato
+/*
   if (locale != devType.NULL_DEV) {
       // ctx.linea_com = [];
       ctx.block = [];
@@ -188,6 +191,7 @@ function pop_contesto(ctx: Context) {
         && (! (_fstato [locale] & devType.O_FINESTRA))
        ) f_chiudi (locale);
   }
+*/
   AssertContesto(ctx);
 }
 

@@ -1,7 +1,8 @@
 // LogoDevices.tsx
 // 251214 - 1st version
 
-import { devType, deviceDescription, CellType, Cell } from './CoreDefinitions';
+/*
+import { CellType, Cell } from './CoreDefinitions';
 import { contesti, liv_contesto } from './LogoControl';
 
 // codifica dei device MLOGO
@@ -45,6 +46,7 @@ export function _READER(values: any[]): Cell {
 	var device = contesti[liv_contesto].dev_recupera;
 	return { cellType: CellType.NUMBER, val: device };
 }
+*/
 
 /* IMPLEMENTATION OF SOURCES PATTERN */
 
@@ -113,23 +115,26 @@ export interface OutputChannel {
 }
 
 export class ShellOutput implements OutputChannel {
-  type: 'SHELL'; // as const;
-  name: string = "Console";
+  private type: 'SHELL'; // as const;
+  private name: string = "Console";
+  private currentLineBuffer: string = "";
   
   // Passiamo il dispatcher per aggiornare lo stato di React
   // Accettiamo il dispatch come argomento
   constructor(private dispatch: (action: any) => void) {}
 
   write(text: string) {
-    this.dispatch({ 
-      type: 'APPEND_SHELL_LINE', 
-      payload: { text, type: 'output' } 
-    });
+    // this.dispatch({ type: 'APPEND_SHELL_LINE', payload: { text, type: 'output' } });
+    this.currentLineBuffer += text;
+    // Aggiorna la riga corrente nello stato di React senza crearne una nuova
+    this.dispatch({ type: 'UPDATE_CURRENT_OUTPUT_LINE', text: this.currentLineBuffer });
   }
 
   writeLine(text: string) {
-    // this.write(text + "\n");
-    this.write(text); // In un log a righe, write e writeLine spesso coincidono
+    // this.write(text + "\n");  // In un log a righe, write e writeLine spesso coincidono
+    const fullLine = this.currentLineBuffer + text + "\n";
+    this.currentLineBuffer = ""; // Reset del buffer
+    this.dispatch({ type: 'APPEND_SHELL_LINE', payload: { text: fullLine, type: 'output' } });
   }
 
   error(text: string) {

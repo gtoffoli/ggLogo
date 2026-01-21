@@ -28,7 +28,7 @@ const initialWindowState: GraphicWindowState = {
 export const initialLogoState: LogoGlobalState = {
     windows: { "TARTA": initialWindowState },
     activeWindowId: "TARTA",
-    shellHistory: [{ type: 'output', text: "Wellcome in the LOGO Interpreter!" }],
+    shellHistory: [{ id: crypto.randomUUID(), lineType: 'output', text: "Wellcome in the LOGO Interpreter!\n" }],
     editorContent: '',
 };
 
@@ -37,12 +37,15 @@ type LogoAction =
     | { type: 'UPDATE_TURTLE_STATE', windowId: string, newState: Partial<TurtleState> }
     | { type: 'ADD_DRAWING_COMMAND', windowId: string, command: DrawingCommand }
     | { type: 'REGISTER_CANVAS', windowId: string, context: CanvasRenderingContext2D, canvas: HTMLCanvasElement }
+    | { type: 'UPDATE_CURRENT_OUTPUT_LINE', text: string }
     | { type: 'APPEND_SHELL_LINE', lineType: 'input' | 'output' | 'error' | 'system', text: string }
     | { type: 'CLEAR_EDITOR_CONTENT' }
     | { type: 'APPEND_TO_EDITOR_CONTENT', text: string };
 
 
 export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlobalState {
+    var nOutputLines: number;
+    var currentLine: string;
     switch (action.type) {
         case 'UPDATE_TURTLE_STATE':
             console.log('UPDATE_TURTLE_STATE', action.windowId);
@@ -91,14 +94,41 @@ export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlo
             ...state,
             shellHistory: []
           };
+        case 'UPDATE_CURRENT_OUTPUT_LINE':
+          nOutputLines = state.shellHistory.length;
+          currentLine = (nOutputLines > 0) ? state.shellHistory[nOutputLines-1] : "";
+          if ((nOutputLines === 0) || (currentLine.text.endsWith("\n"))) // new line must be open
+            return {
+              ...state,
+              shellHistory: [
+                ...state.shellHistory, 
+                { id: crypto.randomUUID(), text: action.text, lineType: 'output' }
+              ]
+            };
+          else { // last line is open
+            currentLine['text'] = action.text;
+            state.shellHistory.splice(nOutputLines-1, 1, currentLine);
+            return state;
+          }
+          break;
         case 'APPEND_SHELL_LINE':
-          return {
-            ...state,
-            shellHistory: [
-              ...state.shellHistory, 
-              { id: crypto.randomUUID(), ...action.payload }
-            ]
-          };
+          nOutputLines = state.shellHistory.length;
+          currentLine = (nOutputLines > 0) ? state.shellHistory[nOutputLines-1] : "";
+          console.log('APPEND_SHELL_LINE', nOutputLines, currentLine)
+          if ((nOutputLines === 0) || (currentLine.text.endsWith("\n"))) // new line must be open
+            return {
+              ...state,
+              shellHistory: [
+                ...state.shellHistory, 
+                { id: crypto.randomUUID(), ...action.payload }
+              ]
+            };
+          else { // last line is open
+            currentLine['text'] += action.payload.text;
+            state.shellHistory.splice(nOutputLines-1, 1, currentLine);
+            return state;
+          }
+          break;
         case 'CLEAR_EDITOR_CONTENT':
           return {
             ...state,

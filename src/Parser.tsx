@@ -278,4 +278,26 @@ export function unParse(body: any[]): any[] {
 	return output;
 }
 
+export function nodeToString(node: Cell | Cell[], showBrackets: boolean): string {
+  var output = "";
+  var value;
+  if (node.type === CellType.BOOLEAN)
+    output += localizeBoolean(node.val);
+  else if (node.type === CellType.LIST) {
+    if (showBrackets)
+      output += '[';
+    for (var i=0; i<node.val.length; i++)
+      output += nodeToString(node.val[i]);
+    if (showBrackets)
+      output += ']';
+  }
+  else {
+    value = node.val.toString();
+    output += value;
+    if (! '\"\:'.includes(value))
+      output += ' ';
+  }
+  output = output.replace(/\ \]/, "]");
+  return output;
+}
 
