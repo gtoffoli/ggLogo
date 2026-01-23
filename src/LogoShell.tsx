@@ -33,7 +33,7 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
   shared_langCode = activeLang;
 
   // Stato per l'input corrente
-  const [currentCommand, setCurrentCommand] = useState('');
+  const [currentInput, setCurrentInput] = useState('');
   
   // Riferimento per scrollare automaticamente in basso
   const endOfHistoryRef = useRef<HTMLDivElement>(null);
@@ -44,8 +44,8 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
   }, [state.shellHistory]);
   // }, [history]);
 
-  // Era la unzione per eseguire il comando
-  const executeCommand = (command: string) => {
+  // Era la funzione per eseguire il comando
+  const routeInput = (command: string) => {
     if (!command.trim()) return;
     console.log('LogoShell - command:', command);
     interpreter.getCurrentSource().provideInput(command);
@@ -55,16 +55,21 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
       event.preventDefault(); // Impedisce il submit standard del form
-      executeCommand(currentCommand);
-	    setCurrentCommand(''); // Pulisce l'input dopo l'invio
+      routeInput(currentInput);
+	    setCurrentInput(''); // Pulisce l'input dopo l'invio
     }
   };
 
   // --- DEFINIZIONE DEI MENU (Hook per l'esecuzione dei comandi) ---
 
   const handleConsoleClear = () => {
-     alert('Console Clear: La cronologia B verrà cancellata.');
+     // La cronologia B verrà cancellata
      dispatch({ type: 'CLEAR_SHELL_HISTORY' });
+  };
+
+  const handleToggleEcho = () => {
+     // alert('Console Clear: La cronologia B verrà cancellata.');
+     dispatch({ type: 'TOGGLE_INPUT_ECHO' });
   };
 
   // Azione 2: Recupera (simula l'apertura del file dialog)
@@ -104,6 +109,10 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
         // dispatch({ type: 'SYSTEM_MESSAGE', text: `Lingua impostata su: ${lang.toUpperCase()}` }); 
     };
 
+  const handleDummyChange = () => {
+     dispatch({ type: 'DUMMY_STATE_CHANGE' });
+  };
+
   // Menu per l'Area B (Interprete/Console)
   const menuB = [
 	// Menu File
@@ -112,11 +121,13 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
 	  { label: t('menu.save'), action: () => alert('Salva...') },
 	]},
     { label: t('menu.history'), submenu: [
+      { label: (state.echoInput) ? t('menu.echo_off') :  t('menu.echo_on'), action: handleToggleEcho },
       { label: t('menu.delete'), action: handleConsoleClear },
       { label: t('menu.export'), action: () => console.log('Esporta log della console') },
     ]},
     { label: t('menu.commands'), submenu: [
       { label: t('menu.help'), action: () => alert('Mostra la guida comandi LOGO.') },
+      { label: t('menu.dummy_change'), action: handleDummyChange },
     ]},
         // Menu Lingua (Dynamic)
 	{ label: t('menu.language'), submenu: [
@@ -160,8 +171,8 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
         <span style={{ color: '#fff', marginRight: '5px' }}>&gt;</span>
         <input
           type="text"
-          value={currentCommand}
-          onChange={(e) => setCurrentCommand(e.target.value)}
+          value={currentInput}
+          onChange={(e) => setCurrentInput(e.target.value)}
           onKeyDown={handleKeyDown}
           autoFocus
           style={{

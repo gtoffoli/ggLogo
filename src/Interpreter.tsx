@@ -48,11 +48,14 @@ export class AsynchronousLogoInterpreter {
 
   // constructor(state, dispatch, source) {
     // this.state = state;
-  constructor(getState: () => LogoGlobalState, dispatch: React.Dispatch<any>, source: ShellSource) {
+  // constructor(getState: () => LogoGlobalState, dispatch: React.Dispatch<any>, source: ShellSource) {
+  constructor(getState: () => LogoGlobalState, dispatch: React.Dispatch<any>) {
     this.getState = getState;
-    this.source = source;
+    // this.source = source;
+    this.source = new ShellSource();
     this.dispatch = dispatch;
-    this.sourceStack.push(source);
+    // this.sourceStack.push(source);
+    this.sourceStack.push(this.source);
     this.outputStack.push(new ShellOutput(dispatch));
     console.log('AsynchronousLogoInterpreter CREATED');
     ini_main();
@@ -64,6 +67,11 @@ export class AsynchronousLogoInterpreter {
   public pushSource(source: InputSource) {
     this.sourceStack.push(source);
     console.log('pushSource', this.sourceStack);
+  }
+
+  public popSource() {
+    console.log('popSource', this.sourceStack);
+    this.sourceStack.pop();
   }
 
   // Ciclo principale di esecuzione
@@ -104,7 +112,8 @@ export class AsynchronousLogoInterpreter {
     // Se il comando è "LEGGI", chiamerai this.pushSource(...)
     const ctx: Context = contesti[liv_contesto];
     const currentOutput = this.outputStack[this.outputStack.length - 1];
-    currentOutput.writeLine(line);
+    if (this.getState().echoInput)
+      currentOutput.writeLine(line, 'input');
     const parsedLine = Parse(line);
     if (isProcedureDefinition && (keywordResolver(line) !== 'END')) {
       pushProcedureLine(parsedLine);
@@ -186,7 +195,7 @@ export class AsynchronousLogoInterpreter {
     return values;
   }
 
-  private valuta_token() {
+  private async valuta_token() {
     var ctx: Context;
     var numeric: number;
     var coreKey: CoreDefinitionKeys;
@@ -393,6 +402,12 @@ export class AsynchronousLogoInterpreter {
             else if (classes.includes(FunClass.EXEC)) {
               definition.ref(ctx, values);
               is_exec = true;
+            }
+            else if (classes.includes(FunClass.TXIN)) {
+              const source = new ShellSource();
+              this.pushSource(source);
+              result = await definition.ref(source);
+              this.popSource();
             }
             else if (classes.includes(FunClass.TXOU)) {
               definition.ref(this.getCurrentOutput(), values);

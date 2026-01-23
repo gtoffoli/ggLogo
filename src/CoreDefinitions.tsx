@@ -9,7 +9,7 @@ import { _DEFINE, _TO, _END, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
 import { _NOT, _EQUALP, _NOTEQUALP } from './Logic';
 import { _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
 import { _HOME, _CS, _FD, _BK, _RT, _LT, _PENUP, _PENDOWN, _PENCOLOR, _SETPENCOLOR } from './InterpreterCore';
-import { _PRINT, _TYPE, _SHOW, _WRITECHAR } from './Communication';
+import { _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR } from './Communication';
 
 export const SEPARATORS = {
 	// "\t\r\":()+-*/^<=> "
@@ -163,21 +163,19 @@ export type ParamDef = {
 export enum FunSignature {
 	FUNCTION = 1,	// primitive that outputs a result
 	ONEORMORE = 2,	// primitive with one or more arguments (max number undefined)
+  TOPLEVEL = 3, // IS_PR_TOP: can be executed only at top level
 }
 
 // codifica di classi di primitiva
 export enum FunClass {
 	TURT = 1,	// IS_PR_TARTA: turtle function
 	EDIT = 2,	// IS_PR_FOGLIO: edit function
-	TOPL = 3,	// IS_PR_TOP: can be executed only at top level
-	PROC = 4,	// IS_PR_PROC: can be executed only inside a procedure
-	TXOU = 5,	// IS_PR_SCRIVI: writes on screen
+	PROC = 3,	// IS_PR_PROC: can be executed only inside a procedure
+  TXIN = 4, // IS_PR_SCRIVI: writes on screen or ..
+	TXOU = 5,	// IS_PR_SCRIVI: reads from keyboard or ..
 	EXEC = 6,	// IS_PR_ESEGUI: execution control
 	DEF = 7,	// IS_PR_DEF: Variable or procedure definition
 	OPER = 8, // infix operator
-	PGUI = 9,	// IS_PR_GUI: graphic UI building
-	PMCI = 10,	// IS_PR_MM: not used?
-	BOUNDLESS = 11	// no bound for # of arguments inside parentheses
 }
 
 export const turtleStrokes = ['CS', 'FD', 'BK',];
@@ -365,6 +363,18 @@ export const CORE_DEFINITIONS = {
     classes: [FunClass.TXOU],
     args: [{ name: "valore", type: 'string' }],
     ref: _WRITECHAR,
+  } as CommandDef,
+  READCHAR: {
+    classes: [FunClass.TXIN, FunSignature.FUNCTION],
+    ref: _READCHAR,
+  } as CommandDef,
+  READWORD: {
+    classes: [FunClass.TXIN, FunSignature.FUNCTION],
+    ref: _READWORD,
+  } as CommandDef,
+  READLIST: {
+    classes: [FunClass.TXIN, FunSignature.FUNCTION],
+    ref: _READLIST,
   } as CommandDef,
 
   'SIGN': {

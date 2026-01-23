@@ -130,11 +130,13 @@ export class ShellOutput implements OutputChannel {
     this.dispatch({ type: 'UPDATE_CURRENT_OUTPUT_LINE', text: this.currentLineBuffer });
   }
 
-  writeLine(text: string) {
+  // writeLine(text: string) {
+  writeLine(text: string, lineType?: string = 'output') {
     // this.write(text + "\n");  // In un log a righe, write e writeLine spesso coincidono
     const fullLine = this.currentLineBuffer + text + "\n";
     this.currentLineBuffer = ""; // Reset del buffer
-    this.dispatch({ type: 'APPEND_SHELL_LINE', payload: { text: fullLine, type: 'output' } });
+    // this.dispatch({ type: 'APPEND_SHELL_LINE', payload: { text: fullLine, type: 'output' } });
+    this.dispatch({ type: 'APPEND_SHELL_LINE', payload: { text: fullLine, type: lineType } });
   }
 
   error(text: string) {

@@ -3,7 +3,7 @@
 
 import { CellType, Cell } from './CoreDefinitions';
 import { ShellSource, OutputChannel } from './Streams';
-import { nodeToString } from './Parser';
+import { Parse, nodeToString } from './Parser';
 
 export function _PRINT(channel: OutputChannel, args: any[]): void {
 	console.log('function _PRINT', channel, args);
@@ -31,12 +31,20 @@ export function _WRITECHAR(channel: OutputChannel, args: any[]): void {
   channel.write(args[0].val);
 }
 
-export function _READWORD(): Cell {
-  console.log('function _READWORD', args);
-  return null;
+export async function _READWORD(source: ShellSource): Promise<Cell> {
+  const input = await source.getLine();
+  console.log('function _READWORD', input);
+  return { type: CellType.WORD, val: input };
 }
 
-export function _READLIST(): Cell {
-  console.log('function _READLIST', args);
+export async function _READLIST(source: ShellSource): Promise<Cell> {
+  const input = await source.getLine();
+  console.log('function _READLIST', input);
+  const parsed = Parse(input);
+  return { type: CellType.LIST, val: input };
+}
+
+export function _READCHAR(): Cell {
+  console.log('function _READCHAR');
   return null;
 }

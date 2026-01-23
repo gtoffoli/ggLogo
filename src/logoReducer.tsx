@@ -29,14 +29,18 @@ export const initialLogoState: LogoGlobalState = {
     windows: { "TARTA": initialWindowState },
     activeWindowId: "TARTA",
     shellHistory: [{ id: crypto.randomUUID(), lineType: 'output', text: "Wellcome in the LOGO Interpreter!\n" }],
+    echoInput: true,
     editorContent: '',
 };
 
 // Tipi di Azione
 type LogoAction = 
+    | { type: 'DUMMY_STATE_CHANGE' }
     | { type: 'UPDATE_TURTLE_STATE', windowId: string, newState: Partial<TurtleState> }
     | { type: 'ADD_DRAWING_COMMAND', windowId: string, command: DrawingCommand }
     | { type: 'REGISTER_CANVAS', windowId: string, context: CanvasRenderingContext2D, canvas: HTMLCanvasElement }
+    | { type: 'CLEAR_SHELL_HISTORY' }
+    | { type: 'TOGGLE_INPUT_ECHO' }
     | { type: 'UPDATE_CURRENT_OUTPUT_LINE', text: string }
     | { type: 'APPEND_SHELL_LINE', lineType: 'input' | 'output' | 'error' | 'system', text: string }
     | { type: 'CLEAR_EDITOR_CONTENT' }
@@ -47,6 +51,8 @@ export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlo
     var nOutputLines: number;
     var currentLine: string;
     switch (action.type) {
+        case 'DUMMY_STATE_CHANGE':
+          return state;
         case 'UPDATE_TURTLE_STATE':
             console.log('UPDATE_TURTLE_STATE', action.windowId);
             return {
@@ -93,6 +99,11 @@ export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlo
           return {
             ...state,
             shellHistory: []
+          };
+        case 'TOGGLE_INPUT_ECHO':
+          return {
+            ...state,
+            echoInput: !state.echoInput
           };
         case 'UPDATE_CURRENT_OUTPUT_LINE':
           nOutputLines = state.shellHistory.length;

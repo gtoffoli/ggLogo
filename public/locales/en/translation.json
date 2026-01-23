@@ -16,6 +16,8 @@
     "new": "New",
     "load": "Upload..",
     "history": "History",
+    "echo_off": "Hide input echo",
+    "echo_on": "Show input echo",
     "delete": "Delete",
     "export": "Export",
     "commands": "Commands",

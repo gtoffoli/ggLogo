@@ -25,7 +25,7 @@ export const useLogoState = () => {
 
 export const LogoStateProvider: React.FC = ({ children }) => {
   const [state, dispatch] = useReducer(logoReducer, initialLogoState);
-  const source = new ShellSource();
+  // const source = new ShellSource();
   // 1. Creiamo la "scatola" (il riferimento allo stato)
   const stateRef = useRef(state);
 
@@ -40,10 +40,11 @@ export const LogoStateProvider: React.FC = ({ children }) => {
     // Questa funzione restituirà SEMPRE l'ultimo stato aggiornato
     return new AsynchronousLogoInterpreter(
       () => stateRef.current, // Questa è la nostra getState()
-      dispatch, 
-      source
+      dispatch //, 
+      // source
     );
-  }, [dispatch, source]); 
+  }, [dispatch]); 
+  // }, [dispatch, source]); 
   // Nota: source e dispatch non cambiano mai, quindi l'interprete non viene mai ricreato
 
   return (

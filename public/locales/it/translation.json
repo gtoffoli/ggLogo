@@ -16,6 +16,8 @@
     "new": "Nuovo",
     "load": "Recupera..",
     "history": "Storia",
+    "echo_off": "No eco comandi",
+    "echo_on": "Eco comandi",
     "delete": "Cancella",
     "export": "Esporta",
     "commands": "Comandi",
