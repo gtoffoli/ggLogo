@@ -41,7 +41,7 @@ export const IT_MAP: LanguageMap = {
   "INDIETRO": "BK",
   "INPRI": "FPUT",
   "INULT": "LPUT",
-  "LECCICAR": "READCHAR",
+  "LEGGICAR": "READCHAR",
   "LEGGILISTA": "READLIST",
   "LEGGIPAROLA": "READWORD",
   "LISTA": "LIST",

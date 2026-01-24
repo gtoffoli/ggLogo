@@ -30,6 +30,7 @@ export const initialLogoState: LogoGlobalState = {
     activeWindowId: "TARTA",
     shellHistory: [{ id: crypto.randomUUID(), lineType: 'output', text: "Wellcome in the LOGO Interpreter!\n" }],
     echoInput: true,
+    keyboardTarget: 'commands',
     editorContent: '',
 };
 
@@ -43,6 +44,7 @@ type LogoAction =
     | { type: 'TOGGLE_INPUT_ECHO' }
     | { type: 'UPDATE_CURRENT_OUTPUT_LINE', text: string }
     | { type: 'APPEND_SHELL_LINE', lineType: 'input' | 'output' | 'error' | 'system', text: string }
+    | { type: 'SET_KEYBOARD_TARGET', target: 'commands' | 'data' }
     | { type: 'CLEAR_EDITOR_CONTENT' }
     | { type: 'APPEND_TO_EDITOR_CONTENT', text: string };
 
@@ -140,6 +142,12 @@ export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlo
             return state;
           }
           break;
+        case 'SET_KEYBOARD_TARGET':
+          console.log('SET_KEYBOARD_TARGET', action.target);
+          return {
+            ...state,
+            keyboardTarget: action.target
+          };
         case 'CLEAR_EDITOR_CONTENT':
           return {
             ...state,

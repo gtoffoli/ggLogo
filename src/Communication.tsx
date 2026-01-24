@@ -5,6 +5,7 @@ import { CellType, Cell } from './CoreDefinitions';
 import { ShellSource, OutputChannel } from './Streams';
 import { Parse, nodeToString } from './Parser';
 
+
 export function _PRINT(channel: OutputChannel, args: any[]): void {
 	console.log('function _PRINT', channel, args);
 	for (var i=0; i<args.length; i++) {
@@ -31,20 +32,25 @@ export function _WRITECHAR(channel: OutputChannel, args: any[]): void {
   channel.write(args[0].val);
 }
 
-export async function _READWORD(source: ShellSource): Promise<Cell> {
-  const input = await source.getLine();
-  console.log('function _READWORD', input);
+export async function _READWORD(source: InteractiveData): Promise<Cell> {
+  console.log('function _READWORD - 1', source);
+  // Chiediamo alla ShellSource di fornirci una riga "una tantum"
+  const input = await source.getData();
+  // Il parser Logo solitamente prende solo la prima parola per READWORD
+  return { type: CellType.WORD, val: input ? input.trim().split(/\s+/)[0] : "" };
+}
+
+export async function _READLIST(source: InteractiveData): Promise<Cell> {
+  console.log('function _READLIST - 1', source);
+  // Chiediamo alla ShellSource di fornirci una riga "una tantum"
+  const input = await source.getData();
+  console.log('function _READLIST - 2', input);
+  const parsed = Parse(input.trim());
+  return { type: CellType.LIST, val: parsed };
+}
+
+export async function _READCHAR(source: InteractiveData): Promise<Cell> {
+  console.log('function _READCHAR - 1', source);
+  const input = await source.getData();
   return { type: CellType.WORD, val: input };
-}
-
-export async function _READLIST(source: ShellSource): Promise<Cell> {
-  const input = await source.getLine();
-  console.log('function _READLIST', input);
-  const parsed = Parse(input);
-  return { type: CellType.LIST, val: input };
-}
-
-export function _READCHAR(): Cell {
-  console.log('function _READCHAR');
-  return null;
 }

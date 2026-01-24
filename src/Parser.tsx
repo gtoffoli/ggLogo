@@ -253,6 +253,7 @@ export function Parse(input: string): any[] {
 }
 
 export function unParse(body: any[]): any[] {
+  /*
 	var output = "";
 	var node;
 	var value;
@@ -276,6 +277,8 @@ export function unParse(body: any[]): any[] {
 		output = output.replace(/\ \]/, "]");
 	}
 	return output;
+	*/
+	return nodeToString(body, true);
 }
 
 export function nodeToString(node: Cell | Cell[], showBrackets: boolean): string {

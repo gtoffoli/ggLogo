@@ -54,6 +54,8 @@ export interface LogoGlobalState {
   shellHistory: ShellLine[];
   // Echo command input to shellHistory
   echoInput: boolean,
+  // Input primitive waiting data
+  keyboardTarget: string,
   // Testo contenuto nell'Editor panel
   editorContent: string;
 }

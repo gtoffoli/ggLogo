@@ -23,7 +23,7 @@ import { ini_main,ini_exec, ini_valuta, AssertContesto } from './LogoControl';
 import { isProcedureDefinition, iniDefine, pushProcedureLine } from './LogoDefine';
 import { localizedTruthValues, normalizeBoolean } from './Logic';
 import { InputSource, OutputChannel } from './Streams';
-import { ShellSource, ShellOutput } from './Streams';
+import { ShellSource, ShellOutput, InteractiveData } from './Streams';
 import { keywordResolver, commandResolver } from './UseLocalization';
 
 export var globalVariables: Record<string, any> = {};
@@ -36,6 +36,7 @@ var classes = [];    // info related to primitive classificaztion
 var signature = [];    // info  related to arguments and result of primitive
 var oneormore = false;  // true if primitive accepts an indefinite number of arguments 
 var is_function = false;// true if primitive returns a result
+
 const N_MINIMO = 1; // minimo numero di argomenti per la funzione corrente
 
 
@@ -45,6 +46,8 @@ export class AsynchronousLogoInterpreter {
   private getState: () => LogoGlobalState; // Il tipo della funzione
   private dispatch: React.Dispatch<any>;
   private source: ShellSource;
+  private dataSource: InteractiveData;
+  private currentCommand: string | null; 
 
   // constructor(state, dispatch, source) {
     // this.state = state;
@@ -53,10 +56,12 @@ export class AsynchronousLogoInterpreter {
     this.getState = getState;
     // this.source = source;
     this.source = new ShellSource();
+    this.dataSource = new InteractiveData();
     this.dispatch = dispatch;
     // this.sourceStack.push(source);
     this.sourceStack.push(this.source);
     this.outputStack.push(new ShellOutput(dispatch));
+    this.currentCommand = null;
     console.log('AsynchronousLogoInterpreter CREATED');
     ini_main();
     ini_exec();
@@ -81,7 +86,6 @@ export class AsynchronousLogoInterpreter {
       console.log('AsynchronousLogoInterpreter WAITING:');
       const currentSource = this.sourceStack[this.sourceStack.length - 1];
       const line = await currentSource.getLine();
-      console.log('AsynchronousLogoInterpreter LINE:', line);
 
       if (line === null) {
         if (currentSource.type !== 'SHELL') {
@@ -132,7 +136,13 @@ export class AsynchronousLogoInterpreter {
   }
 
   public getCurrentSource(): InputSource {
+    console.log(`getCurrentSource`, this.sourceStack.length);
     return this.sourceStack[this.sourceStack.length - 1];
+  }
+
+  public getDataSource(): InteractiveData {
+    console.log(`getDataSource`);
+    return this.dataSource;
   }
 
   // private get currentOutput(): OutputChannel {
@@ -284,6 +294,7 @@ export class AsynchronousLogoInterpreter {
                 funzione = { type: CellType.SFUN, coreKey: coreKey, definition: definition};
                 console.log('SFUN', coreKey, definition);
                 sf_in(ctx, funzione);
+                this.currentCommand = coreKey;
               }
               else if (Object.keys(userProcedures).includes(verb)) {
                 definition = userProcedures[verb];
@@ -338,6 +349,7 @@ export class AsynchronousLogoInterpreter {
                   if (result !== null) {
                     push_arg(ctx, result);
                   }
+                  this.currentCommand = null;
                   parenout(ctx, 1);
                 };
               }
@@ -404,10 +416,9 @@ export class AsynchronousLogoInterpreter {
               is_exec = true;
             }
             else if (classes.includes(FunClass.TXIN)) {
-              const source = new ShellSource();
-              this.pushSource(source);
-              result = await definition.ref(source);
-              this.popSource();
+              this.dispatch({ type: 'SET_KEYBOARD_TARGET', target: 'data' });
+              result = await definition.ref(this.getDataSource());
+              this.dispatch({ type: 'SET_KEYBOARD_TARGET', target: 'commands' });
             }
             else if (classes.includes(FunClass.TXOU)) {
               definition.ref(this.getCurrentOutput(), values);

@@ -34,6 +34,8 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
 
   // Stato per l'input corrente
   const [currentInput, setCurrentInput] = useState('');
+  // Stato per il data input corrente
+  const [currentData, setCurrentData] = useState('');
   
   // Riferimento per scrollare automaticamente in basso
   const endOfHistoryRef = useRef<HTMLDivElement>(null);
@@ -57,6 +59,16 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
       event.preventDefault(); // Impedisce il submit standard del form
       routeInput(currentInput);
 	    setCurrentInput(''); // Pulisce l'input dopo l'invio
+    }
+  };
+
+  // Gestore per l'invio del comando (tasto INVIO)
+  const handleDataKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    // if (event.key === 'Enter') {
+    if ((event.key === 'Enter') || (interpreter.getCurrentCommand == 'READCHAR')) {
+      event.preventDefault(); // Impedisce il submit standard del form
+      interpreter.getDataSource().provideData(currentData);
+      setCurrentData(''); // Pulisce l'input dopo l'invio
     }
   };
 
@@ -127,7 +139,7 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
     ]},
     { label: t('menu.commands'), submenu: [
       { label: t('menu.help'), action: () => alert('Mostra la guida comandi LOGO.') },
-      { label: t('menu.dummy_change'), action: handleDummyChange },
+      { label: t('menu.no_change'), action: handleDummyChange },
     ]},
         // Menu Lingua (Dynamic)
 	{ label: t('menu.language'), submenu: [
@@ -165,9 +177,8 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
         ))}
         <div ref={endOfHistoryRef} /> {/* Punto di scroll */}
       </div>
-
       {/* Area di Input */}
-      <div style={{ marginTop: 0, display: 'block', borderStyle: 'solid', borderWidth: 1, borderColor: 'white', flexGrow: 1 }}>
+      <div style={{ marginTop: 0, display: (state.keyboardTarget === 'commands') ? 'block' : 'none', borderStyle: 'solid', borderWidth: 1, borderColor: 'white', flexGrow: 0.1 }}>
         <span style={{ color: '#fff', marginRight: '5px' }}>&gt;</span>
         <input
           type="text"
@@ -176,13 +187,26 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
           onKeyDown={handleKeyDown}
           autoFocus
           style={{
-            backgroundColor: 'transparent', 
-            border: 'none', 
-            color: '#fff', 
-            outline: 'none', 
-            fontFamily: 'monospace' 
+            backgroundColor: 'transparent', border: 'none', color: '#fff', outline: 'none', 
+            fontFamily: 'monospace', width: '95%'
           }}
           placeholder={t('msg.command_placeholder')}
+        />
+      </div>
+      {/* Area di data Input */}
+      <div style={{ marginTop: 0, display: (state.keyboardTarget === 'data') ? 'block' : 'none', borderStyle: 'solid', borderWidth: 1, borderColor: 'white', flexGrow: 0.1 }}>
+        <span style={{ color: '#fff', marginRight: '5px' }}>?</span>
+        <input
+          type="text"
+          value={currentData}
+          onChange={(e) => setCurrentData(e.target.value)}
+          onKeyDown={handleDataKeyDown}
+          autoFocus
+          style={{
+            backgroundColor: 'transparent', border: 'none', color: '#fff', outline: 'none', 
+            fontFamily: 'monospace', width: '95%'
+          }}
+          placeholder={t('msg.data_placeholder')}
         />
       </div>
       <input type="file" id='logo-file-input'  accept=".txt" onChange={handleFileChange} style={{ display: 'none' }} />

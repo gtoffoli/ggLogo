@@ -106,6 +106,29 @@ export class ShellSource implements InputSource {
   }
 }
 
+export class InteractiveData {
+  private resolveData: ((data: string) => void) | null = null;
+
+  // Questa funzione verrà chiamata dal componente React (LogoShell) 
+  // quando l'utente preme INVIO
+  public provideData(data: string) {
+    console.log('InteractiveData - provideData', data, this.resolveData);
+    if (this.resolveData) {
+      const resolve = this.resolveData;
+      this.resolveData = null;
+      resolve(data);
+    }
+  }
+
+  async getData(): Promise<string | null> {
+    console.log('InteractiveData - getData');
+    return new Promise((resolve) => {
+      this.resolveData = resolve;
+      // Qui potresti emettere un evento per dire alla UI di mostrare il prompt
+    });
+  }
+}
+
 export interface OutputChannel {
   type: 'SHELL' | 'BUFFER' | 'NULL';
   write(text: string): void;

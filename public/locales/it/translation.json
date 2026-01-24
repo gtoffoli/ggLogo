@@ -22,6 +22,7 @@
     "export": "Esporta",
     "commands": "Comandi",
     "help": "Aiuto",
+    "no_change": "Nessuna modifica",
     "language": "Lingua",
     "edit": "Edita",
     "undo": "Disfa",
@@ -38,6 +39,7 @@
     "error_not_recognized": "Comando non riconosciuto in {{lang}}",
     "interpreter_result": "Risultato interprete:",
     "command_placeholder": "inserisci un comando LOGO..",
+    "data_placeholder": "inserisci un oggetto LOGO..",
     "code_placeholder": "inserisci del codice LOGO.."
   }
 }
