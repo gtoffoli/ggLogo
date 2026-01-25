@@ -62,13 +62,15 @@ export function _PENDOWN(values: any[], state: TurtleState): TurtleState {
     };
 }
 
-export function _PENCOLOR(values: any[], state: TurtleState): Cell | null {
-	var color =  state.penColor;
-	return { cellType: CellType.WORD, val: color}
+export function _PENDOWNP(values: any[], state: TurtleState): Cell {
+  return { type: CellType.BOOLEAN, val: state.penDown }
+}
+
+export function _PENCOLOR(values: any[], state: TurtleState): Cell {
+	return { type: CellType.WORD, val: state.penColor}
 }
 
 export function _SETPENCOLOR(values: any[], state: TurtleState): TurtleState | null {
-	// const color: string = values[0];
 	const color: string = values[0].val;
     return { 
         ...state, 
@@ -76,13 +78,36 @@ export function _SETPENCOLOR(values: any[], state: TurtleState): TurtleState | n
     };
 }
 
+export function _PENMODE(values: any[], state: TurtleState): Cell {
+  return { type: CellType.WORD, val: state.penMode}
+}
+
+export function _POS(values: any[], state: TurtleState): Cell {
+  return { type: CellType.LIST, val: [{ type: CellType.NUMBER, val: -(state.x)}, { type: CellType.NUMBER, val: -(state.y)}] }
+}
+
+export function _XCOR(values: any[], state: TurtleState): Cell {
+  return { type: CellType.NUMBER, val: -(state.x) }
+}
+
+export function _YCOR(values: any[], state: TurtleState): Cell {
+  return { type: CellType.NUMBER, val: -(state.y) }
+}
+
+// from jslogo
+const PRECISION = 10;
+function precision(n) {
+  var f = Math.pow(10, PRECISION);
+  return Math.round(n * f) / f;
+}
+
 /**
- * Calcola il nuovo stato della tartaruga dopo un comando AVANTI/FD.
+ * Calcola il comando (LINE_TO o MOVE_TO) da inviare al canvas e il nuovo stato (pos) della tartaruga dopo un comando tipo FD o BK
  */
 export function calculateForward(state: TurtleState, distance: number): any[] {
     const rad = state.heading * Math.PI / 180;
-    const newX = state.x + distance * Math.sin(rad);
-    const newY = state.y - distance * Math.cos(rad); // LOGO usa Y decrescente verso l'alto
+    const newX = precision(state.x + distance * Math.sin(rad));
+    const newY = precision(state.y - distance * Math.cos(rad)); // LOGO usa Y decrescente verso l'alto
     
     let drawingCommand: DrawingCommand | null = null;
 

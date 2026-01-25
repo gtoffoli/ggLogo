@@ -8,7 +8,7 @@ import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _BUTFIRST, _BUTLA
 import { _DEFINE, _TO, _END, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
 import { _NOT, _EQUALP, _NOTEQUALP } from './Logic';
 import { _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
-import { _HOME, _CS, _FD, _BK, _RT, _LT, _PENUP, _PENDOWN, _PENCOLOR, _SETPENCOLOR } from './InterpreterCore';
+import { _HOME, _CS, _FD, _BK, _RT, _LT, _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _PENMODE, _XCOR, _YCOR, _POS } from './InterpreterCore';
 import { _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR } from './Communication';
 
 export const SEPARATORS = {
@@ -238,6 +238,31 @@ export const CORE_DEFINITIONS = {
     classes: [FunClass.TURT],
     // description: "Abbassa la penna.",
     ref: _PENDOWN,
+  } as CommandDef,
+  PENDOWNP: {
+    classes: [FunClass.TURT],
+    signature: [FunSignature.FUNCTION],
+    ref: _PENDOWNP,
+  } as CommandDef,
+  PENMODE: {
+    classes: [FunClass.TURT],
+    signature: [FunSignature.FUNCTION],
+    ref: _PENMODE,
+  } as CommandDef,
+  POS: {
+    classes: [FunClass.TURT],
+    signature: [FunSignature.FUNCTION],
+    ref: _POS,
+  } as CommandDef,
+  XCOR: {
+    classes: [FunClass.TURT],
+    signature: [FunSignature.FUNCTION],
+    ref: _XCOR,
+  } as CommandDef,
+  YCOR: {
+    classes: [FunClass.TURT],
+    signature: [FunSignature.FUNCTION],
+    ref: _YCOR,
   } as CommandDef,
   WORD: {
     signature: [FunSignature.FUNCTION, FunSignature.ONEORMORE],

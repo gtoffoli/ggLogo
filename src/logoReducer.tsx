@@ -12,7 +12,8 @@ export const initialTurtleState: TurtleState = {
     y: 0,
     heading: 0, 
     penDown: true, 
-    penColor: '#000000'
+    penColor: '#000000',
+    penMode: 'PAINT'
 };
 
 const initialWindowState: GraphicWindowState = {

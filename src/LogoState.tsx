@@ -22,6 +22,7 @@ export interface TurtleState {
   heading: number; // Direzione (0-359 gradi)
   penDown: boolean;
   penColor: string; // Basato sul parametro PENCOLOR
+  penMode: 'PAINT' | 'ERASE'  | 'REVERSE';
   // ... altri stati grafici (es. fillcolor, turtleshape)
 }
 

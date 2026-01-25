@@ -5,7 +5,6 @@
 // 251107 - started extension of Parser
 // 251114 - dry command execution in auxiliary functions of Intepreter
 // 251115 - integration of command execution with CommandDef (added the ref field)
-// 251116 - imported some shared values retrieved by LogoShell through React-specific functions
 // 251129 - propagation downward of resolveCommand also to functions in LogoControl module
 // 251230 - converted TAB to spaces and revised the indentation 
 
@@ -15,7 +14,6 @@ import { SEPARATORS, isSeparator, SystemFunction, CORE_DEFINITIONS, CommandDef, 
 import { UserFunction, ProcedureDef } from './CoreDefinitions';
 import { LANGUAGE_MAPS } from './LocalizationMaps';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
-import { shared_dispatch } from './LogoShell';
 import { Parse, infix_operators, unParse } from './Parser';
 import { contesti, liv_contesto, liv_analisi, v_stack, is_stop, risultato } from './LogoControl';
 import { push_sv, pop_sv,  push_arg, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_out, parenin, parenout } from './LogoControl';
@@ -445,27 +443,24 @@ export class AsynchronousLogoInterpreter {
               }
       
               // Dispatch (Aggiornamento dello Stato Globale)
-              if (newTurtleState !== undefined) {
+              if (newTurtleState !== undefined) { // è stato calcolato un nuovo turtleState: va comunicato
                 console.log('NEWSTATE', newTurtleState);
-                // shared_dispatch({ 
                 this.dispatch({ 
                     type: 'UPDATE_TURTLE_STATE', 
-                    // windowId: this.state.activeWindowId,
                     windowId: this.getState().activeWindowId,
                     newState: newTurtleState 
                 });
+                activeWin.turtleState = newTurtleState;
               }
-              if (turtleStroke) {
+              if (turtleStroke) { // è (anche) da aggiungere un'operazione sul canvas
                 console.log('drawingCommand', drawingCommand);
-                // shared_dispatch({ 
                 this.dispatch({ 
                   type: 'ADD_DRAWING_COMMAND', 
-                  // windowId: this.state.activeWindowId,
                   windowId: this.getState().activeWindowId,
                   command: drawingCommand 
                 });
               }
-              activeWin.turtleState = newTurtleState;
+              // activeWin.turtleState = newTurtleState;
             }
             else {
               if (is_function) {
