@@ -13,7 +13,8 @@ export const initialTurtleState: TurtleState = {
     heading: 0, 
     penDown: true, 
     penColor: '#000000',
-    penMode: 'PAINT'
+    penMode: 'PAINT',
+    visible: true,
 };
 
 const initialWindowState: GraphicWindowState = {
@@ -23,7 +24,8 @@ const initialWindowState: GraphicWindowState = {
     turtleState: initialTurtleState,
     drawingCommands: [],
     canvasContext: null, // Aggiunto per l'associazione al DOM (vedi punto 3)
-    canvasRef: null      // Aggiunto per l'associazione al DOM (vedi punto 3)
+    backgroundRef: null,      // Aggiunto per l'associazione al DOM (vedi punto 3)
+    foregroundRef: null      // Aggiunto per l'associazione al DOM (vedi punto 3)
 };
 
 export const initialLogoState: LogoGlobalState = {
@@ -40,7 +42,7 @@ type LogoAction =
     | { type: 'DUMMY_STATE_CHANGE' }
     | { type: 'UPDATE_TURTLE_STATE', windowId: string, newState: Partial<TurtleState> }
     | { type: 'ADD_DRAWING_COMMAND', windowId: string, command: DrawingCommand }
-    | { type: 'REGISTER_CANVAS', windowId: string, context: CanvasRenderingContext2D, canvas: HTMLCanvasElement }
+    | { type: 'REGISTER_CANVAS', windowId: string, context: CanvasRenderingContext2D, background: HTMLCanvasElement, foreground: HTMLCanvasElement  }
     | { type: 'CLEAR_SHELL_HISTORY' }
     | { type: 'TOGGLE_INPUT_ECHO' }
     | { type: 'UPDATE_CURRENT_OUTPUT_LINE', text: string }
@@ -94,7 +96,8 @@ export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlo
                     [action.windowId]: {
                         ...state.windows[action.windowId],
                         canvasContext: action.context,
-                        canvasRef: action.canvas
+                        backgroundRef: action.background,
+                        foregroundRef: action.foreground
                     }
                 }
             };

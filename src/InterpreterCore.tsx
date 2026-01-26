@@ -83,11 +83,11 @@ export function _PENMODE(values: any[], state: TurtleState): Cell {
 }
 
 export function _POS(values: any[], state: TurtleState): Cell {
-  return { type: CellType.LIST, val: [{ type: CellType.NUMBER, val: -(state.x)}, { type: CellType.NUMBER, val: -(state.y)}] }
+  return { type: CellType.LIST, val: [{ type: CellType.NUMBER, val: state.x}, { type: CellType.NUMBER, val: -(state.y)}] }
 }
 
 export function _XCOR(values: any[], state: TurtleState): Cell {
-  return { type: CellType.NUMBER, val: -(state.x) }
+  return { type: CellType.NUMBER, val: state.x }
 }
 
 export function _YCOR(values: any[], state: TurtleState): Cell {

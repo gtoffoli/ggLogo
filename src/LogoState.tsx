@@ -23,6 +23,7 @@ export interface TurtleState {
   penDown: boolean;
   penColor: string; // Basato sul parametro PENCOLOR
   penMode: 'PAINT' | 'ERASE'  | 'REVERSE';
+  visible: boolean;
   // ... altri stati grafici (es. fillcolor, turtleshape)
 }
 
@@ -35,7 +36,8 @@ export interface GraphicWindowState {
   // drawingCommands: any[]; 
   drawingCommands: DrawingCommand[]; // Ora è tipizzato 
   canvasContext: any; // Aggiunto per l'associazione al DOM (vedi punto 3)
-  canvasRef: any;     // Aggiunto per l'associazione al DOM (vedi punto 3)
+  backgroundRef: any;     // Aggiunto per l'associazione al DOM (vedi punto 3)
+  foregroundRef: any;
 }
 
 // Definisce l'interfaccia per una linea di output su Shell
