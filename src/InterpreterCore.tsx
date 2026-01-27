@@ -85,13 +85,27 @@ export function _PENMODE(values: any[], state: TurtleState): Cell {
 export function _POS(values: any[], state: TurtleState): Cell {
   return { type: CellType.LIST, val: [{ type: CellType.NUMBER, val: state.x}, { type: CellType.NUMBER, val: -(state.y)}] }
 }
-
 export function _XCOR(values: any[], state: TurtleState): Cell {
   return { type: CellType.NUMBER, val: state.x }
 }
-
 export function _YCOR(values: any[], state: TurtleState): Cell {
   return { type: CellType.NUMBER, val: -(state.y) }
+}
+
+export function _SHOWTURTLE(values: any[], state: TurtleState): TurtleState {
+    return { 
+        ...state, 
+        visible: true
+    };
+}
+export function _HIDETURTLE(values: any[], state: TurtleState): TurtleState {
+    return { 
+        ...state, 
+        visible: false
+    };
+}
+export function _SHOWNP(values: any[], state: TurtleState): Cell {
+  return { type: CellType.BOOLEAN, val: state.visible}
 }
 
 // from jslogo

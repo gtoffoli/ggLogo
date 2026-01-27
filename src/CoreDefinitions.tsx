@@ -7,8 +7,9 @@ import { _NOP, _ERROR, _STOP, _OUTPUT, _REPEAT, _IF, _IFELSE, _TEST, _IFTRUE, _I
 import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _BUTFIRST, _BUTLAST, _COUNT, _ITEM, _WORDP, _LISTP } from './Structures';
 import { _DEFINE, _TO, _END, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
 import { _NOT, _EQUALP, _NOTEQUALP } from './Logic';
-import { _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
-import { _HOME, _CS, _FD, _BK, _RT, _LT, _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _PENMODE, _XCOR, _YCOR, _POS } from './InterpreterCore';
+import { _NUMBERP, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
+import { _HOME, _CS, _FD, _BK, _RT, _LT, _XCOR, _YCOR, _POS } from './InterpreterCore';
+import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './InterpreterCore';
 import { _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR } from './Communication';
 
 export const SEPARATORS = {
@@ -236,7 +237,6 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
   PENDOWN: {
     classes: [FunClass.TURT],
-    // description: "Abbassa la penna.",
     ref: _PENDOWN,
   } as CommandDef,
   PENDOWNP: {
@@ -263,6 +263,19 @@ export const CORE_DEFINITIONS = {
     classes: [FunClass.TURT],
     signature: [FunSignature.FUNCTION],
     ref: _YCOR,
+  } as CommandDef,
+  SHOWTURTLE: {
+    classes: [FunClass.TURT],
+    ref: _SHOWTURTLE,
+  } as CommandDef,
+  HIDETURTLE: {
+    classes: [FunClass.TURT],
+    ref: _HIDETURTLE,
+  } as CommandDef,
+  SHOWNP: {
+    classes: [FunClass.TURT],
+    signature: [FunSignature.FUNCTION],
+    ref: _SHOWNP,
   } as CommandDef,
   WORD: {
     signature: [FunSignature.FUNCTION, FunSignature.ONEORMORE],
@@ -402,6 +415,11 @@ export const CORE_DEFINITIONS = {
     ref: _READLIST,
   } as CommandDef,
 
+  NUMBERP: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg", type: 'any' }],
+    ref: _NUMBERP,
+  } as CommandDef,
   'SIGN': {
     signature: [FunSignature.FUNCTION],
     args: [{ name: "arg", type: 'number' }],

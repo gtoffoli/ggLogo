@@ -3,6 +3,12 @@
 
 import { CellType, Cell } from './CoreDefinitions';
 
+function numberp(cell: Cell): boolean {
+  return ((cell.type === CellType.NUMBER) || ((cell.type === CellType.WORD) && (! isNaN(parseFloat(cell.val)))))
+}
+export function _NUMBERP(args: any[]): Cell {
+  return { type: CellType.BOOLEAN, val: numberp(args[0]) };
+}
 
 export function _SIGN(values: any[]): Cell {
 	var sign = 0;
