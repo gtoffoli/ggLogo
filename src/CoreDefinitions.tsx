@@ -179,6 +179,43 @@ export enum FunClass {
 	OPER = 8, // infix operator
 }
 
+// codifica di bit in descrittore di argomento a SFUN (from IperLogo)
+export enum Arg {
+  LISTA = 1, // list
+  PAROLA = 2, // word
+  VEROFALSO = 4, // boolean
+  NUMERO = 8, // number
+  LISTAPAR = 16, // list of words
+  LISTANUM = 32, // list of numbers
+  STRINGA = 64, // string of chars
+  ARRAY  = 128 , // array
+  NOMEARC = 256, // file name
+}
+
+// alias e aggregazioni di bit in descrittore di argomento a SFUN (from IperLogo)
+const A_B = Arg.VEROFALSO;
+const A_L = Arg.LISTA;
+const A_N = Arg.NUMERO;
+const A_S = Arg.STRINGA;
+const A_S_L = Arg.STRINGA + Arg.LISTA;
+const A_S_L_A = Arg.STRINGA + Arg.LISTA + Arg.ARRAY;
+const A_LW = Arg.LISTAPAR;
+const A_LW_L = Arg.LISTAPAR + Arg.LISTA;
+const A_LW_S = Arg.LISTAPAR + Arg.STRINGA;
+const A_LW_S_L = Arg.LISTAPAR + Arg.STRINGA + Arg.LISTA;
+const A_LN = Arg.LISTANUM;
+const A_LN_L = Arg.LISTANUM + Arg.LISTA;
+const A_LN_N_L = Arg.LISTANUM + Arg.NUMERO + Arg.LISTA;
+const A_LN_LW_L = Arg.LISTANUM + Arg.LISTAPAR + Arg.LISTA;
+const A_W = Arg.PAROLA;
+const A_W_L = Arg.PAROLA + Arg.LISTA;
+const A_W_S = Arg.PAROLA + Arg.STRINGA;
+const A_W_S_L = Arg.PAROLA + Arg.STRINGA + Arg.LISTA;
+const A_W_LW_S_L = Arg.PAROLA + Arg.LISTAPAR + Arg.STRINGA + Arg.LISTA;
+const A_F_S = Arg.NOMEARC + Arg.STRINGA;
+const A_F_S_L = Arg.NOMEARC + Arg.STRINGA + Arg.LISTA;
+const A_F_LW_S_L = Arg.NOMEARC + Arg.LISTAPAR + Arg.STRINGA + Arg.LISTA;
+
 export const turtleStrokes = ['CS', 'FD', 'BK',];
 
 // Mappa che contiene tutte le definizioni (la LOGICA del tuo interprete)
@@ -186,53 +223,44 @@ export const CORE_DEFINITIONS = {
   // --- Comandi LOGO ---
   HOME: {
     classes: [FunClass.TURT],
-    // description: "Resetta posizione e direzione della tartaruga.",
     ref: _HOME,
   } as CommandDef,
   CS: {
     classes: [FunClass.TURT],
-    // description: "Pulisce lo schermo.",
     ref: _CS,
   } as CommandDef,
   FD: {
     classes: [FunClass.TURT],
-    // description: "Muove la tartaruga in avanti.",
-    args: [{ name: "distanza", type: 'number' }],
+    args: [{ name: "distanza", type: A_N }],
     ref: _FD,
   } as CommandDef,
   BK: {
     classes: [FunClass.TURT],
-    // description: "Muove la tartaruga all'indietro (back).",
-    args: [{ name: "distanza", type: 'number' }],
+    args: [{ name: "distanza", type: A_N }],
     ref: _BK,
   } as CommandDef,
   RT: {
     classes: [FunClass.TURT],
-    // description: "Ruota la tartaruga a destra.",
-    args: [{ name: "angolo", type: 'number' }],
+    args: [{ name: "angolo", type: A_N }],
     ref: _RT,
   } as CommandDef,
   LT: {
     classes: [FunClass.TURT],
-    // description: "Ruota la tartaruga a sinistra.",
-    args: [{ name: "angolo", type: 'number' }],
+    args: [{ name: "angolo", type: A_N }],
     ref: _LT,
   } as CommandDef,
   PENCOLOR: {
     classes: [FunClass.TURT],
     signature: [FunSignature.FUNCTION],
-    // description: "Riporta il colore della penna.",
     ref: _PENCOLOR,
   } as CommandDef,
   SETPENCOLOR: {
     classes: [FunClass.TURT],
-    // description: "Assegna il colore della penna.",
-    args: [{ name: "colore", type: 'string' }],
+    args: [{ name: "colore", type: A_W_S }],
     ref: _SETPENCOLOR,
   } as CommandDef,
   PENUP: {
     classes: [FunClass.TURT],
-    // description: "Solleva la penna.",
     ref: _PENUP,
   } as CommandDef,
   PENDOWN: {
@@ -279,127 +307,122 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
   WORD: {
     signature: [FunSignature.FUNCTION, FunSignature.ONEORMORE],
-    args: [{ name: "arg1", type: 'string' }, { name: "arg2", type: 'any'}],
+    args: [{ name: "arg1", type: A_S_L }, { name: "arg2", type: null}],
     ref: _WORD,
   } as CommandDef,
   LIST: {
     signature: [FunSignature.FUNCTION, FunSignature.ONEORMORE],
-    args: [{ name: "arg1", type: 'string' }, { name: "arg2", type: 'any'}],
+    args: [{ name: "arg1", type: null }, { name: "arg2", type: null}],
     ref: _LIST,
   } as CommandDef,
   SENTENCE: {
     signature: [FunSignature.FUNCTION, FunSignature.ONEORMORE],
-    args: [{ name: "arg1", type: 'string' }, { name: "arg2", type: 'any'}],
+    args: [{ name: "arg1", type: null }, { name: "arg2", type: null}],
     ref: _SENTENCE,
   } as CommandDef,
   COUNT: {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "sequence", type: 'any' }],
+    args: [{ name: "sequence", type: A_S_L }],
     ref: _COUNT,
   } as CommandDef,
   FPUT: {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "arg1", type: 'any' }, { name: "arg2", type: 'any'}],
+    args: [{ name: "arg1", type: null }, { name: "arg2", type: A_S_L}],
     ref: _FPUT,
   } as CommandDef,
   LPUT: {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "arg1", type: 'any' }, { name: "arg2", type: 'any'}],
+    args: [{ name: "arg1", type: null }, { name: "arg2", type: A_S_L}],
     ref: _LPUT,
   } as CommandDef,
   FIRST: {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "word_or_list", type: 'any' }],
+    args: [{ name: "word_or_list", type: A_S_L }],
     ref: _FIRST,
   } as CommandDef,
   LAST: {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "word_or_list", type: 'any' }],
+    args: [{ name: "word_or_list", type: A_S_L }],
     ref: _LAST,
   } as CommandDef,
   BUTFIRST: {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "word_or_list", type: 'any' }],
+    args: [{ name: "word_or_list", type: A_S_L }],
     ref: _BUTFIRST,
   } as CommandDef,
   BUTLAST: {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "word_or_list", type: 'any' }],
+    args: [{ name: "word_or_list", type: A_S_L }],
     ref: _BUTLAST,
   } as CommandDef,
   ITEM: {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "index", type: 'any' }, { name: "sequence", type: 'any'}],
+    args: [{ name: "index", type:  A_N }, { name: "sequence", type: A_S_L_A}],
     ref: _ITEM,
   } as CommandDef,
   WORDP: {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "arg", type: 'any' }],
+    args: [{ name: "arg", type: null }],
     ref: _WORDP,
   } as CommandDef,
   LISTP: {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "arg", type: 'any' }],
+    args: [{ name: "arg", type: null }],
     ref: _LISTP,
   } as CommandDef,
   MAKE: {
-    // classes: [FunClass.DEF],
-    // description: "Assegna valore a nome.",
-    args: [{ name: "nome", type: 'string' }, { name: "valore", type: 'any'}],
+    args: [{ name: "nome", type: A_W_S }, { name: "valore", type: null}],
     ref: _MAKE,
   } as CommandDef,
   THING: {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "nome", type: 'string' }],
+    args: [{ name: "nome", type: A_W_S }],
     ref: _THING,
   } as CommandDef,
   DEFINE: {
     classes: [FunClass.DEF],
-    // description: "Assegna valore a nome di procedura.",
-    args: [{ name: "nome", type: 'string' }, { name: "valore", type: 'any'}],
+    args: [{ name: "nome", type: A_W_S }, { name: "valore", type: A_L}],
     ref: _DEFINE,
   } as CommandDef,
   TO: {
     classes: [FunClass.DEF],
     // description: "Inizializza la definizione di una procedura.",
-    args: [{ name: "nome", type: 'string' }],
+    args: [{ name: "nome", type: A_W_S }],
     ref: _TO,
   } as CommandDef,
   END: {
     classes: [FunClass.DEF],
-    // description: "Termina la definizione di una procedura.",
     ref: _END,
   } as CommandDef,
   TEXT: {
     classes: [FunClass.DEF],
     signature: [FunSignature.FUNCTION],
-    // description: "Riporta la definizione di una procedura.",
-    args: [{ name: "nome", type: 'string' }],
+    args: [{ name: "nome", type: A_W_S }],
     ref: _TEXT,
   } as CommandDef,
   LOCAL: {
     classes: [FunSignature.ONEORMORE],
-    args: [{ name: "valore", type: 'string' }],
+    args: [{ name: "valore", type: A_W_LW_S_L }],
     ref: _LOCAL,
   } as CommandDef,
   PRINT: {
     classes: [FunClass.TXOU, FunSignature.ONEORMORE],
-    args: [{ name: "valore", type: 'any' }],
+    args: [{ name: "valore", type: null }],
     ref: _PRINT,
   } as CommandDef,
   TYPE: {
     classes: [FunClass.TXOU, FunSignature.ONEORMORE],
-    args: [{ name: "valore", type: 'any' }],
+    args: [{ name: "valore", type: null }],
     ref: _TYPE,
   } as CommandDef,
   SHOW: {
     classes: [FunClass.TXOU, FunSignature.ONEORMORE],
-    args: [{ name: "valore", type: 'any' }],
+    args: [{ name: "valore", type: null }],
     ref: _SHOW,
   } as CommandDef,
   WRITECHAR: {
     classes: [FunClass.TXOU],
-    args: [{ name: "valore", type: 'string' }],
+    args: [{ name: "valore", type: A_S }],
     ref: _WRITECHAR,
   } as CommandDef,
   READCHAR: {
@@ -417,131 +440,122 @@ export const CORE_DEFINITIONS = {
 
   NUMBERP: {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "arg", type: 'any' }],
+    args: [{ name: "arg", type: null }],
     ref: _NUMBERP,
   } as CommandDef,
   'SIGN': {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "arg", type: 'number' }],
+    args: [{ name: "arg", type: A_N }],
     ref: _SUM,
   } as CommandDef,
   'MINUS': {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "arg", type: 'number' }],
+    args: [{ name: "arg", type: A_N }],
     ref: _MINUS,
   } as CommandDef,
   'SUM': {
     signature: [FunSignature.FUNCTION, FunSignature.ONEORMORE],
-    // description: "Riporta la somma di 2 o più numeri.",
-    args: [{ name: "addendo_1", type: 'number' }, { name: "addendo_2", type: 'number' }],
+    args: [{ name: "addendo_1", type: A_N }, { name: "addendo_2", type: A_N }],
     ref: _SUM,
   } as CommandDef,
   '+': {
     signature: [FunSignature.FUNCTION],
-    // description: "Riporta la somma di 2 numeri.",
-    args: [{ name: "addendo_1", type: 'number' }, { name: "addendo_2", type: 'number' }],
+    args: [{ name: "addendo_1", type: A_N }, { name: "addendo_2", type: A_N }],
     ref: _SUM,
   } as CommandDef,
   'DIFFERENCE': {
     signature: [FunSignature.FUNCTION],
-    // description: "Riporta la differenza di 2 numeri.",
-    args: [{ name: "minuendo", type: 'number' }, { name: "sottraendo", type: 'number' }],
+    args: [{ name: "minuendo", type: A_N }, { name: "sottraendo", type: A_N }],
     ref: _DIFFERENCE,
   } as CommandDef,
   '-': {
     signature: [FunSignature.FUNCTION],
-    // description: "Riporta la differenza di 2 numeri.",
-    args: [{ name: "minuendo", type: 'number' }, { name: "sottraendo", type: 'number' }],
+    args: [{ name: "minuendo", type: A_N }, { name: "sottraendo", type: A_N }],
     ref: _DIFFERENCE,
   } as CommandDef,
   'PRODUCT': {
     signature: [FunSignature.FUNCTION, FunSignature.ONEORMORE],
-    // description: "Riporta la somma di 2 o più numeri.",
-    args: [{ name: "fattore_1", type: 'number' }, { name: "fattore_2", type: 'number' }],
+    args: [{ name: "fattore_1", type: A_N }, { name: "fattore_2", type: A_N }],
     ref: _PRODUCT,
   } as CommandDef,
   '*': {
     signature: [FunSignature.FUNCTION],
-    // description: "Riporta la somma di 2 numeri.",
-    args: [{ name: "fattore_1", type: 'number' }, { name: "fattore_2", type: 'number' }],
+    args: [{ name: "fattore_1", type: A_N }, { name: "fattore_2", type: A_N }],
     ref: _PRODUCT,
   } as CommandDef,
   'QUOTIENT': {
     signature: [FunSignature.FUNCTION],
-    // description: "Riporta il rapporto di 2 più numeri.",
-    args: [{ name: "dividendo", type: 'number' }, { name: "divisore", type: 'number' }],
+    args: [{ name: "dividendo", type: A_N }, { name: "divisore", type: A_N }],
     ref: _QUOTIENT,
   } as CommandDef,
   '/': {
     signature: [FunSignature.FUNCTION],
-    // description: "Riporta il rapporto di 2 più numeri.",
-    args: [{ name: "dividendo", type: 'number' }, { name: "divisore", type: 'number' }],
+    args: [{ name: "dividendo", type: A_N }, { name: "divisore", type: A_N }],
     ref: _QUOTIENT,
   } as CommandDef,
-
   'NOT': {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "arg", type: 'boolean' }],
+    args: [{ name: "arg", type: A_B }],
     ref: _NOT,
   } as CommandDef,
   'EQUALP': {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    args: [{ name: "arg1", type: null }, { name: "arg2", type: null }],
     ref: _EQUALP,
   } as CommandDef,
   '=': {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    args: [{ name: "arg1", type: null }, { name: "arg2", type: null }],
     ref: _EQUALP,
   } as CommandDef,
   'NOTEQUALP': {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    args: [{ name: "arg1", type: null }, { name: "arg2", type: null }],
     ref: _NOTEQUALP,
   } as CommandDef,
   '<>': {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    args: [{ name: "arg1", type: null }, { name: "arg2", type: null }],
     ref: _NOTEQUALP,
   } as CommandDef,
   'LESSP': {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    args: [{ name: "arg1", type: null }, { name: "arg2", type: null }],
     ref: _LESSP,
   } as CommandDef,
   '<': {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    args: [{ name: "arg1", type: null }, { name: "arg2", type: null }],
     ref: _LESSP,
   } as CommandDef,
   'LESSEQUALP': {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    args: [{ name: "arg1", type: null }, { name: "arg2", type: null }],
     ref: _LESSEQUALP,
   } as CommandDef,
   '<=': {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    args: [{ name: "arg1", type: null }, { name: "arg2", type: null }],
     ref: _LESSEQUALP,
   } as CommandDef,
   'GREATERP': {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    args: [{ name: "arg1", type: null}, { name: "arg2", type: null }],
     ref: _GREATERP,
   } as CommandDef,
   '>': {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    args: [{ name: "arg1", type: null }, { name: "arg2", type: null }],
     ref: _GREATERP,
   } as CommandDef,
   'GREATEREQUALP': {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    args: [{ name: "arg1", type: null }, { name: "arg2", type: null }],
     ref: _GREATEREQUALP,
   } as CommandDef,
   '>=': {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "arg1", type: 'number' }, { name: "arg2", type: 'number' }],
+    args: [{ name: "arg1", type: null }, { name: "arg2", type: null }],
     ref: _GREATEREQUALP,
   } as CommandDef,
 

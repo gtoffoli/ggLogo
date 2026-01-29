@@ -1,6 +1,5 @@
 // LogoStateContext.tsx
 // 251025 - 1st version: from LogoStateContext.tsx proposed by Gemini on 251021
-// 251031 - 2nd version: from LogoStateContext.tsx proposed by Gemini on 251021
 
 // import React, { createContext, useReducer } from 'react';
 import React, { createContext, useReducer, useRef, useEffect, useMemo } from 'react';
@@ -9,7 +8,6 @@ import { initialLogoState, logoReducer } from './logoReducer';
 import { LogoGlobalState } from './LogoState'; // I tuoi tipi di stato
 import { TurtleState, GraphicWindowState, GraphicWindowState } from './LogoState';
 import { AsynchronousLogoInterpreter } from './Interpreter';
-import { ShellSource } from './Streams';
 
 // Definiamo i tipi per il Context
 export const LogoStateContext = createContext<LogoGlobalState | undefined>(undefined);
@@ -25,7 +23,6 @@ export const useLogoState = () => {
 
 export const LogoStateProvider: React.FC = ({ children }) => {
   const [state, dispatch] = useReducer(logoReducer, initialLogoState);
-  // const source = new ShellSource();
   // 1. Creiamo la "scatola" (il riferimento allo stato)
   const stateRef = useRef(state);
 

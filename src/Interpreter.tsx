@@ -11,7 +11,7 @@
 
 import { ModParola, CellType, Delimiter, Cell, Context, ParamDef } from './CoreDefinitions';
 import { SEPARATORS, isSeparator, SystemFunction, CORE_DEFINITIONS, CommandDef, CoreDefinitionKeys, FunClass, FunSignature, turtleStrokes } from './CoreDefinitions';
-import { UserFunction, ProcedureDef } from './CoreDefinitions';
+import { UserFunction, ProcedureDef, Arg } from './CoreDefinitions';
 import { LANGUAGE_MAPS } from './LocalizationMaps';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
 import { Parse, infix_operators, unParse } from './Parser';
@@ -34,6 +34,7 @@ var classes = [];    // info related to primitive classificaztion
 var signature = [];    // info  related to arguments and result of primitive
 var oneormore = false;  // true if primitive accepts an indefinite number of arguments 
 var is_function = false;// true if primitive returns a result
+var is_error = false;
 
 const N_MINIMO = 1; // minimo numero di argomenti per la funzione corrente
 
@@ -102,6 +103,9 @@ export class AsynchronousLogoInterpreter {
         await this.executeLine(line.trim());
       } catch (err) {
         console.error("Errore durante l'esecuzione:", err);
+        this.reportError(err);
+        is_error = true;
+        break;
         // In caso di errore critico potresti voler svuotare la pila 
         // per tornare alla Shell
       }
@@ -322,15 +326,18 @@ export class AsynchronousLogoInterpreter {
             case Delimiter.DEL_PARDESTRA:
               // parenout(ctx, 1);
               if (ctx.conto_parentesi == 0) {
-                console.log("errore (14, 0L, 0L)");
+                // console.log("errore (14, 0L, 0L)");
+                throw new Error("14 - Unexpected ')'");
               }
               else if (ctx.parentesi === ctx.liv_funzione) {
                 this.get_function(ctx);
                 if (ctx.n_arg_trovati < N_MINIMO) {
                   // errore (11, funzione, NULLP);
+                  throw new Error("11 - NOT_ENOUGH_INPUTS");
                 }
                 else if ((!oneormore) && (ctx.n_arg_trovati > /*N_MASSIMO*/ ctx.n_arg_attesi)) {
                   // errore (11, funzione, NULLP);
+                  throw new Error("11 - TOO_MANY_INPUTS");
                 }
                 else {
                   var values = this.get_values(ctx);
