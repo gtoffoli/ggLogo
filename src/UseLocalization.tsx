@@ -62,3 +62,15 @@ export function commandResolver(commandName: string): CoreDefinitionKeys {
   // Se non trovato, potrebbe essere un comando non tradotto o non valido
   return undefined;
 }
+
+export function getByValue(searchValue:string): string {
+  const activeMap = LANGUAGE_MAPS[shared_langCode];
+  var foundKey = null;
+  for (let [key, value] of Object.entries(activeMap)) {
+    if (value === searchValue)
+      if (!foundKey || (key.length > foundKey.length))
+        foundKey = key;
+  }
+  return foundKey;
+}
+

@@ -9,10 +9,12 @@
 // 251230 - converted TAB to spaces and revised the indentation 
 
 
+
+import i18n from './i18n';
 import { ModParola, CellType, Delimiter, Cell, Context, ParamDef } from './CoreDefinitions';
 import { SEPARATORS, isSeparator, SystemFunction, CORE_DEFINITIONS, CommandDef, CoreDefinitionKeys, FunClass, FunSignature, turtleStrokes } from './CoreDefinitions';
 import { UserFunction, ProcedureDef, Arg } from './CoreDefinitions';
-import { LANGUAGE_MAPS } from './LocalizationMaps';
+import { getByValue } from './UseLocalization';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
 import { Parse, infix_operators, unParse } from './Parser';
 import { contesti, liv_contesto, liv_analisi, v_stack, is_stop, risultato } from './LogoControl';
@@ -29,6 +31,7 @@ export var userProcedures: Record<string, ProcedureDef> = {};
 export var mod_parola: ModParola;// modalita' di esecuzione di una parola LOGO
 var next_type: CellType | null;
 var next_val: any;
+var function_key = null;
 var definition: CommandDef | ProcedureDef | null = null;  // definition of system function (primitive) or of user function (procedure)
 var classes = [];    // info related to primitive classificaztion
 var signature = [];    // info  related to arguments and result of primitive
@@ -42,6 +45,13 @@ export class LogoError extends Error {
     super(message);
     this.name = "LogoError";
   }
+}
+
+export function throwError(key: string, fun?: string, arg?: string) {
+  var msg = i18n.t('err.' + key) + '\n';
+  if (fun) msg = msg.replace('$1', getByValue(fun));
+  if (arg) msg = msg.replace('$2', arg);
+  throw new LogoError(msg);
 }
 
 export class AsynchronousLogoInterpreter {
@@ -200,6 +210,7 @@ export class AsynchronousLogoInterpreter {
 
   // utility to collect in global variables some info related to primitive definition
   private get_function(ctx: Context): void {
+    function_key = ctx.funzione.coreKey;
     definition = ctx.funzione.definition;
     signature = definition.signature;
     classes = definition.classes || [];
@@ -343,15 +354,15 @@ export class AsynchronousLogoInterpreter {
             case Delimiter.DEL_PARDESTRA:
               // parenout(ctx, 1);
               if (ctx.conto_parentesi == 0) {
-                throw new LogoError("14 - Unexpected ')'");
+                throwError('e14', function_key);
               }
               else if (ctx.parentesi === ctx.liv_funzione) {
                 this.get_function(ctx);
                 if (ctx.n_arg_trovati < N_MINIMO) {
-                  throw new LogoError("11 - NOT_ENOUGH_INPUTS");
+                  throwError('e11', function_key);
                 }
                 else if ((!oneormore) && (ctx.n_arg_trovati > /*N_MASSIMO*/ ctx.n_arg_attesi)) {
-                  throw new Error("11 - TOO_MANY_INPUTS");
+                  throwError('e11', function_key);
                 }
                 else {
                   var values = this.get_values(ctx);
