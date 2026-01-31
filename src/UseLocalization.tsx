@@ -47,6 +47,7 @@ export function keywordResolver(keyword: string): string {
   // Cerca la keyword all'interno della mappa linguistica attiva
   const activeMap = LANGUAGE_MAPS[shared_langCode];
   const coreKey: string | undefined = activeMap[keyword.toUpperCase()];
+  console.log('keywordResolver', keyword, coreKey);
   // Se non trovato, potrebbe essere una Keyword non tradotta o non valida
   return (coreKey) ? coreKey : keyword;
 }

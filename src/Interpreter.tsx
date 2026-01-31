@@ -34,10 +34,15 @@ var classes = [];    // info related to primitive classificaztion
 var signature = [];    // info  related to arguments and result of primitive
 var oneormore = false;  // true if primitive accepts an indefinite number of arguments 
 var is_function = false;// true if primitive returns a result
-var is_error = false;
 
 const N_MINIMO = 1; // minimo numero di argomenti per la funzione corrente
 
+export class LogoError extends Error {
+  constructor(public message: string, public code?: string) {
+    super(message);
+    this.name = "LogoError";
+  }
+}
 
 export class AsynchronousLogoInterpreter {
   private sourceStack: InputSource[] = [];
@@ -48,9 +53,6 @@ export class AsynchronousLogoInterpreter {
   private dataSource: InteractiveData;
   private currentCommand: string | null; 
 
-  // constructor(state, dispatch, source) {
-    // this.state = state;
-  // constructor(getState: () => LogoGlobalState, dispatch: React.Dispatch<any>, source: ShellSource) {
   constructor(getState: () => LogoGlobalState, dispatch: React.Dispatch<any>) {
     this.getState = getState;
     // this.source = source;
@@ -82,32 +84,41 @@ export class AsynchronousLogoInterpreter {
   public async run() {
     console.log('AsynchronousLogoInterpreter - Ciclo principale di esecuzione');
     while (this.sourceStack.length > 0) {
-      console.log('AsynchronousLogoInterpreter WAITING:');
-      const currentSource = this.sourceStack[this.sourceStack.length - 1];
-      const line = await currentSource.getLine();
-
-      if (line === null) {
-        if (currentSource.type !== 'SHELL') {
-          // La sorgente attuale è finita
-          console.log('La sorgente attuale è finita');
-          this.sourceStack.pop();
-          continue;
-        }
-      }
-
-      if (line.trim() === "") continue;
-
-      // ESECUZIONE DEL COMANDO
       try {
-        // await this.executeLine(line.trim());
+        console.log('AsynchronousLogoInterpreter WAITING:');
+        // const currentSource = this.sourceStack[this.sourceStack.length - 1];
+        const line = await this.getCurrentSource().getLine();
+  
+        if (line === null) {
+          if (this.getCurrentSource().type !== 'SHELL') {
+            // La sorgente attuale è finita
+            console.log('La sorgente attuale è finita');
+            this.sourceStack.pop();
+            continue;
+          }
+          else {
+            // break; // O resta in attesa sulla Shell
+          }
+        }
+  
+        if (line.trim() === "") continue;
+  
+        // ESECUZIONE DEL COMANDO
         await this.executeLine(line.trim());
-      } catch (err) {
-        console.error("Errore durante l'esecuzione:", err);
-        this.reportError(err);
-        is_error = true;
-        break;
-        // In caso di errore critico potresti voler svuotare la pila 
-        // per tornare alla Shell
+      } catch (error: any) {
+        console.error("Errore durante l'esecuzione:", error.message);
+        // 1. Gestione del feedback all'utente
+        if (error instanceof LogoError) {
+          // this.output.error(error.message); // Usa il canale d'errore della Shell
+          this.reportError(error);
+        } else {
+          // Questo è un errore di sistema (bug nel TS)
+          console.error("Errore di sistema:", error.message);
+          // this.output.error("ERRORE INTERNO: " + error.message);
+        }
+        // In caso di errore critico potresti voler svuotare la pila per tornare alla Shell
+        // 2. REINIZIALIZZAZIONE (Il "Reset")
+        this.resetExecutionState();
       }
     }
   }
@@ -117,9 +128,8 @@ export class AsynchronousLogoInterpreter {
     console.log(`Eseguo da ${this.sourceStack[this.sourceStack.length-1].name}: ${line}`);
     // Se il comando è "LEGGI", chiamerai this.pushSource(...)
     const ctx: Context = contesti[liv_contesto];
-    const currentOutput = this.outputStack[this.outputStack.length - 1];
     if (this.getState().echoInput)
-      currentOutput.writeLine(line, 'input');
+      this.getCurrentOutput().writeLine(line, 'input');
     const parsedLine = Parse(line);
     if (isProcedureDefinition && (keywordResolver(line) !== 'END')) {
       pushProcedureLine(parsedLine);
@@ -127,14 +137,23 @@ export class AsynchronousLogoInterpreter {
     else {
       ini_valuta(ctx);
       ctx.block.push(parsedLine);
-      this.valuta_token();
+      await this.evaluateToken();
       console.log('VALORI:', v_stack)
       if (v_stack.length) {
         v_stack.reverse();
-        // return {output: v_stack};
-        currentOutput.writeLine(unParse(v_stack));
+        this.getCurrentOutput().writeLine(unParse(v_stack));
       }
     }
+  }
+
+  private resetExecutionState() {
+    // Svuota lo stack delle sorgenti tranne la Shell
+    while (this.sourceStack.length > 1) {
+      this.sourceStack.pop();
+    }
+    // Qui potresti voler svuotare anche lo stack delle variabili locali 
+    // o degli stati pendenti (es. cicli REPEAT interrotti)
+    console.log("Interprete resettato dopo l'errore.");
   }
 
   public getCurrentSource(): InputSource {
@@ -147,18 +166,18 @@ export class AsynchronousLogoInterpreter {
     return this.dataSource;
   }
 
-  // private get currentOutput(): OutputChannel {
   public getCurrentOutput(): OutputChannel {
     return this.outputStack[this.outputStack.length - 1];
   }
 
   // Esempio d'uso nell'esecuzione
   public print(text: string) {
-    this.currentOutput.writeLine(text);
+    this.getCurrentOutput().writeLine(text);
   }
 
-  public reportError(err: string) {
-    this.currentOutput.error(err);
+  public reportError(error: Error) {
+    // Usa il canale d'errore della Shell
+    this.getCurrentOutput().error(error.message);
   }
   
   // Primitiva SCRIVISU "FILE.TXT
@@ -167,7 +186,6 @@ export class AsynchronousLogoInterpreter {
   }
 
   // utility to collect in global variables some info related to the token following the one being processed
-  // function get_token(ctx: Context): void {
   private get_token(ctx: Context): void {
     var next_token: Cell | null;
     if (ctx.i_token >= ctx.block[ctx.i_line].length)
@@ -181,7 +199,6 @@ export class AsynchronousLogoInterpreter {
   }
 
   // utility to collect in global variables some info related to primitive definition
-  // function get_function(ctx: Context): void {
   private get_function(ctx: Context): void {
     definition = ctx.funzione.definition;
     signature = definition.signature;
@@ -195,7 +212,6 @@ export class AsynchronousLogoInterpreter {
     }
   }
 
-  // function get_values(ctx: Context): any[] {
   private get_values(ctx: Context): any[] {
     var values: any[] = [];
     console.log('GET_VALUES-1', v_stack)
@@ -207,7 +223,7 @@ export class AsynchronousLogoInterpreter {
     return values;
   }
 
-  private async valuta_token() {
+  private async evaluateToken() {
     var ctx: Context;
     var numeric: number;
     var coreKey: CoreDefinitionKeys;
@@ -216,7 +232,7 @@ export class AsynchronousLogoInterpreter {
      
     while (true) {
       ctx = contesti[liv_contesto];
-      console.log('valuta_token', ctx.i_line, ctx.i_token, ctx.block);
+      console.log('evaluateToken', ctx.i_line, ctx.i_token, ctx.block);
       console.log('- conto_esegui', ctx.conto_esegui);
       console.log('-- conto_parentesi', ctx.conto_parentesi);
   
@@ -228,6 +244,7 @@ export class AsynchronousLogoInterpreter {
         console.log('?????', ctx.block.length, ctx.block, ctx.i_line, ctx.i_token, ctx.liv_esecuzione, ctx.liv_procedura);
         if (ctx.i_token >= ctx.block[ctx.i_line].length) {
           ctx.i_line += 1;
+          ctx.i_token = 0; // 260131
           if (ctx.i_line >= ctx.block.length) {
             if (ctx.liv_esecuzione > 0) { // prima chiudo i blocchi interni
               blk_out(ctx);
@@ -326,17 +343,14 @@ export class AsynchronousLogoInterpreter {
             case Delimiter.DEL_PARDESTRA:
               // parenout(ctx, 1);
               if (ctx.conto_parentesi == 0) {
-                // console.log("errore (14, 0L, 0L)");
-                throw new Error("14 - Unexpected ')'");
+                throw new LogoError("14 - Unexpected ')'");
               }
               else if (ctx.parentesi === ctx.liv_funzione) {
                 this.get_function(ctx);
                 if (ctx.n_arg_trovati < N_MINIMO) {
-                  // errore (11, funzione, NULLP);
-                  throw new Error("11 - NOT_ENOUGH_INPUTS");
+                  throw new LogoError("11 - NOT_ENOUGH_INPUTS");
                 }
                 else if ((!oneormore) && (ctx.n_arg_trovati > /*N_MASSIMO*/ ctx.n_arg_attesi)) {
-                  // errore (11, funzione, NULLP);
                   throw new Error("11 - TOO_MANY_INPUTS");
                 }
                 else {
@@ -479,8 +493,6 @@ export class AsynchronousLogoInterpreter {
                 console.log('--- NOT IS_FUNCTION', values);
               }
             }
-            // if (!isProcedureDefinition)
-            // if ((!isProcedureDefinition) && (!is_exec)) // in alcuni casi, come REPEAT, sf_out viene anticipato
             if (!is_exec)   // in alcuni casi, come REPEAT, sf_out viene anticipato
               sf_out(ctx);
             if (result !== null) {
@@ -489,7 +501,7 @@ export class AsynchronousLogoInterpreter {
             console.log('USCITO DA SFUN - ctx:', ctx);
           }
           else if (ctx.funzione.type === CellType.UFUN) {
-            console.log('valuta_token UFUN', ctx.n_arg_trovati, ctx.n_arg_attesi);
+            console.log('evaluateToken UFUN', ctx.n_arg_trovati, ctx.n_arg_attesi);
             uf_call(ctx);
             ctx = contesti[liv_contesto];
           }

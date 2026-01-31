@@ -32,12 +32,12 @@ export function pushProcedureLine(line) {
   procedureBody.push(line);
 }
  
-// export async function _TO(values: any[]): void {
 export function _TO(values: any[]): void {
+  iniDefine();
   procedureName = values[0].val; // procedure name
   procedureParameters = [];    // list of parameter names
   procedureBody = [];  // list of parsed input strings for procedure body
-	console.log('async function _TO - 1', procedureName, values);
+	console.log('function _TO - 1', procedureName, values);
 	var ctx = contesti[liv_contesto];
 	var declaration = ctx.block[0];
 	var cell: Cell;

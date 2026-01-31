@@ -253,6 +253,7 @@ export function Parse(input: string): any[] {
 }
 
 export function unParse(body: any[]): any[] {
+  /*
  	var output = "";
 	var node;
 	var value;
@@ -276,30 +277,39 @@ export function unParse(body: any[]): any[] {
 		output = output.replace(/\ \]/, "]");
 	}
 	return output;
-	/*
-  return nodeToString(body, true);
   */
+  return nodeToString(body, true);
 }
 
+// da rivedere
 export function nodeToString(node: Cell | Cell[], showBrackets: boolean): string {
   var output = "";
   var value;
-  if (node.type === CellType.BOOLEAN)
-    output += localizeBoolean(node.val);
-  else if (node.type === CellType.LIST) {
-    if (showBrackets)
-      output += '[';
-    for (var i=0; i<node.val.length; i++)
-      output += nodeToString(node.val[i]);
-    if (showBrackets)
-      output += ']';
+  if (Array.isArray(node))
+    for (var i=0; i<node.length; i++)
+      output += nodeToString(node[i], showBrackets);
+  else if (node.type !== undefined) {
+    if (node.type === CellType.BOOLEAN)
+      output += localizeBoolean(node.val);
+    else if (node.type === CellType.LIST) {
+      if (showBrackets)
+        output += '[';
+      /*
+      for (var i=0; i<node.val.length; i++)
+        output += nodeToString(node.val[i]);
+      */
+      output += nodeToString(node.val, showBrackets);
+      if (showBrackets)
+        output += ']';
+    }
+    else {
+      value = node.val.toString();
+      output += value;
+      if (! '\"\:'.includes(value))
+        output += ' ';
+    }
   }
-  else {
-    value = node.val.toString();
-    output += value;
-    if (! '\"\:'.includes(value))
-      output += ' ';
-  }
+  else output += node.toString();
   output = output.replace(/\ \]/, "]");
   return output;
 }
