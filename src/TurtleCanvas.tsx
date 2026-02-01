@@ -9,6 +9,7 @@ import { useLogoDispatch, useLogoState } from './LogoStateContext';
 import './i18n';
 import { useTranslation } from 'react-i18next';
 import PanelContainer from './PanelContainer';
+import { initialTurtleState } from './logoReducer';
 // ... importa DrawingCommand, GraphicWindowState, etc.
 
 // const drawIperLogoTurtle = (ctx: CanvasRenderingContext2D, turtle: TurtleState) => {
@@ -156,16 +157,41 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
 
   // --- DEFINIZIONE DEI MENU (Hook per l'esecuzione dei comandi) ---
 
-  const handleCanvasReset = () => { alert('Canvas Reset: La tartaruga verrà riportata a (0,0).'); };
+  const handleHome = () => {
+    dispatch({ 
+      type: 'UPDATE_TURTLE_STATE', 
+      windowId: windowId,
+      newState: initialTurtleState 
+    });
+  };
+  const handleToggleVisibility = () => {
+    const toggled = !(windowState.turtleState.visible);
+    dispatch({ 
+      type: 'UPDATE_TURTLE_STATE',
+      windowId: windowId,
+      newState: { // Usa Partial per aggiornamenti parziali
+        ...windowState.turtleState,
+        visible: toggled
+      }
+    });
+  };
+
+  const handleClearCanvas = () => {
+    dispatch({ 
+      type: 'ADD_DRAWING_COMMAND', 
+      windowId: windowId,
+      command: { type: 'CLEAR_CANVAS' }
+    });
+  };
 
   // Menu per l'Area A (Canvas/Grafica)
   const menuA = [
   { label: t('menu.turtle'), submenu: [
-    { label: t('menu.home'), action: handleCanvasReset },
-    { label: t('menu.hide_show'), action: () => console.log('Toggle Turtle visibility') },
+    { label: t('menu.home'), action: handleHome },
+    { label: t('menu.hide_show'), action: handleToggleVisibility },
   ]},
   { label: t('menu.image'), submenu: [
-    { label: t('menu.clear'), action: () => alert('Pulisce canvas...') },
+    { label: t('menu.clear'), action: handleClearCanvas },
     { label: t('menu.save'), action: () => alert('Salvataggio Canvas...') },
     { label: t('menu.print'), action: () => alert('Stampa Canvas...') },
   ]},
