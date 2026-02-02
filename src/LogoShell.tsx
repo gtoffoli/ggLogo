@@ -25,7 +25,7 @@ export var shared_langCode: LanguageCode; // mirrors value in react-i18next stat
 export var inputString: string = '';
 
 const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
-  console.log('LogoShell - starting', activeLang);
+  // console.log('LogoShell - starting', activeLang);
   localizeTruthValues(activeLang);
   // DA CommandInterpreter della versione 251026 di Gemini
   // Ottieni lo stato e il dispatcher dal Context/Redux

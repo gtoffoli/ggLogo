@@ -24,6 +24,9 @@ export const SEPARATORS = {
 	'<': { precedence: 1},
 	'=': { precedence: 1},
 	'>': { precedence: 1},
+  '<=': { precedence: 1},
+  '>=': { precedence: 1},
+  '<>': { precedence: 6},
 	'+': { precedence: 2},
 	'-': { precedence: 2},
 	'*': { precedence: 3},
@@ -33,9 +36,6 @@ export const SEPARATORS = {
 	'=': { precedence: 6},
 	'<': { precedence: 6},
 	'>': { precedence: 6},
-	'<=': { precedence: 6},
-	'>=': { precedence: 6},
-	'<>': { precedence: 6},
 }
 
 export function isSeparator(s: string): boolean {
@@ -594,6 +594,7 @@ export const CORE_DEFINITIONS = {
     ref: _IFELSE,
   } as CommandDef,
   TEST: {
+    classes: [FunClass.EXEC],
     args: [{ name: "arg", type: 'boolean' }],
     ref: _TEST,
   } as CommandDef,

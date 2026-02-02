@@ -59,14 +59,11 @@ export function _OUTPUT(ctx: Context, values: any[]): void {
 
 export function _REPEAT(ctx: Context, values: any[]): void {
   console.log('function _REPEAT', values[0], values[1]);
-  // ctx.conto_esegui = values[0];
   ctx.conto_esegui = values[0].val;
   is_ripeti = true;
-  // var block = [values[1]];
   var block = [values[1].val];
-  console.log('function _REPEAT', ctx.conto_esegui, block);
+  // console.log('function _REPEAT', ctx.conto_esegui, block);
   sf_out(ctx); // anticipo, per non confliggere con blk_in
-  // _esegui(ctx, block);
   blk_in(ctx, block, 0);
 }
 
@@ -96,6 +93,7 @@ export function _IF(ctx: Context, values: any[]): void {
 }
 export function _IFELSE(ctx: Context, values: any[]): void {
   console.log('function _IFELSE', values);
+  sf_out(ctx); // anticipo, per non confliggere con blk_in
   if (values[0].val)
     block_exec(ctx, [values[1].val]);
   else
@@ -115,12 +113,12 @@ function _esegui(ctx: Context, block: Cell[][]): void {
 }
 
 export function AssertContesto(ctx: Context): void {
-  console.log('AssertContesto', c_stack, v_stack);
+  // console.log('AssertContesto', c_stack, v_stack);
   if (! ((ctx.liv_procedura >= 0) && (ctx.liv_funzione >= 0) && (ctx.liv_esecuzione >= 0)
       && (ctx.conto_esegui >= 0) && (ctx.n_arg_attesi >= 0) && (ctx.n_arg_trovati >= 0)
       // && (ctx.liv_procedura < 2) && (ctx.liv_funzione < 3) // solo per test
       )) {
-    console.log(ctx);
+    // console.log(ctx);
     throw new Error("INVALID CONTEXT");
   }
 }
@@ -154,11 +152,11 @@ function get_sv(i: number): any {
 }
 
 export function push_arg(ctx: Context, arg: any): void {
-    ctx.n_arg_trovati += 1;
-    v_stack.push(arg);
-  console.log('PUSH_ARG', arg, ctx.n_arg_trovati, v_stack.length, v_stack);
-  for (var i=0; i<v_stack.length; ++i)
-    console.log('push_arg', i, v_stack[i]);
+  console.log('PUSH_ARG');
+  ctx.n_arg_trovati += 1;
+  v_stack.push(arg);
+  // for (var i=0; i<v_stack.length; ++i)
+  //  console.log('push_arg', i, v_stack[i]);
 }
 
 function push_contesto(ctx: Context, id: number): void {
@@ -209,6 +207,7 @@ function pushco(ctx: Context): void {
  
 // ripristino di parte del contesto dallo stack di controllo
 function popco(ctx: Context): void {
+  console.log('popco');
   AssertContesto(ctx);
   // err_token = pop_sc ();
   ctx.parentesi = pop_sc();
@@ -216,7 +215,7 @@ function popco(ctx: Context): void {
   ctx.n_arg_trovati = pop_sc();
   ctx.conto_parentesi = pop_sc();
   AssertContesto(ctx);
-  console.log('popco', ctx);
+  // console.log('popco', ctx);
 }
 
 // azioni comuni al riconoscimento di un token funzione (sfun o ufun)
@@ -233,23 +232,24 @@ function f_in(ctx: Context, funzione): void {
 
 // azioni comuni al termine della valutazione di sfun e ufun
 function f_out (ctx: Context): void {
+  console.log('f_out');
   AssertContesto(ctx);
-  console.log('f_out -> popco');
+  --ctx.liv_funzione;
   popco(ctx);
   ctx.funzione = pop_sc();
   // if (is_funzione)
   //    push_arg(pop_sv());
-  --ctx.liv_funzione;
   //if (ctx.conto_esegui > 0)
   //_esegui ((node) idRun);
   // _esegui (ctx, blocco);
   // idRun = 0;
   AssertContesto(ctx);
-  console.log('f_out', ctx);
+  // console.log('f_out', ctx);
 }
 
 // ingresso nella valutazione di una System Function
 export function sf_in(ctx: Context, funzione: SystemFunction): void {
+  console.log('sf_in', funzione.coreKey);
   f_in(ctx, funzione);
 /*
   get_sf (funzione);
@@ -264,12 +264,13 @@ export function sf_in(ctx: Context, funzione: SystemFunction): void {
   // ctx.n_arg_attesi = funzione.definition.args.length;
     const args = funzione.definition.args;
     ctx.n_arg_attesi = (args) ? args.length : 0;
-  console.log(sf_in, ctx.n_arg_attesi);
+  // console.log('sf_in', ctx.n_arg_attesi);
 }
 
 // uscita della valutazione di una System Function
 export function sf_out(ctx: Context): void {
-  console.log('sf_out', ctx);
+  console.log('sf_out', ctx.funzione.coreKey);
+  // console.log('sf_out', ctx);
   f_out(ctx);
 }
 
@@ -285,7 +286,8 @@ export function uf_call(ctx: Context): void {
   const parameters = ctx.funzione.definition.parameters;
   const body = ctx.funzione.definition.body;
   const n_parameters = parameters.length;
-  console.log('uf_call 1', parameters, body, ctx.block, ctx.block.length, ctx.i_line, ctx.i_token);
+  // console.log('uf_call 1', parameters, body, ctx.block, ctx.block.length, ctx.i_line, ctx.i_token);
+  console.log('uf_call', ctx.funzione.name, parameters);
   AssertContesto(ctx);
   var argomenti: any[] = [];
   // riconosce eventuale ricorsione di coda: 
@@ -307,6 +309,15 @@ export function uf_call(ctx: Context): void {
   is_stop = false;
   risultato = null;
   ctx.n_arg_attesi = ctx.n_arg_trovati = 0;
+
+  ctx.val_verifica = null;
+  ctx.conto_esegui = 0;
+  ctx.RepCount = 0;
+  ctx.RepTotal = 0;
+  ctx.funzione = null;
+  ctx.parentesi = -1;
+  ctx.conto_parentesi = 0;
+
   block_exec(ctx, body);
   AssertContesto(ctx);
 }
@@ -350,7 +361,7 @@ function pushloc(parola: string, nuovo_valore: any): void {
   else
     vecchio_valore = null;
   globalVariables[parola] = nuovo_valore;
-  console.log('PUSHLOC', parola, nuovo_valore, globalVariables);
+  // console.log('PUSHLOC', parola, nuovo_valore, globalVariables);
   push_sv(parola);
   push_sv(vecchio_valore);
 }
@@ -373,7 +384,7 @@ function poploc(ctx: Context, n: number): void {
       parola = pop_sv();
       if (valore)
         globalVariables[parola] = valore;
-    console.log('POPLOC', parola, valore, globalVariables);
+    // console.log('POPLOC', parola, valore, globalVariables);
   };
   if (ctx.n_arg_trovati != 0)
     push_sv(risultato);
@@ -383,7 +394,7 @@ function poploc(ctx: Context, n: number): void {
   ingresso in parentesi tonde
   ---------------------------*/
 export function parenin(ctx: Context): void {
-  console.log('parenin', ctx);
+  // console.log('parenin', ctx);
   push_sc(ctx.funzione);
   ctx.funzione = null;
   pushco(ctx);
@@ -398,12 +409,12 @@ export function parenin(ctx: Context): void {
   -------------------------*/
 export function parenout(ctx: Context, par_count: number): void {
   var locale: number;
-  console.log('parenout, n=', par_count);
+  // console.log('parenout, n=', par_count);
   for (var i=0; i<par_count; ++i) {
     if (ctx.n_arg_trovati > 1)
       throw new Error("INVALID CONTEXT", get_sv (1));
     locale = ctx.n_arg_trovati;
-    console.log('parenout -> popco');
+    // console.log('parenout -> popco');
     popco(ctx);
     ctx.funzione = pop_sc();
     ctx.n_arg_trovati = ctx.n_arg_trovati + locale;
@@ -412,11 +423,10 @@ export function parenout(ctx: Context, par_count: number): void {
 
 // azioni comuni all' ingresso in un blocco
 function blk_in(ctx: Context, block: Cell[][], is_arg_atteso: number): void {
-  console.log('blk_in', liv_contesto, ctx.liv_esecuzione, block);
+  console.log('blk_in', liv_contesto, ctx.liv_esecuzione, block, ctx);
   AssertContesto(ctx);
   push_sc(ctx.funzione);
   ctx.funzione = null;
-  // err_token = 
   push_sc(ctx.ini_token);
   ctx.ini_token = ctx.i_token;
   push_sc(ctx.block);
@@ -435,7 +445,7 @@ function blk_in(ctx: Context, block: Cell[][], is_arg_atteso: number): void {
   n_locali = 0;
   ++ctx.liv_esecuzione;
   if (is_ripeti) {
-  is_ripeti = false;
+    is_ripeti = false;
     ctx.RepTotal = ctx.conto_esegui;
     ctx.RepCount = 1;
   } else {
@@ -460,7 +470,7 @@ export function blk_out(ctx: Context): void {
   n_locali = pop_sc ();
   poploc(ctx, n_locali);
   locale = ctx.n_arg_trovati;
-  console.log('blk_out -> popco');
+  // console.log('blk_out -> popco');
   popco(ctx);
   ctx.n_arg_trovati = ctx.n_arg_trovati + locale;
   ctx.val_verifica = pop_sc();
@@ -469,25 +479,27 @@ export function blk_out(ctx: Context): void {
   ctx.RepTotal = pop_sc();
   ctx.RepCount = pop_sc();
   ctx.conto_esegui = pop_sc();
-  console.log('blk_out - conto_esegui', ctx.conto_esegui)
+  // console.log('blk_out - conto_esegui', ctx.conto_esegui)
   if (is_vai)
     ctx.conto_esegui = 1;
   ctx.i_token = pop_sc();
   ctx.i_line = pop_sc();
   block = ctx.block;
-  console.log('blk_out - block', ctx.i_token, ctx.i_line, ctx.block)
+  // console.log('blk_out - block', ctx.i_token, ctx.i_line, ctx.block)
   ctx.block = pop_sc();
   ctx.ini_token = pop_sc();
   ctx.funzione = pop_sc ();
+
   --ctx.liv_esecuzione;
   --ctx.conto_esegui;
   if (ctx.conto_esegui > 0) {
     blk_in(ctx, block, 0);
-  if (OldTotal) {
-    ctx.RepTotal = OldTotal;
-    ctx.RepCount = OldCount + 1;
+    if (OldTotal) {
+      ctx.RepTotal = OldTotal;
+      ctx.RepCount = OldCount + 1;
+    }
   }
-  }
+  console.log('blk_out', liv_contesto, ctx);
 /*
   else {
     ctx.i_token = pop_sc();
@@ -564,6 +576,7 @@ export function ini_valuta(ctx: Context): void {
 // crea nuovo contesto, che eredita parzialmente dal precedente e lo mette sullo stack
 // delega a blk_in (richiamato da block_exec) l'inizializzazione di parecchi elementi
 function push_procedure_context(ctx: Context): void {
+  console.log('push_procedure_context');
   contesti.push(Object.assign({}, ctx)); // aggiungo una copia in cima
   liv_contesto += 1;
   var ctx: Context = contesti[liv_contesto]; // prendo riferimento alla copia e lo aggiorno
@@ -571,9 +584,12 @@ function push_procedure_context(ctx: Context): void {
   ctx.liv_procedura += 1;
   ctx.liv_esecuzione = 0;
   is_nestedExec = false;
+
+  ctx.funzione = null;
 }
 
 function pop_procedure_context(): Context {
+  console.log('pop_procedure_context');
   var ctx = contesti.pop();
   liv_contesto -= 1;
   return contesti[liv_contesto];  

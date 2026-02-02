@@ -17,6 +17,7 @@ export type LanguageMap = Record<string, CoreDefinitionKeys>;
 export const IT_MAP: LanguageMap = {
   // Puoi includere sia i nomi abbreviati che quelli completi se vuoi
   "A": "FD",
+  "ALTRIMENTI": "IFFALSE",
   "AS": "MAKE",
   "ASCOLPENNA": "SETPENCOLOR",
   "ASSEGNA": "MAKE",
