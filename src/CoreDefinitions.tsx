@@ -3,12 +3,12 @@
 // 251115 - added FunClass; added ref field to CommandDef
 
 
-import { _NOP, _ERROR, _STOP, _OUTPUT, _REPEAT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
+import { _NOP, _ERROR, _STOP, _OUTPUT, _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
 import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _BUTFIRST, _BUTLAST, _COUNT, _ITEM, _WORDP, _LISTP } from './Structures';
-import { _DEFINE, _TO, _END, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
+import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
 import { _NOT, _EQUALP, _NOTEQUALP } from './Logic';
 import { _NUMBERP, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
-import { _HOME, _CS, _FD, _BK, _RT, _LT, _XCOR, _YCOR, _POS } from './InterpreterCore';
+import { _HOME, _CS, _FD, _BK, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING } from './InterpreterCore';
 import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './InterpreterCore';
 import { _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR } from './Communication';
 
@@ -90,13 +90,13 @@ export type Context = {
 	funzione: SystemFunction | UserFunction | null; // command key + command definition
 	liv_esecuzione: number; // nest dei blocchi in proc. corrente
 	val_verifica: boolean | null; // valore ultima condizione verificata
-	conto_esegui: number;
+	conto_esegui: number; // contatore delle iterazioni di un blocco
 	RepCount: number;
 	RepTotal: number;
 	n_arg_attesi: number; // numero di parametri atteso dalla funzione corrente
 	n_arg_trovati: number; // numero di oggetti sullo stack per la fun corrente
 	parentesi: number; // = liv_funzione se sfun corr. e' preceduta da "("
-	conto_parentesi: number;
+	conto_parentesi: number; // conto algebrico parentesi in valutazione di espressione
 	block: Cell[][];
 	i_line: number;
 	i_token: number;
@@ -292,6 +292,16 @@ export const CORE_DEFINITIONS = {
     signature: [FunSignature.FUNCTION],
     ref: _YCOR,
   } as CommandDef,
+  SETHEADING: {
+    classes: [FunClass.TURT],
+    args: [{ name: "angolo", type: A_N }],
+    ref: _SETHEADING,
+  } as CommandDef,
+  HEADING: {
+    classes: [FunClass.TURT],
+    signature: [FunSignature.FUNCTION],
+    ref: _HEADING,
+  } as CommandDef,
   SHOWTURTLE: {
     classes: [FunClass.TURT],
     ref: _SHOWTURTLE,
@@ -399,6 +409,17 @@ export const CORE_DEFINITIONS = {
     signature: [FunSignature.FUNCTION],
     args: [{ name: "nome", type: A_W_S }],
     ref: _TEXT,
+  } as CommandDef,
+  PROCEDUREP: {
+    classes: [FunClass.DEF],
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "nome", type: A_W_S }],
+    ref: _PROCEDUREP,
+  } as CommandDef,
+  PRIMITIVEP: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "nome", type: A_W_S }],
+    ref: _PRIMITIVEP,
   } as CommandDef,
   LOCAL: {
     classes: [FunSignature.ONEORMORE],
@@ -582,6 +603,11 @@ export const CORE_DEFINITIONS = {
     classes: [FunClass.EXEC],
     args: [{ name: "times", type: 'number' }, { name: "block", type: 'list'}],
     ref: _REPEAT,
+  } as CommandDef,
+  REPCOUNT: {
+    classes: [FunClass.EXEC],
+    signature: [FunSignature.FUNCTION],
+    ref: _REPCOUNT,
   } as CommandDef,
   IF: {
     classes: [FunClass.EXEC],

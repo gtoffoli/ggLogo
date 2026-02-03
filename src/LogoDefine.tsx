@@ -3,9 +3,10 @@
 
 import { CellType, Cell, contextType, Context, ProcedureDef } from './CoreDefinitions';
 import { Parse, unParse } from './Parser';
-import { userProcedures, globalVariables } from './Interpreter';
+import { userProcedures, globalVariables, throwError } from './Interpreter';
 import { getConsoleLine } from './Streams';
 import { contesti, liv_contesto, sf_out } from './LogoControl';
+import { commandResolver } from './UseLocalization';
 
 
 export var isProcedureDefinition: boolean = false;
@@ -13,6 +14,10 @@ export var procedureName: string | null;
 export var procedureParameters: string[] | null;
 export var procedureBody: Cell[][] | null;
 
+export function _PRIMITIVEP(values: any[]): Cell {
+  const coreKey = commandResolver(values[0].val);
+  return { type: CellType.BOOLEAN, val: (coreKey) ? true : false };
+}
 
 export function _DEFINE(values: any[]): void {
 	console.log('function _DEFINE', values[0],values[1]);
@@ -71,12 +76,17 @@ export function _END(values: any[]): void {
 	iniDefine();
 }
 
+export function _PROCEDUREP(values: any[]): Cell {
+	return { type: CellType.BOOLEAN, val: (values[0].val in userProcedures) };
+}
+
 export function _TEXT(values: any[]): Cell {
-	const procedureName = values[0].val;
-	const procedureDef = userProcedures[procedureName];
-	console.log('TESTO DI', procedureName, ' : ', procedureDef);
-	var text = unParse([[procedureDef.parameters, procedureDef.body]]);
-	return { type: CellType.WORD, val: text };
+  const procedureName = values[0].val;
+  const procedureDef = userProcedures[procedureName];
+  if (!procedureDef)
+    throwError('e50', '', procedureName.toString());
+  var text = unParse([[procedureDef.parameters, procedureDef.body]]);
+  return { type: CellType.WORD, val: text };
 }
 
 function getProcedureCtx(): Context | null {

@@ -3,7 +3,7 @@
 // 251129 - of resolveCommand also to functions calling valuta_token
 // 251230 - converted TAB to spaces
 
-import { contextType, Context, Cell, CommandDef, ModParola, ProcedureDef } from './CoreDefinitions';
+import { contextType, Context, CellType, Cell, CommandDef, ModParola, ProcedureDef } from './CoreDefinitions';
 import { valuta_token, globalVariables, userProcedures } from './Interpreter';
 
 // codifica dei tipi di contesto (id_contesto)
@@ -65,6 +65,11 @@ export function _REPEAT(ctx: Context, values: any[]): void {
   // console.log('function _REPEAT', ctx.conto_esegui, block);
   sf_out(ctx); // anticipo, per non confliggere con blk_in
   blk_in(ctx, block, 0);
+}
+
+export function _REPCOUNT(ctx: Context, values: any[]): Cell {
+  sf_out(ctx); // anticipo, perché ha classe EXEC, dato che richiede Context
+  return { type: CellType.NUMBER, val: ctx.RepCount };
 }
 
 export function _TEST(ctx: Context, values: any[]): void {
@@ -499,7 +504,6 @@ export function blk_out(ctx: Context): void {
       ctx.RepCount = OldCount + 1;
     }
   }
-  console.log('blk_out', liv_contesto, ctx);
 /*
   else {
     ctx.i_token = pop_sc();
@@ -517,6 +521,7 @@ export function blk_out(ctx: Context): void {
   } 
   };
 */
+  console.log('blk_out', liv_contesto, ctx);
   AssertContesto(ctx);
 }
 

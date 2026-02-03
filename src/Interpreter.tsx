@@ -446,7 +446,10 @@ export class AsynchronousLogoInterpreter {
               ctx.i_token = 1000;
             }
             else if (classes.includes(FunClass.EXEC)) {
-              definition.ref(ctx, values);
+              if (is_function)
+                result = definition.ref(ctx, values);
+              else
+                definition.ref(ctx, values);
               is_exec = true;
             }
             else if (classes.includes(FunClass.TXIN)) {

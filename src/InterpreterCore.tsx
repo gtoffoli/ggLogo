@@ -9,61 +9,66 @@ import { initialTurtleState } from './logoReducer';
 
 export function _CS(values: any[], state: TurtleState): { newState: TurtleState | null, command: DrawingCommand | null } {
 	console.log('function _CS');
-    // return { newState: initialTurtleState, command: { type: 'CLEAR_CANVAS' }};
-    return [ initialTurtleState, { type: 'CLEAR_CANVAS' }];
+  return [ initialTurtleState, { type: 'CLEAR_CANVAS' }];
 }
 
 export function _HOME(values: any[], state: TurtleState): TurtleState {
-    return { 
-        ...state, 
-        x: 0,
-        y: 0,
-        heading:0
-    };
+  return { 
+    ...state, 
+    x: 0,
+    y: 0,
+    heading:0
+  };
 }
 
 export function _FD(values: any[], state: TurtleState): TurtleState {
-	// const distance: number = values[0];
 	const distance: number = values[0].val;
 	console.log('function _FD', distance);
 	return calculateForward(state, distance);
 }
 
 export function _BK(values: any[], state: TurtleState): TurtleState {
-	// const distance: number = -values[0];
 	const distance: number = -(values[0].val);
 	return calculateForward(state, distance);
 }
 
 export function _RT(values: any[], state: TurtleState): TurtleState {
-	// const angle: number = values[0];
 	const angle: number = values[0].val;
 	console.log('function _RT', angle);
 	return calculateRight(state, angle);
 }
 
 export function _LT(values: any[], state: TurtleState): TurtleState {
-	// const angle: number = -values[0];
 	const angle: number = -(values[0].val);
 	return calculateRight(state, angle);
 }
 
 export function _PENUP(values: any[], state: TurtleState): TurtleState {
-    return { 
-        ...state, 
-        penDown: false
-    };
+  return { 
+    ...state, 
+    penDown: false
+  };
 }
 
 export function _PENDOWN(values: any[], state: TurtleState): TurtleState {
-    return { 
-        ...state, 
-        penDown: true
-    };
+  return { 
+    ...state, 
+    penDown: true
+  };
 }
-
 export function _PENDOWNP(values: any[], state: TurtleState): Cell {
   return { type: CellType.BOOLEAN, val: state.penDown }
+}
+
+export function _SETHEADING(values: any[], state: TurtleState): TurtleState {
+  const heading = values[0].val;
+  return { 
+    ...state, 
+    heading: heading
+  };
+}
+export function _HEADING(values: any[], state: TurtleState): Cell {
+  return { type: CellType.NUMBER, val: state.heading }
 }
 
 export function _PENCOLOR(values: any[], state: TurtleState): Cell {
@@ -73,8 +78,8 @@ export function _PENCOLOR(values: any[], state: TurtleState): Cell {
 export function _SETPENCOLOR(values: any[], state: TurtleState): TurtleState | null {
 	const color: string = values[0].val;
     return { 
-        ...state, 
-        penColor: color
+      ...state, 
+      penColor: color
     };
 }
 
@@ -93,16 +98,16 @@ export function _YCOR(values: any[], state: TurtleState): Cell {
 }
 
 export function _SHOWTURTLE(values: any[], state: TurtleState): TurtleState {
-    return { 
-        ...state, 
-        visible: true
-    };
+  return { 
+    ...state, 
+    visible: true
+  };
 }
 export function _HIDETURTLE(values: any[], state: TurtleState): TurtleState {
-    return { 
-        ...state, 
-        visible: false
-    };
+  return { 
+    ...state, 
+    visible: false
+  };
 }
 export function _SHOWNP(values: any[], state: TurtleState): Cell {
   return { type: CellType.BOOLEAN, val: state.visible}
@@ -119,46 +124,45 @@ function precision(n) {
  * Calcola il comando (LINE_TO o MOVE_TO) da inviare al canvas e il nuovo stato (pos) della tartaruga dopo un comando tipo FD o BK
  */
 export function calculateForward(state: TurtleState, distance: number): any[] {
-    const rad = state.heading * Math.PI / 180;
-    const newX = precision(state.x + distance * Math.sin(rad));
-    const newY = precision(state.y - distance * Math.cos(rad)); // LOGO usa Y decrescente verso l'alto
-    
-    let drawingCommand: DrawingCommand | null = null;
+  const rad = state.heading * Math.PI / 180;
+  const newX = precision(state.x + distance * Math.sin(rad));
+  const newY = precision(state.y - distance * Math.cos(rad)); // LOGO usa Y decrescente verso l'alto
+  
+  let drawingCommand: DrawingCommand | null = null;
 
-    const newState: TurtleState = { 
-        ...state, 
-        x: newX, 
-        y: newY 
+  const newState: TurtleState = { 
+    ...state, 
+    x: newX, 
+    y: newY 
+  };
+  
+  if (state.penDown) {
+    drawingCommand = {
+      type: 'LINE_TO',
+      x: newX,
+      y: newY,
+      color: state.penColor,
+      thickness: 1 // Usiamo un valore fisso per ora
     };
-    
-    if (state.penDown) {
-        drawingCommand = {
-            type: 'LINE_TO',
-            x: newX,
-            y: newY,
-            color: state.penColor,
-            thickness: 1 // Usiamo un valore fisso per ora
-        };
-    } else {
-        drawingCommand = {
-            type: 'MOVE_TO',
-            x: newX,
-            y: newY
-        };
-    }
-    
-    return [ newState, drawingCommand ];
+  } else {
+    drawingCommand = {
+      type: 'MOVE_TO',
+      x: newX,
+      y: newY
+    };
+  }
+  
+  return [ newState, drawingCommand ];
 }
 
 /**
  * Calcola il nuovo stato della tartaruga dopo un comando DESTRA/RT.
  */
 export function calculateRight(state: TurtleState, angle: number): TurtleState {
-    const newHeading = (state.heading + angle) % 360;
-//    return {
-    const newState: TurtleState = { 
-        ...state, 
-        heading: newHeading < 0 ? newHeading + 360 : newHeading
-    };
-    return newState;
+  const newHeading = (state.heading + angle) % 360;
+  const newState: TurtleState = { 
+    ...state, 
+    heading: newHeading < 0 ? newHeading + 360 : newHeading
+  };
+  return newState;
 }
