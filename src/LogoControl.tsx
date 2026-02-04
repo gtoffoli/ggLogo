@@ -43,6 +43,15 @@ export function _NOP(values: any[]): void {
 export function _ERROR(values: any[]): any[] {
 }
 
+export async function wait(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export async function _WAIT(values: any[]) {
+  const ms = values[0].val;
+  await wait(ms); 
+}
+
 export function _STOP(ctx: Context, values: any[]): void {
   console.log('function _STOP', values);
   is_stop = true;

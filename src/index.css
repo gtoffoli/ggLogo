@@ -209,8 +209,10 @@ code {
 #foreground-canvas {
   pointer-events: none; /* Opzionale: lascia che i click passino al layer sotto */
   z-index: 10;
+  will-change: transform; /* Ottimizza il layer per la GPU */
 }
 
 #background-canvas {
   z-index: 5;
+  will-change: auto; /* Dice al browser di non aspettarsi cambiamenti continui */
 }

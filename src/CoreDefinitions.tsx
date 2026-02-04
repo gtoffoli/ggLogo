@@ -3,7 +3,7 @@
 // 251115 - added FunClass; added ref field to CommandDef
 
 
-import { _NOP, _ERROR, _STOP, _OUTPUT, _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
+import { _NOP, _ERROR, _WAIT, _STOP, _OUTPUT, _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
 import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _BUTFIRST, _BUTLAST, _COUNT, _ITEM, _WORDP, _LISTP } from './Structures';
 import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
 import { _NOT, _EQUALP, _NOTEQUALP } from './Logic';
@@ -588,6 +588,10 @@ export const CORE_DEFINITIONS = {
   NOP: {
     args: [],
     ref: _NOP,
+  } as CommandDef,
+  WAIT: {
+    args: [{ name: "time", type: 'number' }],
+    ref: _WAIT,
   } as CommandDef,
   STOP: {
     classes: [FunClass.EXEC],

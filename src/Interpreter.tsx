@@ -48,6 +48,7 @@ export class LogoError extends Error {
 }
 
 export function throwError(key: string, fun?: string, arg?: string) {
+  console.log('throwError', fun);
   var msg = i18n.t('err.' + key) + '\n';
   if (fun) msg = msg.replace('$1', getByValue(fun));
   if (arg) msg = msg.replace('$2', arg);
@@ -336,6 +337,8 @@ export class AsynchronousLogoInterpreter {
                 // console.log('UFUN', verb, definition);
                 uf_in(ctx, funzione);
               }
+              else
+                throwError('e02', null, verb);
             }
           }
           // la keyword TO quota il nome di procedura

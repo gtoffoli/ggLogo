@@ -44,7 +44,7 @@
   "err": {
     "e00": "1-9 errori in uso primitiva o in valore argomenti",
     "e01": "$2 non ha un valore",
-    "e02": "non so fare $2",
+    "e02": "don't know how to $2",
     "e03": "posso fare $1 solo in una procedura",
     "e04": "non posso fare $1 in una procedura",
     "e05": "a $1 non piace $2 come ingresso",
