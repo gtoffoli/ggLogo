@@ -4,7 +4,7 @@
 // 260115 - converted resolveCommand and resolveKeyword in external functions
 
 import React, { useState, useMemo } from 'react';
-import { CORE_DEFINITIONS, CommandDef, ParamDef } from './CoreDefinitions';
+import { isSeparator, CORE_DEFINITIONS, CommandDef, ParamDef } from './CoreDefinitions';
 import { LANGUAGE_MAPS, LanguageMap, CoreDefinitionKeys } from './LocalizationMaps';
 
 export type LanguageCode = keyof typeof LANGUAGE_MAPS;
@@ -64,6 +64,8 @@ export function commandResolver(commandName: string): CoreDefinitionKeys {
 }
 
 export function getByValue(searchValue:string): string {
+  if (isSeparator(searchValue))
+    return searchValue;
   const activeMap = LANGUAGE_MAPS[shared_langCode];
   var foundKey = null;
   for (let [key, value] of Object.entries(activeMap)) {

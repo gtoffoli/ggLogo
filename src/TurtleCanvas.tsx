@@ -49,10 +49,6 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
   console.log('TurtleCanvas - starting');
   const backgroundRef = useRef<HTMLCanvasElement>(null);
   const foregroundRef = useRef<HTMLCanvasElement>(null);
-  /*
-  const dispatch = useLogoDispatch();
-  const state = useLogoState();
-  */
   const { state, dispatch, interpreter } = useLogoState();
     
   // Ottiene la finestra grafica specifica da Redux

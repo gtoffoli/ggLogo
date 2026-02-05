@@ -33,9 +33,10 @@ var next_type: CellType | null;
 var next_val: any;
 var function_key = null;
 var definition: CommandDef | ProcedureDef | null = null;  // definition of system function (primitive) or of user function (procedure)
+var arg_definitions: any[] = [];
 var classes = [];    // info related to primitive classificaztion
 var signature = [];    // info  related to arguments and result of primitive
-var oneormore = false;  // true if primitive accepts an indefinite number of arguments 
+var oneormore = false;  // true if primitive accepts an indefinite number of arguments
 var is_function = false;// true if primitive returns a result
 
 const N_MINIMO = 1; // minimo numero di argomenti per la funzione corrente
@@ -53,6 +54,21 @@ export function throwError(key: string, fun?: string, arg?: string) {
   if (fun) msg = msg.replace('$1', getByValue(fun));
   if (arg) msg = msg.replace('$2', arg);
   throw new LogoError(msg);
+}
+
+function intToBitArray(integer: number, nbits?: number): number[] {
+  if (!nbits)
+    nbits = 32; // 32 bit è standard per interi in JS
+  let weights = [];
+  let weight = 1;
+  // Itera su 32 bit (standard per interi in JS)
+  for (let i = 0; i < nbits; i++) {
+    // Estrae il bit e lo inserisce nell'array
+    if ((integer >>> i) & 1)
+      weights.push(weight);
+    weight = weight * 2;
+  }
+  return weights;
 }
 
 export class AsynchronousLogoInterpreter {
@@ -215,6 +231,7 @@ export class AsynchronousLogoInterpreter {
     is_function = false;
     oneormore = false;
     definition = ctx.funzione.definition;
+    arg_definitions = definition.args;
     if (ctx.funzione.type === CellType.SFUN) {
       function_key = ctx.funzione.coreKey;
       classes = definition.classes || [];
@@ -229,14 +246,67 @@ export class AsynchronousLogoInterpreter {
     }
   }
 
-  private get_values(ctx: Context): any[] {
-    var values: any[] = [];
-    // console.log('GET_VALUES-1', v_stack)
-    for (var i=0; i<ctx.n_arg_trovati; i++) {
-      values.push(v_stack.pop());
+  // controlla la validità del valore di un argomento di funzione
+  // se necessario e possibile ne converte il tipo
+  private check_arg(arg: Cell, argDefinition): boolean {
+    const arg_type = arg.type;
+    if (!argDefinition.type) // è ammesso qualsiasi tipo
+      return arg;
+    const bits = intToBitArray(argDefinition.type, 8);
+    console.log('check_arg', arg, definition, bits);
+    for (let i = 0; i < bits.length; i++) {
+      switch (bits[i]) {
+        case Arg.NUMERO:
+          if (arg_type === CellType.NUMBER)
+            return arg;
+          if ((arg_type === CellType.WORD) && (! isNaN(arg.val)))
+            return { type: CellType.NUMBER, val: parseFloat(arg.val) }
+          break;
+        case Arg.VEROFALSO:
+          if (arg_type === CellType.BOOLEAN)
+            return arg;
+          break;
+        case Arg.PAROLA:
+        case Arg.STRINGA:
+        case Arg.NOMEARC:
+          if (arg_type === CellType.WORD)
+            return arg;
+          return false;
+        case Arg.LISTAPAR:
+        case Arg.LISTANUM:
+        case Arg.LISTA:
+          if (arg_type === CellType.LIST)
+            return arg;
+          break;
+      }
     }
-    values.reverse();
-    // console.log('GET_VALUES-2', values)
+    return false;
+  }
+
+  // prende gli argomenti dallo stack dei valori e ne controlla la validità
+  // function_key e arg_definitions sono variabili globali assegnate da get_function
+  private get_values(ctx: Context): any[] {
+    const n = ctx.n_arg_trovati;
+    if (!n)
+      return [];
+    var raw_values: Cell[] = [];
+    var values: Cell[] = [];
+    var arg: Cell;
+    var checked_arg: Cell;
+    var definition; // vincoli sul valore di un argomento, dalla definizione della funzione
+    for (var i=0; i<n; i++) { // svuota la cima dello stack dei valori
+      raw_values.push(v_stack.pop());
+    }
+    raw_values.reverse(); // e rimette gli argomenti nell'odrdine giusto
+    for (var i=0; i<n; i++) { // controlla la validità di ogni argomento
+      arg = raw_values[i];
+      definition = arg_definitions[Math.min(i, n-1)]; // tiene conto di argomenti in numero indefinito
+      checked_arg = this.check_arg(arg, definition);
+      if (checked_arg)
+        values.push(checked_arg);
+      else
+        throwError('e05', function_key, arg.val);
+    }
     return values;
   }
 
