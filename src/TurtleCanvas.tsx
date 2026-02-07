@@ -53,7 +53,8 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
     
   // Ottiene la finestra grafica specifica da Redux
   const windowState = state.windows[windowId];
-
+  // Nuovo approccio
+  const lastDrawnIndex = useRef(0)
 	// 't' è la funzione di traduzione
 	const { t, i18n } = useTranslation();
     
@@ -78,49 +79,72 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
     }
   }, [dispatch, windowId]);
 
-  // 2. LOGICA DI DISEGNO BASATA SULLO STATO
+  // 2. LOGICA DI DISEGNO INCREMENTALE E OTTIMIZZATA
   useEffect(() => {
+    // 1. Controlli preliminari
     if (!windowState || !windowState.canvasContext) return;
+    
     const canvas = windowState.backgroundRef;
     const ctx = windowState.canvasContext;
     const commands = windowState.drawingCommands;
-    const n_commands = commands.length;
-    var lastCommand = commands[n_commands-1];
-    for (var i=0; i<n_commands; i++) {
-      lastCommand = commands[i];
-      switch (lastCommand.type) {
+    
+    // 2. GESTIONE RESET: Se i comandi sono diminuiti o la lista è vuota, puliamo tutto
+    if (commands.length < lastDrawnIndex.current) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      lastDrawnIndex.current = 0;
+      console.log('Canvas: Reset totale');
+    }
+
+    // Se non ci sono nuovi comandi, non fare nulla
+    if (commands.length === lastDrawnIndex.current) return;
+
+    // Cache delle dimensioni per evitare ricalcoli nel loop
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+
+    // 3. LOOP INCREMENTALE: Partiamo dall'ultimo comando disegnato
+    for (let i = lastDrawnIndex.current; i < commands.length; i++) {
+      const currentCmd = commands[i];
+
+      switch (currentCmd.type) {
         case 'MOVE_TO':
         case 'LINE_TO':
-          const { x, y, color } = lastCommand;
-          // const { x: prevX, y: prevY } = commands[commands.length - 2] as any || {x: 0, y: 0};
-     			if (i > 0)
-     				var { x: prevX, y: prevY } = commands[i-1] as any;
-     			else
-   				  var { x: prevX, y: prevY } = {x: 0, y: 0} as any;
-          console.log('TurtleCanvas', 'LINE_TO', x, y, prevX, prevY);
-          if (lastCommand.type === 'LINE_TO') {
-            console.log('----- LINE_TO');
+          const { x, y, color } = currentCmd;
+          
+          // Troviamo il punto di partenza
+          let prevX = 0;
+          let prevY = 0;
+          if (i > 0) {
+            prevX = commands[i - 1].x;
+            prevY = commands[i - 1].y;
+          }
+
+          if (currentCmd.type === 'LINE_TO') {
             ctx.beginPath();
-            ctx.moveTo(prevX + canvas.width / 2, canvas.height / 2 + prevY); 
-          	ctx.lineTo(x + canvas.width / 2, canvas.height / 2 + y);
+            ctx.moveTo(prevX + centerX, centerY + prevY);
+            ctx.lineTo(x + centerX, centerY + y);
             ctx.lineWidth = 1;
             ctx.strokeStyle = color;
-            ctx.stroke();      
-          	console.log(`Canvas: Linea disegnata fino a (${x}, ${y})`);
+            ctx.stroke();
           } else {
-            console.log('----- MOVE_TO');
-          	ctx.moveTo(x + canvas.width / 2, canvas.height / 2 + y);
-          	console.log(`Canvas: Posizione aggiornata a (${x}, ${y})`);
-				  }      
+            // Per MOVE_TO non disegniamo, il canvas sposta il "cursore" internamente
+            ctx.moveTo(x + centerX, centerY + y);
+          }
           break;
+
         case 'CLEAR_CANVAS':
-  				console.log('----- CLEAR_CANVAS');
-  				ctx.clearRect(0, 0, canvas.width, canvas.height);
-          console.log(`Canvas: fully cleared`);
-  				break;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          // Opzionale: se CLEAR_CANVAS è nel mezzo della lista, 
+          // tecnicamente dovremmo ridisegnare tutto ciò che viene dopo.
+          // In Logo di solito CLEAR svuota la lista, quindi lastDrawnIndex tornerà a 0.
+          break;
       }
     }
-  }, [windowState]); // Ridisegna ogni volta che lo stato della finestra cambia
+
+    // 4. AGGIORNAMENTO PUNTATORE: Salviamo dove siamo arrivati
+    lastDrawnIndex.current = commands.length;
+
+  }, [windowState.drawingCommands]); // Molto importante: osserva solo i comandi, non tutto lo stato
 
   // --- EFFECT 3: LA TARTARUGA (FOREGROUND) ---
   useEffect(() => {
