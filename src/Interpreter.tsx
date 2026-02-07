@@ -553,7 +553,15 @@ export class AsynchronousLogoInterpreter {
                   // console.log('No turtleStroke', newTurtleState);
                 }
               }
-      
+              // è da aggiungere un'operazione sul canvas
+              if (turtleStroke) { 
+                // console.log('drawingCommand', drawingCommand);
+                this.dispatch({ 
+                  type: 'ADD_DRAWING_COMMAND', 
+                  windowId: this.getState().activeWindowId,
+                  command: drawingCommand 
+                });
+              }
               // Dispatch (Aggiornamento dello Stato Globale)
               if (newTurtleState !== undefined) { // è stato calcolato un nuovo turtleState: va comunicato
                 // console.log('NEWSTATE', newTurtleState);
@@ -564,26 +572,18 @@ export class AsynchronousLogoInterpreter {
                 });
                 activeWin.turtleState = newTurtleState;
               }
-              if (turtleStroke) { // è (anche) da aggiungere un'operazione sul canvas
-                // console.log('drawingCommand', drawingCommand);
-                this.dispatch({ 
-                  type: 'ADD_DRAWING_COMMAND', 
-                  windowId: this.getState().activeWindowId,
-                  command: drawingCommand 
-                });
-              }
-              // activeWin.turtleState = newTurtleState;
             }
             else {
               if (is_function) {
                 console.log('sf_call - from interpreter:', function_key);
                 result = definition.ref(values);
-                // console.log('+++ IS_FUNCTION', values, result);
               }
               else {
                 console.log('sf_call - from interpreter:', function_key);
-                definition.ref(values);
-                // console.log('--- NOT IS_FUNCTION', values);
+                if (classes.includes(FunClass.ASYNC))
+                  await definition.ref(values);
+                else
+                  definition.ref(values);
               }
             }
             if (!is_exec) {   // in alcuni casi, come REPEAT, sf_out viene anticipato

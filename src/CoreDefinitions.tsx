@@ -170,7 +170,7 @@ export enum FunSignature {
 // codifica di classi di primitiva
 export enum FunClass {
 	TURT = 1,	// IS_PR_TARTA: turtle function
-	EDIT = 2,	// IS_PR_FOGLIO: edit function
+	ASYNC = 2,
 	PROC = 3,	// IS_PR_PROC: can be executed only inside a procedure
   TXIN = 4, // IS_PR_SCRIVI: writes on screen or ..
 	TXOU = 5,	// IS_PR_SCRIVI: reads from keyboard or ..
@@ -590,7 +590,8 @@ export const CORE_DEFINITIONS = {
     ref: _NOP,
   } as CommandDef,
   WAIT: {
-    args: [{ name: "time", type: 'number' }],
+    classes: [FunClass.ASYNC],
+    args: [{ name: "time", type: A_N }],
     ref: _WAIT,
   } as CommandDef,
   STOP: {
@@ -605,7 +606,7 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
   REPEAT: {
     classes: [FunClass.EXEC],
-    args: [{ name: "times", type: 'number' }, { name: "block", type: 'list'}],
+    args: [{ name: "times", type: A_N }, { name: "block", type: A_L}],
     ref: _REPEAT,
   } as CommandDef,
   REPCOUNT: {
@@ -615,27 +616,27 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
   IF: {
     classes: [FunClass.EXEC],
-    args: [{ name: "condition", type: 'booleean' }, { name: "block", type: 'list'}],
+    args: [{ name: "condition", type: A_B }, { name: "block", type: A_L}],
     ref: _IF,
   } as CommandDef,
   IFELSE: {
     classes: [FunClass.EXEC],
-    args: [{ name: "condition", type: 'booleean' }, { name: "block1", type: 'list'}, { name: "block2", type: 'list'}],
+    args: [{ name: "condition", type: A_B }, { name: "block1", type: A_L}, { name: "block2", type: A_L}],
     ref: _IFELSE,
   } as CommandDef,
   TEST: {
     classes: [FunClass.EXEC],
-    args: [{ name: "arg", type: 'boolean' }],
+    args: [{ name: "arg", type: A_B }],
     ref: _TEST,
   } as CommandDef,
   IFTRUE: {
     classes: [FunClass.EXEC],
-    args: [{ name: "block", type: 'list'}],
+    args: [{ name: "block", type: A_L}],
     ref: _IFTRUE,
   } as CommandDef,
   IFFALSE: {
     classes: [FunClass.EXEC],
-    args: [{ name: "block", type: 'list'}],
+    args: [{ name: "block", type: A_L}],
     ref: _IFFALSE,
   } as CommandDef,
 
