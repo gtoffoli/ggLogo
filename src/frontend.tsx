@@ -3,7 +3,6 @@
  * element and renders the App component to the DOM.
  *
  * It is included in `src/index.html`.
- */
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -35,3 +34,4 @@ const comandi = (
 );
 
 createRoot(elem_comandi).render(comandi);
+ */

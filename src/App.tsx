@@ -2,7 +2,7 @@
 // 251016 - new version with Gemini and DeepSeek
 // 251128 - moved PanelContainer for LogoShell to LogoShell module
 
-import React, { useReducer, useMemo, useEffect } from 'react';
+import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';

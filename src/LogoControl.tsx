@@ -4,7 +4,7 @@
 // 251230 - converted TAB to spaces
 
 import { contextType, Context, CellType, Cell, CommandDef, ModParola, ProcedureDef } from './CoreDefinitions';
-import { valuta_token, globalVariables, userProcedures } from './Interpreter';
+import { throwError, globalVariables, userProcedures } from './Interpreter';
 
 // codifica dei tipi di contesto (id_contesto)
 const CT_TOP = 0;      // contesto iniziale (top_level)
@@ -19,6 +19,7 @@ const ID_RUNRESULT = 2;
 export var contesti: Context[] = [];
 export var liv_contesto: number = 0; /* livello di nidificazione dei contesti */
 
+export var is_traccia: boolean = false; // tracciare l'esecuzione di tutte le primitive e procedure
 var ha_blocco_valore: boolean = false;
 var is_ripeti: boolean = false;
 var is_funzione: boolean = false;
@@ -29,18 +30,49 @@ var n_argomenti: number;        // numero argomenti della procedura
 var is_vai: boolean = false;    // appena incontrato comando VAI
 export var risultato: any;      // risultato della procedura corrente
 export var is_stop: boolean;    // incontrata fine di valutazione di procedura (UFUN)
-var is_riporta: boolean; // procedura termina con RIPORTA
+var is_riporta: boolean;        // procedura termina con RIPORTA
 
+var tracked_functions: string[] = [];
 var c_stack: any[] = [];
 export var v_stack: any[] = [];
-var stk_funzioni: any[] = [];    // stack di nest procedure attive dur. esecuzione
+var stk_funzioni: any[] = [];   // stack di nest procedure attive dur. esecuzione
 var stk_livelli: any[] = [];    // stack di camm. att. dur.esecuz. (blocchi) ?? */
-
 
 export function _NOP(values: any[]): void {
 }
 
-export function _ERROR(values: any[]): any[] {
+export function _ERROR(values: any[]):void {
+}
+
+function track(s: string) {
+  if (tracked_functions.includes(s))
+    return false;
+  else {
+    tracked_functions.push(s);
+    return true;
+  }
+}
+function untrack(s: string) {
+  var index = tracked_functions.indexOf(s);
+  if (index !== -1) {
+    tracked_functions.splice(index, 1);
+    return true;
+  }
+  else
+    return false;
+}
+
+export function _TRACK(args: any[]): void {
+  is_traccia = true;
+  for (var i=0; i<args.length; i++)
+    if (!track(args[i].val))
+       throwError('e06', null, args[i].val);
+}
+export function _UNTRACK(args: any[]): void {
+  is_traccia = false;
+  for (var i=0; i<args.length; i++)
+    if (!untrack(args[i].val))
+       throwError('e06', null, args[i].val);
 }
 
 export async function wait(ms: number) {

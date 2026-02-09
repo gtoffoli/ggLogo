@@ -16,8 +16,8 @@ import { SEPARATORS, isSeparator, SystemFunction, CORE_DEFINITIONS, CommandDef, 
 import { UserFunction, ProcedureDef, Arg } from './CoreDefinitions';
 import { getByValue } from './UseLocalization';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
-import { Parse, infix_operators, unParse } from './Parser';
-import { contesti, liv_contesto, liv_analisi, v_stack, is_stop, risultato } from './LogoControl';
+import { Parse, infix_operators, unParse, nodeToString } from './Parser';
+import { contesti, liv_contesto, liv_analisi, v_stack, is_stop, is_traccia, risultato } from './LogoControl';
 import { push_sv, pop_sv,  push_arg, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_out, parenin, parenout } from './LogoControl';
 import { ini_main,ini_exec, ini_valuta, AssertContesto } from './LogoControl';
 import { isProcedureDefinition, iniDefine, pushProcedureLine } from './LogoDefine';
@@ -37,6 +37,7 @@ var arg_definitions: any[] = [];
 var classes = [];    // info related to primitive classificaztion
 var signature = [];    // info  related to arguments and result of primitive
 var oneormore = false;  // true if primitive accepts an indefinite number of arguments
+var zeroormore = false;  // true if primitive accepts an indefinite number of arguments, even zero
 var is_function = false;// true if primitive returns a result
 
 const N_MINIMO = 1; // minimo numero di argomenti per la funzione corrente
@@ -229,6 +230,7 @@ export class AsynchronousLogoInterpreter {
   private get_function(ctx: Context): void {
     // console.log('get_function', ctx.funzione);
     is_function = false;
+    zeroormore = false;
     oneormore = false;
     definition = ctx.funzione.definition;
     arg_definitions = definition.args;
@@ -238,6 +240,7 @@ export class AsynchronousLogoInterpreter {
       signature = definition.signature;
       if (signature) {
         is_function = (signature.includes(FunSignature.FUNCTION));
+        zeroormore =  (signature.includes(FunSignature.ZEROORMORE));
         oneormore =  (signature.includes(FunSignature.ONEORMORE));
       }
     }
@@ -310,6 +313,109 @@ export class AsynchronousLogoInterpreter {
     return values;
   }
 
+  private traceFunction(key: string, args: any[]): void {
+    var line = getByValue(key) + ' ' + nodeToString(args, false);
+    this.getCurrentOutput().writeLine(line, 'system');
+  }
+
+  private async executeFunction(ctx) {
+    var result = null;
+    if (ctx.funzione.type === CellType.SFUN) {
+      // console.log('eseguo FUNZIONE', ctx.funzione);
+      var values = this.get_values(ctx);
+      // console.log('VALUES', values);
+      if(is_traccia)
+        this.traceFunction(function_key, values);
+      var is_exec = false;
+      if (ctx.funzione.coreKey === 'TO') {
+        ctx.i_token -= 1;
+        definition.ref(values);
+        ctx.i_token = 1000;
+      }
+      else if (classes.includes(FunClass.EXEC)) {
+        if (is_function)
+          result = definition.ref(ctx, values);
+        else
+          definition.ref(ctx, values);
+        is_exec = true;
+      }
+      else if (classes.includes(FunClass.TXIN)) {
+        this.dispatch({ type: 'SET_KEYBOARD_TARGET', target: 'data' });
+        result = await definition.ref(this.getDataSource());
+        this.dispatch({ type: 'SET_KEYBOARD_TARGET', target: 'commands' });
+      }
+      else if (classes.includes(FunClass.TXOU)) {
+        definition.ref(this.getCurrentOutput(), values);
+      }
+      else if (classes.includes(FunClass.TURT)) {
+        // const activeWin = this.state.windows[this.state.activeWindowId];
+        const activeWin = this.getState().windows[this.getState().activeWindowId];
+        if (!activeWin)
+          console.log("ERRORE: Nessuna finestra grafica attiva.");
+        let turtleStroke: boolean = (turtleStrokes.includes(ctx.funzione.coreKey));
+        var newTurtleState: TurtleState;
+        var drawingCommand: DrawingCommand;
+        if (turtleStroke) {
+          [ newTurtleState, drawingCommand ] = definition.ref(values, activeWin.turtleState);
+          // console.log('turtleStroke', newTurtleState, drawingCommand);
+        } else {
+          if (is_function) {
+            result = definition.ref(values, activeWin.turtleState);
+          }
+          else {
+            newTurtleState = definition.ref(values, activeWin.turtleState);
+            // console.log('No turtleStroke', newTurtleState);
+          }
+        }
+        // è da aggiungere un'operazione sul canvas
+        if (turtleStroke) { 
+          // console.log('drawingCommand', drawingCommand);
+          this.dispatch({ 
+            type: 'ADD_DRAWING_COMMAND', 
+            windowId: this.getState().activeWindowId,
+            command: drawingCommand 
+          });
+        }
+        // Dispatch (Aggiornamento dello Stato Globale)
+        if (newTurtleState !== undefined) { // è stato calcolato un nuovo turtleState: va comunicato
+          // console.log('NEWSTATE', newTurtleState);
+          this.dispatch({ 
+              type: 'UPDATE_TURTLE_STATE', 
+              windowId: this.getState().activeWindowId,
+              newState: newTurtleState 
+          });
+          activeWin.turtleState = newTurtleState;
+        }
+      }
+      else {
+        if (is_function) {
+          console.log('sf_call - from interpreter:', function_key);
+          result = definition.ref(values);
+        }
+        else {
+          console.log('sf_call - from interpreter:', function_key);
+          if (classes.includes(FunClass.ASYNC))
+            await definition.ref(values);
+          else
+            definition.ref(values);
+        }
+      }
+      if (!is_exec) {   // in alcuni casi, come REPEAT, sf_out viene anticipato
+        sf_out(ctx);
+      }
+      if (result !== null) {
+        push_arg(ctx, result);
+      }
+      // console.log('USCITO DA SFUN - ctx:', ctx);
+    }
+    else if (ctx.funzione.type === CellType.UFUN) {
+      // console.log('evaluateToken UFUN', ctx.n_arg_trovati, ctx.n_arg_attesi);
+      uf_call(ctx);
+      ctx = contesti[liv_contesto];
+    }
+    return result;
+  }
+
   private async evaluateToken() {
     var ctx: Context;
     var numeric: number;
@@ -319,10 +425,6 @@ export class AsynchronousLogoInterpreter {
      
     while (true) {
       ctx = contesti[liv_contesto];
-      // console.log('evaluateToken', ctx.i_line, ctx.i_token, ctx.block);
-      // console.log('- conto_esegui', ctx.conto_esegui);
-      // console.log('-- conto_parentesi', ctx.conto_parentesi);
-  
       while (true) {
         ctx = contesti[liv_contesto];
         if (ctx.i_line >= ctx.block.length) {
@@ -435,7 +537,8 @@ export class AsynchronousLogoInterpreter {
               }
               else if (ctx.parentesi === ctx.liv_funzione) {
                 this.get_function(ctx);
-                if (ctx.n_arg_trovati < N_MINIMO) {
+                // if (ctx.n_arg_trovati < N_MINIMO) {
+                if ((!zeroormore) && (ctx.n_arg_trovati < N_MINIMO)) {
                   throwError('e11', function_key);
                 }
                 else if ((!oneormore) && (ctx.n_arg_trovati > /*N_MASSIMO*/ ctx.n_arg_attesi)) {
@@ -507,100 +610,8 @@ export class AsynchronousLogoInterpreter {
                   && ((!oneormore) || (ctx.parentesi != ctx.liv_funzione))
                  )
              ) {
-  
-          if (ctx.funzione.type === CellType.SFUN) {
-            // console.log('eseguo FUNZIONE', ctx.funzione);
-            var values = this.get_values(ctx);
-            // console.log('VALUES', values);
-            var is_exec = false;
-            if (ctx.funzione.coreKey === 'TO') {
-              ctx.i_token -= 1;
-              definition.ref(values);
-              ctx.i_token = 1000;
-            }
-            else if (classes.includes(FunClass.EXEC)) {
-              if (is_function)
-                result = definition.ref(ctx, values);
-              else
-                definition.ref(ctx, values);
-              is_exec = true;
-            }
-            else if (classes.includes(FunClass.TXIN)) {
-              this.dispatch({ type: 'SET_KEYBOARD_TARGET', target: 'data' });
-              result = await definition.ref(this.getDataSource());
-              this.dispatch({ type: 'SET_KEYBOARD_TARGET', target: 'commands' });
-            }
-            else if (classes.includes(FunClass.TXOU)) {
-              definition.ref(this.getCurrentOutput(), values);
-            }
-            else if (classes.includes(FunClass.TURT)) {
-              // const activeWin = this.state.windows[this.state.activeWindowId];
-              const activeWin = this.getState().windows[this.getState().activeWindowId];
-              if (!activeWin)
-                console.log("ERRORE: Nessuna finestra grafica attiva.");
-              let turtleStroke: boolean = (turtleStrokes.includes(ctx.funzione.coreKey));
-              var newTurtleState: TurtleState;
-              var drawingCommand: DrawingCommand;
-              if (turtleStroke) {
-                [ newTurtleState, drawingCommand ] = definition.ref(values, activeWin.turtleState);
-                // console.log('turtleStroke', newTurtleState, drawingCommand);
-              } else {
-                if (is_function) {
-                  result = definition.ref(values, activeWin.turtleState);
-                }
-                else {
-                  newTurtleState = definition.ref(values, activeWin.turtleState);
-                  // console.log('No turtleStroke', newTurtleState);
-                }
-              }
-              // è da aggiungere un'operazione sul canvas
-              if (turtleStroke) { 
-                // console.log('drawingCommand', drawingCommand);
-                this.dispatch({ 
-                  type: 'ADD_DRAWING_COMMAND', 
-                  windowId: this.getState().activeWindowId,
-                  command: drawingCommand 
-                });
-              }
-              // Dispatch (Aggiornamento dello Stato Globale)
-              if (newTurtleState !== undefined) { // è stato calcolato un nuovo turtleState: va comunicato
-                // console.log('NEWSTATE', newTurtleState);
-                this.dispatch({ 
-                    type: 'UPDATE_TURTLE_STATE', 
-                    windowId: this.getState().activeWindowId,
-                    newState: newTurtleState 
-                });
-                activeWin.turtleState = newTurtleState;
-              }
-            }
-            else {
-              if (is_function) {
-                console.log('sf_call - from interpreter:', function_key);
-                result = definition.ref(values);
-              }
-              else {
-                console.log('sf_call - from interpreter:', function_key);
-                if (classes.includes(FunClass.ASYNC))
-                  await definition.ref(values);
-                else
-                  definition.ref(values);
-              }
-            }
-            if (!is_exec) {   // in alcuni casi, come REPEAT, sf_out viene anticipato
-              sf_out(ctx);
-            }
-            if (result !== null) {
-              push_arg(ctx, result);
-            }
-            // console.log('USCITO DA SFUN - ctx:', ctx);
-          }
-          else if (ctx.funzione.type === CellType.UFUN) {
-            // console.log('evaluateToken UFUN', ctx.n_arg_trovati, ctx.n_arg_attesi);
-            uf_call(ctx);
-            ctx = contesti[liv_contesto];
-          }
+          result = await this.executeFunction(ctx);
           if (is_stop) {
-            // console.log('is_stop');
             uf_ret(ctx);
             ctx = contesti[liv_contesto];
             if (risultato) {

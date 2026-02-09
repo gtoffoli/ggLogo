@@ -13,6 +13,7 @@ body {
   min-height: 100vh;
   position: relative;
 }
+/*
 body::before {
   content: "";
   position: fixed;
@@ -25,6 +26,7 @@ body::before {
   animation: slide 30s linear infinite;
   pointer-events: none;
 }
+
 @keyframes slide {
   from {
     background-position: 0 0;
@@ -63,12 +65,14 @@ body::before {
 .bun-logo:hover {
   filter: drop-shadow(0 0 2em #fbf0dfaa);
 }
+
 .react-logo {
   animation: spin 20s linear infinite;
 }
 .react-logo:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
+
 @keyframes spin {
   from {
     transform: rotate(0);
@@ -77,6 +81,8 @@ body::before {
     transform: rotate(360deg);
   }
 }
+*/
+
 h1 {
   font-size: 3.2em;
   line-height: 1.1;

@@ -3,7 +3,7 @@
 // 251115 - added FunClass; added ref field to CommandDef
 
 
-import { _NOP, _ERROR, _WAIT, _STOP, _OUTPUT, _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
+import { _NOP, _ERROR, _TRACK, _UNTRACK, _WAIT, _STOP, _OUTPUT, _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
 import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _BUTFIRST, _BUTLAST, _COUNT, _ITEM, _WORDP, _LISTP } from './Structures';
 import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
 import { _NOT, _EQUALP, _NOTEQUALP } from './Logic';
@@ -163,8 +163,9 @@ export type ParamDef = {
 */
 export enum FunSignature {
 	FUNCTION = 1,	// primitive that outputs a result
-	ONEORMORE = 2,	// primitive with one or more arguments (max number undefined)
-  TOPLEVEL = 3, // IS_PR_TOP: can be executed only at top level
+	ZEROORMORE = 2,	// primitive with zero or more arguments (max number undefined)
+  ONEORMORE = 3,  // primitive with one or more arguments (max number undefined)
+  TOPLEVEL = 4, // IS_PR_TOP: can be executed only at top level
 }
 
 // codifica di classi di primitiva
@@ -584,6 +585,16 @@ export const CORE_DEFINITIONS = {
     signature: [FunSignature.FUNCTION],
     args: [],
     ref: _ERROR,
+  } as CommandDef,
+  TRACK: {
+    signature: [FunSignature.ZEROORMORE],
+    args: [{ name: "time", type: A_W_LW_S_L }],
+    ref: _TRACK,
+  } as CommandDef,
+  UNTRACK: {
+    signature: [FunSignature.ZEROORMORE],
+    args: [{ name: "time", type: A_W_LW_S_L }],
+    ref: _UNTRACK,
   } as CommandDef,
   NOP: {
     args: [],

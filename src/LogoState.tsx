@@ -3,7 +3,8 @@
 // 251101 - 2nd version: added DrawingCommand according to Gemini 251024
 
 
-export interface ShellLine {
+// Definisce l'interfaccia per una linea di output su Shell
+export type ShellLine {
   id: string;
   text: string;
   type: 'input' | 'output'  | 'error' | 'system';
@@ -38,13 +39,6 @@ export interface GraphicWindowState {
   canvasContext: any; // Aggiunto per l'associazione al DOM (vedi punto 3)
   backgroundRef: any;     // Aggiunto per l'associazione al DOM (vedi punto 3)
   foregroundRef: any;
-}
-
-// Definisce l'interfaccia per una linea di output su Shell
-export interface ShellLine {
-  id: string;
-  text: string;
-  lineType: 'input' | 'output' | 'error' | 'system';
 }
 
 // 2. Definisce lo Stato Globale dell'Interprete

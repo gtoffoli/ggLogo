@@ -49,7 +49,7 @@
     "e03": "posso fare $1 solo in una procedura",
     "e04": "non posso fare $1 in una procedura",
     "e05": "a $1 non piace $2 come ingresso",
-    "e06": "$2 è una primitiva",
+    "e06": "$2 è il nome di una primitiva o di una procedura",
     "e07": "$2 non ha abbastanza elementi",
     "e08": "non posso dividere per 0",
     "e09": "$2 è in pacchetto coperto",

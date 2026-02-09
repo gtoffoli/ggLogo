@@ -10,15 +10,10 @@ import './i18n';
 import { useTranslation } from 'react-i18next';
 import PanelContainer from './PanelContainer';
 import { useLocalization, LanguageCode } from './UseLocalization';
+import { ShellLine } from './LogoState';
 import { useLogoState } from './LogoStateContext';
 import { ShellSource , BufferSource } from './Streams';
 import { localizeTruthValues } from './Logic';
-
-// Definisci il tipo per i messaggi di input/output (History)
-type Message = {
-  type: 'input' | 'output' | 'error';
-  text: string;
-};
 
 // export var shared_dispatch: (action: any) => void;	// mirrors value in react state
 export var shared_langCode: LanguageCode; // mirrors value in react-i18next state
@@ -169,7 +164,8 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
 		style={{ display: 'block', flexGrow: 4 }}>
         {state.shellHistory.map((msg, index) => (
           <div key={index} style={{
-            color: msg.type === 'error' ? '#f00' : 
+            color: msg.type === 'error' ? '#f00' :
+                   msg.type === 'system' ? '#ff0' :
                    msg.type === 'input' ? '#aaa' : '#0f0' 
           }}>
             {msg.text}
