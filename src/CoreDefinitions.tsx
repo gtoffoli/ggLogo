@@ -612,7 +612,7 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
   OUTPUT: {
     classes: [FunClass.EXEC],
-    args: [{ name: "result", type: 'any' }],
+    args: [{ name: "result", type: null }],
     ref: _OUTPUT,
   } as CommandDef,
   REPEAT: {

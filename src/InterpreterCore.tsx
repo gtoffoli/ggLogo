@@ -166,3 +166,18 @@ export function calculateRight(state: TurtleState, angle: number): TurtleState {
   };
   return newState;
 }
+/*
+export function calculateRight(state: TurtleState, angle: number): TurtleState {
+  var newHeading = state.heading + angle;
+  if (newHeading >= 0)
+    newHeading = newHeading % 360;
+  else
+    while (newHeading < 0)
+      newHeading = newHeading + 360; 
+  var newState: TurtleState = { 
+    ...state, 
+    heading: newHeading
+  };
+  return newState;
+}
+*/

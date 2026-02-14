@@ -383,15 +383,18 @@ export function uf_ret(ctx: Context): void {
   --ctx.liv_procedura;
   */
   // esce da tutti i blocchi in procedura corrente
-  while (ctx.liv_esecuzione > 0) {
-    if (ctx.conto_parentesi > 0) break;
-    blk_out (ctx);
-  };
+  if (is_stop)
+    while (ctx.liv_esecuzione > 0) {
+      if (ctx.conto_parentesi > 0) break;
+      blk_out (ctx);
+    };
   // spurga le variabili argomento
   const n_parameters = pop_sc();  // numero delle variabili argomento
   poploc(ctx, n_parameters);      // spurgo delle variabili argomento
   is_stop = false;
-  ctx = pop_procedure_context();
+  // ctx = pop_procedure_context();
+  pop_procedure_context();
+  ctx = contesti[liv_contesto];
   f_out(ctx);
   console.log('uf_ret out', ctx.block.length, ctx);
 }
@@ -625,7 +628,8 @@ export function ini_valuta(ctx: Context): void {
 // delega a blk_in (richiamato da block_exec) l'inizializzazione di parecchi elementi
 function push_procedure_context(ctx: Context): void {
   console.log('push_procedure_context');
-  contesti.push(Object.assign({}, ctx)); // aggiungo una copia in cima
+  // contesti.push(Object.assign({}, ctx)); // aggiungo una copia in cima
+  contesti.push({ ...ctx }); // aggiungo una copia in cima
   liv_contesto += 1;
   var ctx: Context = contesti[liv_contesto]; // prendo riferimento alla copia e lo aggiorno
   ctx.id_contesto = contextType.CT_PROCEDURE;
@@ -636,9 +640,9 @@ function push_procedure_context(ctx: Context): void {
   ctx.funzione = null;
 }
 
-function pop_procedure_context(): Context {
+function pop_procedure_context(): void {
   console.log('pop_procedure_context');
   var ctx = contesti.pop();
   liv_contesto -= 1;
-  return contesti[liv_contesto];  
+  // return contesti[liv_contesto];  
 }

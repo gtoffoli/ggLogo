@@ -288,19 +288,21 @@ export class AsynchronousLogoInterpreter {
 
   // prende gli argomenti dallo stack dei valori e ne controlla la validità
   // function_key e arg_definitions sono variabili globali assegnate da get_function
-  private get_values(ctx: Context): any[] {
+  private get_values(ctx: Context, raw?: boolean): any[] {
     const n = ctx.n_arg_trovati;
     if (!n)
       return [];
     var raw_values: Cell[] = [];
-    var values: Cell[] = [];
-    var arg: Cell;
-    var checked_arg: Cell;
-    var definition; // vincoli sul valore di un argomento, dalla definizione della funzione
     for (var i=0; i<n; i++) { // svuota la cima dello stack dei valori
       raw_values.push(v_stack.pop());
     }
     raw_values.reverse(); // e rimette gli argomenti nell'odrdine giusto
+    if (raw)
+      return raw_values;
+    var values: Cell[] = [];
+    var arg: Cell;
+    var checked_arg: Cell;
+    var definition; // vincoli sul valore di un argomento, dalla definizione della funzione
     for (var i=0; i<n; i++) { // controlla la validità di ogni argomento
       arg = raw_values[i];
       definition = arg_definitions[Math.min(i, n-1)]; // tiene conto di argomenti in numero indefinito
@@ -313,8 +315,16 @@ export class AsynchronousLogoInterpreter {
     return values;
   }
 
-  private traceFunction(key: string, args: any[]): void {
-    var line = getByValue(key) + ' ' + nodeToString(args, false);
+  private traceFunction(key: string, liv_procedura: number, args?: any[]): void {
+    var line = getByValue(key)
+    if (args)
+      line = line + ' ' + nodeToString(args, false);
+      line = line + ' ' + liv_procedura + ' ' + liv_contesto + ' ' + contesti.length; 
+    this.getCurrentOutput().writeLine(line, 'system');
+  }
+
+  private traceReturn(cause: string): void {
+    var line = 'procedura termina ' + cause;
     this.getCurrentOutput().writeLine(line, 'system');
   }
 
@@ -324,8 +334,9 @@ export class AsynchronousLogoInterpreter {
       // console.log('eseguo FUNZIONE', ctx.funzione);
       var values = this.get_values(ctx);
       // console.log('VALUES', values);
-      if(is_traccia)
-        this.traceFunction(function_key, values);
+      if (is_traccia)
+        this.traceFunction(function_key, ctx.liv_procedura, values);
+        // this.traceFunction(function_key, values);
       var is_exec = false;
       if (ctx.funzione.coreKey === 'TO') {
         ctx.i_token -= 1;
@@ -410,12 +421,15 @@ export class AsynchronousLogoInterpreter {
     }
     else if (ctx.funzione.type === CellType.UFUN) {
       // console.log('evaluateToken UFUN', ctx.n_arg_trovati, ctx.n_arg_attesi);
+      if (is_traccia)
+        this.getCurrentOutput().writeLine(function_key, 'system');
       uf_call(ctx);
       ctx = contesti[liv_contesto];
     }
     return result;
   }
 
+  // si entra dopo ini_valuta: ctx.i_line = 0 , ctx.i_token = 0
   private async evaluateToken() {
     var ctx: Context;
     var numeric: number;
@@ -427,35 +441,28 @@ export class AsynchronousLogoInterpreter {
       ctx = contesti[liv_contesto];
       while (true) {
         ctx = contesti[liv_contesto];
-        if (ctx.i_line >= ctx.block.length) {
-          return;
-        }
-        // console.log('?????', ctx.block.length, ctx.block, ctx.i_line, ctx.i_token, ctx.liv_esecuzione, ctx.liv_procedura);
-        if (ctx.i_token >= ctx.block[ctx.i_line].length) {
-          ctx.i_line += 1;
-          ctx.i_token = 0; // 260131
-          if (ctx.i_line >= ctx.block.length) {
-            if (ctx.liv_esecuzione > 0) { // prima chiudo i blocchi interni
-              blk_out(ctx);
-              continue;
-            }
-            else if (ctx.liv_procedura > 0) { // poi chiudo le procedure
-              uf_ret(ctx);
-              ctx = contesti[liv_contesto];
-              continue;
-            }
-            else {
-              return;
-            }
+        if (ctx.i_line >= ctx.block.length) { // vedo se devo uscire da blocco o procedura
+          if (ctx.liv_esecuzione > 0) { // prima chiudo eventuale bloccho interno
+            blk_out(ctx);
+            continue; // potrebbe esserci qualche altro blocco da cui uscire
+          }
+          else if (ctx.liv_procedura > 0) { // chiudo eventuale procedura per fine del body
+            if (is_traccia)
+              this.traceReturn('dalla fine');
+            uf_ret(ctx);
+            continue; // ricadiamo dentro al blocco da cui è stata eseguita la procedura
           }
           else {
-            ctx.i_token = 0;
-            break;
+            return; // non c'è altro da fare; è richiesto un nuovo input
           }
         }
-        else
-          break;
+        else if (ctx.i_token >= ctx.block[ctx.i_line].length) {
+          ctx.i_line += 1;
+          ctx.i_token = 0; // 260131
+          continue; // proviamo a vedere se c'è una linea successiva
+        }
         AssertContesto(ctx);
+        break; // esce dal ciclo di uscita da blocchi e procedure per consumare nuovo token
       }
   
       cell = ctx.block[ctx.i_line][ctx.i_token];
@@ -464,7 +471,7 @@ export class AsynchronousLogoInterpreter {
       // console.log('token-0', mod_parola);
       // console.log('token-1', liv_contesto, ctx.block, ctx.i_line, ctx.i_token, cell, mod_parola);
       // console.log('token-2', ctx);
-      ctx.i_token += 1; // next token!!!
+      ctx.i_token += 1; // next token!!! (quello in corso di valutazione è già incell)
       coreKey = null;
       switch (cell.type) {
         case CellType.LIST:
@@ -612,6 +619,8 @@ export class AsynchronousLogoInterpreter {
              ) {
           result = await this.executeFunction(ctx);
           if (is_stop) {
+            if (is_traccia)
+              this.traceReturn('per stop o output');
             uf_ret(ctx);
             ctx = contesti[liv_contesto];
             if (risultato) {
