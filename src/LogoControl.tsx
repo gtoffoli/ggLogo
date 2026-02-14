@@ -357,6 +357,7 @@ export function uf_call(ctx: Context): void {
   is_stop = false;
   risultato = null;
   ctx.n_arg_attesi = ctx.n_arg_trovati = 0;
+  ctx.block = []; // delego a block_exec la creazione di un blocco = body
 
   ctx.val_verifica = null;
   ctx.conto_esegui = 0;

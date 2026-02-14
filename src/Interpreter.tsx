@@ -441,16 +441,19 @@ export class AsynchronousLogoInterpreter {
       ctx = contesti[liv_contesto];
       while (true) {
         ctx = contesti[liv_contesto];
-        if (ctx.i_line >= ctx.block.length) { // vedo se devo uscire da blocco o procedura
+        // prima di iniziare l'esecuzione del body, una procedura ha blocco vuoto
+        if ((ctx.liv_procedura > 0) && (ctx.block.length === 0)) {
+          if (is_traccia)
+            this.traceReturn('dalla fine');
+          uf_ret(ctx);
+          console.log('dopo uf_ret dalla fine', liv_contesto, contesti[liv_contesto]);
+          continue; // ricadiamo dentro al blocco da cui è stata eseguita la procedura
+        }
+        // vedo se devo uscire da un blocco
+        else if (ctx.i_line >= ctx.block.length) {
           if (ctx.liv_esecuzione > 0) { // prima chiudo eventuale bloccho interno
             blk_out(ctx);
             continue; // potrebbe esserci qualche altro blocco da cui uscire
-          }
-          else if (ctx.liv_procedura > 0) { // chiudo eventuale procedura per fine del body
-            if (is_traccia)
-              this.traceReturn('dalla fine');
-            uf_ret(ctx);
-            continue; // ricadiamo dentro al blocco da cui è stata eseguita la procedura
           }
           else {
             return; // non c'è altro da fare; è richiesto un nuovo input

@@ -40,6 +40,7 @@ export function _RT(values: any[], state: TurtleState): TurtleState {
 
 export function _LT(values: any[], state: TurtleState): TurtleState {
 	const angle: number = -(values[0].val);
+  console.log('function _LT', angle);
 	return calculateRight(state, angle);
 }
 
