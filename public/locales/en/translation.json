@@ -11,6 +11,8 @@
     "image": "Image",
     "clear": "Clear",
     "save": "Save..",
+    "export_png": "Export as PNG",
+    "export_svg": "Export as SVG",
     "print": "Print..",
     "file": "File",
     "new": "New",

@@ -9,6 +9,7 @@ import { useLogoDispatch, useLogoState } from './LogoStateContext';
 import './i18n';
 import { useTranslation } from 'react-i18next';
 import PanelContainer from './PanelContainer';
+import { DrawingCommand} from './LogoState';
 import { initialTurtleState } from './logoReducer';
 // ... importa DrawingCommand, GraphicWindowState, etc.
 
@@ -191,6 +192,45 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
     });
   };
 
+  const exportPNG = () => {
+    const canvas = backgroundRef.current;
+    if (!canvas) return;
+    // Crea un link temporaneo per il download
+    const link = document.createElement('a');
+    link.download = 'disegno-iperlogo.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  };
+
+  // const exportSVG = (width: number, height: number, commands: DrawingCommand[]) => {
+  const exportSVG = () => {
+    let width = 800;
+    let height = 800;
+    let commands = windowState.drawingCommands;
+    let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`;
+    svgContent += `<rect width="100%" height="100%" fill="white" />`; // Sfondo
+  
+    const centerX = width / 2;
+    const centerY = height / 2;
+    for (let i = 0; i < commands.length; i++) {
+      const cmd = commands[i];
+      if (cmd.type === 'LINE_TO' && i > 0) {
+        const prev = commands[i - 1];
+        svgContent += `<line x1="${prev.x + centerX}" y1="${prev.y + centerY}" 
+                             x2="${cmd.x + centerX}" y2="${cmd.y + centerY}" 
+                             stroke="${cmd.color}" stroke-width="1" />`;
+      }
+    };
+    svgContent += `</svg>`;
+    
+    const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = 'disegno-iperlogo.svg';
+    link.href = url;
+    link.click();
+  };
+
   // Menu per l'Area A (Canvas/Grafica)
   const menuA = [
   { label: t('menu.turtle'), submenu: [
@@ -199,7 +239,9 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
   ]},
   { label: t('menu.image'), submenu: [
     { label: t('menu.clear'), action: handleClearCanvas },
-    { label: t('menu.save'), action: () => alert('Salvataggio Canvas...') },
+    { label: t('menu.export_png'), action: exportPNG },
+    // { label: t('menu.export_svg'), action: exportSVG(800, 800, windowState.drawingCommands) },
+    { label: t('menu.export_svg'), action: exportSVG },
     { label: t('menu.print'), action: () => alert('Stampa Canvas...') },
   ]},
   ];

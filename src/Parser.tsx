@@ -293,14 +293,11 @@ export function nodeToString(node: Cell | Cell[], showBrackets: boolean): string
       output += localizeBoolean(node.val);
     else if (node.type === CellType.LIST) {
       if (showBrackets)
-        output += '[';
-      /*
-      for (var i=0; i<node.val.length; i++)
-        output += nodeToString(node.val[i]);
-      */
-      output += nodeToString(node.val, showBrackets);
+        output += ' [';
+      // output += nodeToString(node.val, showBrackets);
+      output += nodeToString(node.val, true);
       if (showBrackets)
-        output += ']';
+        output += '] ';
     }
     else {
       value = node.val.toString();

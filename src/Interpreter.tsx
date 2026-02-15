@@ -317,9 +317,11 @@ export class AsynchronousLogoInterpreter {
 
   private traceFunction(key: string, liv_procedura: number, args?: any[]): void {
     var line = getByValue(key)
-    if (args)
-      line = line + ' ' + nodeToString(args, false);
-      line = line + ' ' + liv_procedura + ' ' + liv_contesto + ' ' + contesti.length; 
+    if (args) {
+      // line = line + ' ' + nodeToString(args, false);
+      line = line + ' ' + nodeToString(args, true);
+    }
+    // line = line + ' ' + liv_procedura + ' ' + liv_contesto + ' ' + contesti.length; 
     this.getCurrentOutput().writeLine(line, 'system');
   }
 

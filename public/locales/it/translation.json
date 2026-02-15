@@ -11,6 +11,8 @@
     "image": "Immagine",
     "clear": "Pulisci",
     "save": "Salva..",
+    "export_png": "Esporta come PNG",
+    "export_svg": "Esporta come SVG",
     "print": "Stampa..",
     "file": "File",
     "new": "Nuovo",
