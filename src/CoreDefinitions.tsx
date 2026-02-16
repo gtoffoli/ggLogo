@@ -11,6 +11,7 @@ import { _NUMBERP, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _LESSP
 import { _HOME, _CS, _FD, _BK, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING } from './InterpreterCore';
 import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './InterpreterCore';
 import { _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR } from './Communication';
+import { _TIME, _SETTIME } from './TimeMusic';
 
 export const SEPARATORS = {
 	// "\t\r\":()+-*/^<=> "
@@ -599,6 +600,14 @@ export const CORE_DEFINITIONS = {
   NOP: {
     args: [],
     ref: _NOP,
+  } as CommandDef,
+  TIME: {
+    signature: [FunSignature.FUNCTION],
+    ref: _TIME,
+  } as CommandDef,
+  SETTIME: {
+    args: [{ name: "time", type: A_N }],
+    ref: _SETTIME,
   } as CommandDef,
   WAIT: {
     classes: [FunClass.ASYNC],

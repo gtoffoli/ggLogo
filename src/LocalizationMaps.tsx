@@ -23,6 +23,7 @@ export const IT_MAP: LanguageMap = {
   "ASDIR": "SETHEADING",
   "ASSEGNA": "MAKE",
   "ASPETTA": "WAIT",
+  "ASTEMPO": "SETTIME",
   "AVANTI": "FD",
   "COLORE": "PENCOLOR",
   "COLOREPENNA": "PENCOLOR",
@@ -113,6 +114,7 @@ export const IT_MAP: LanguageMap = {
   "STOP": "STOP",
   "TANA": "HOME",
   "TARTA?": "SHOWNP",
+  "TEMPO": "TIME",
   "TESTO": "TEXT",
   "TRACCIA": "TRACK",
   "VERIFICA": "TEST",
@@ -121,6 +123,10 @@ export const IT_MAP: LanguageMap = {
 
   "FALSO": "FALSE",
   "VERO": "TRUE",
+
+  "MURO": "FENCE",
+  "FINESTRA": "WINDOW",
+  "CIRCOLARE": "WRAP",
 };
 
 // Mappa per l'Inglese
@@ -204,6 +210,7 @@ export const EN_MAP: LanguageMap = {
   "REPCOUNT": "REPCOUNT",
   "SENTENCE": "SENTENCE",
   "SETHEADING": "SETHEADING",
+  "SETTIME": "SETTIME",
   "SHOW": "SHOW",
   "SHOWNP": "SHOWNP",
   "SHOWN?": "SHOWNP",
@@ -213,6 +220,7 @@ export const EN_MAP: LanguageMap = {
   "STOP": "STOP",
   "SUM": "SUM",
   "TEST": "TEST",
+  "TIME": "TIME",
   "TRACK": "TRACK",
   "TYPE": "TYPE",
   "UNTRACK": "UNTRACK",
@@ -226,6 +234,10 @@ export const EN_MAP: LanguageMap = {
 
   "FALSE": "FALSE",
   "TRUE": "TRUE",
+
+  "FENCE": "FENCE",
+  "WINDOW": "WINDOW",
+  "WRAP": "WRAP",
 };
 
 export const LANGUAGE_MAPS: Record<string, LanguageMap> = {
