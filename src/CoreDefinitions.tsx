@@ -8,8 +8,9 @@ import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _BUTFIRST, _BUTLA
 import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
 import { _NOT, _EQUALP, _NOTEQUALP } from './Logic';
 import { _NUMBERP, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
-import { _HOME, _CS, _FD, _BK, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING } from './InterpreterCore';
-import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './InterpreterCore';
+import { _HOME, _CS, _WINDOW, _FENCE, _WRAP, _SETSCREEN, _SCREEN, _SETSCRUNCH, _SCRUNCH } from './InterpreterCore';
+import { _FD, _BK, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING } from './InterpreterCore';
+import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _PENSIZE, _SETPENSIZE, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './InterpreterCore';
 import { _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR } from './Communication';
 import { _TIME, _SETTIME } from './TimeMusic';
 
@@ -223,6 +224,31 @@ export const turtleStrokes = ['CS', 'FD', 'BK',];
 // Mappa che contiene tutte le definizioni (la LOGICA del tuo interprete)
 export const CORE_DEFINITIONS = {
   // --- Comandi LOGO ---
+  WINDOW: {
+    ref: _WINDOW,
+  } as CommandDef,
+  FENCE: {
+    ref: _FENCE,
+  } as CommandDef,
+  WRAP: {
+    ref: _WRAP,
+  } as CommandDef,
+  SETSCREEN: {
+    args: [{ name: "campo", type: A_W_S }],
+    ref: _SETSCREEN,
+  } as CommandDef,
+  SCREEN: {
+    signature: [FunSignature.FUNCTION],
+    ref: _SCREEN,
+  } as CommandDef,
+  SETSCRUNCH: {
+    args: [{ name: "scala", type: A_LN }],
+    ref: _SETSCRUNCH,
+  } as CommandDef,
+  SCRUNCH: {
+    signature: [FunSignature.FUNCTION],
+    ref: _SCRUNCH,
+  } as CommandDef,
   HOME: {
     classes: [FunClass.TURT],
     ref: _HOME,
@@ -273,6 +299,16 @@ export const CORE_DEFINITIONS = {
     classes: [FunClass.TURT],
     signature: [FunSignature.FUNCTION],
     ref: _PENDOWNP,
+  } as CommandDef,
+  PENSIZE: {
+    classes: [FunClass.TURT],
+    signature: [FunSignature.FUNCTION],
+    ref: _PENSIZE,
+  } as CommandDef,
+  SETPENSIZE: {
+    classes: [FunClass.TURT],
+    args: [{ name: "colore", type: A_LN_N_L }],
+    ref: _SETPENSIZE,
   } as CommandDef,
   PENMODE: {
     classes: [FunClass.TURT],

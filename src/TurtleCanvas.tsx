@@ -124,7 +124,8 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
             ctx.beginPath();
             ctx.moveTo(prevX + centerX, centerY + prevY);
             ctx.lineTo(x + centerX, centerY + y);
-            ctx.lineWidth = 1;
+            // ctx.lineWidth = 1;
+            ctx.lineWidth = windowState.turtleState.penSize;
             ctx.strokeStyle = color;
             ctx.stroke();
           } else {

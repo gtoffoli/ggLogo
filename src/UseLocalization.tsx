@@ -49,7 +49,7 @@ export function keywordResolver(keyword: string): string {
   const coreKey: string | undefined = activeMap[keyword.toUpperCase()];
   console.log('keywordResolver', keyword, coreKey);
   // Se non trovato, potrebbe essere una Keyword non tradotta o non valida
-  return (coreKey) ? coreKey : keyword;
+  return (coreKey) ? coreKey : undefined;
 }
 
 export function commandResolver(commandName: string): CoreDefinitionKeys {

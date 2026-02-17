@@ -31,7 +31,7 @@ export var userProcedures: Record<string, ProcedureDef> = {};
 export var mod_parola: ModParola;// modalita' di esecuzione di una parola LOGO
 var next_type: CellType | null;
 var next_val: any;
-var function_key = null;
+export var function_key = null;
 var definition: CommandDef | ProcedureDef | null = null;  // definition of system function (primitive) or of user function (procedure)
 var arg_definitions: any[] = [];
 var classes = [];    // info related to primitive classificaztion

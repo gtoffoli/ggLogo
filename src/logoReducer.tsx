@@ -13,6 +13,7 @@ export const initialTurtleState: TurtleState = {
     heading: 0, 
     penDown: true, 
     penColor: '#000000',
+    penSize: 1,
     penMode: 'PAINT',
     visible: true,
 };

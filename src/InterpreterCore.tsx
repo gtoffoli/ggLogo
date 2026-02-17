@@ -5,7 +5,11 @@
 import { CellType, Cell, CommandDef } from './CoreDefinitions';
 import { TurtleState, DrawingCommand } from './LogoState';
 import { initialTurtleState } from './logoReducer';
+import { keywordResolver, getByValue } from './UseLocalization';
+import { throwError, function_key } from './Interpreter';
 
+const screenModes = ['OPEN', 'CLOSED', 'WRAP'];
+var screenMode: string = 'WRAP';
 
 export function _CS(values: any[], state: TurtleState): { newState: TurtleState | null, command: DrawingCommand | null } {
 	console.log('function _CS');
@@ -19,6 +23,37 @@ export function _HOME(values: any[], state: TurtleState): TurtleState {
     y: 0,
     heading:0
   };
+}
+
+export function _WINDOW(values: any[]): void {
+  screenMode = 'OPEN';
+}
+
+export function _FENCE(values: any[]): void {
+  screenMode = 'CLOSED';
+}
+
+export function _WRAP(values: any[]): void {
+  screenMode = 'WRAP';
+}
+
+export function _SETSCREEN(values: any[]): void {
+  const foundKey = keywordResolver(values[0].val);
+  if ((foundKey) && (screenModes.includes(foundKey)))
+    screenMode = foundKey;
+  else
+    throwError('e05', function_key, values[0].val);
+}
+
+export function _SCREEN(values: any[]): Cell {
+  return { type: CellType.WORD, val: getByValue(screenMode)}
+}
+
+export function _SETSCRUNCH(values: any[]): void {
+}
+
+export function _SCRUNCH(values: any[]): Cell {
+  return { type: CellType.LIST, val: [{ type: CellType.NUMBER, val: 1}, { type: CellType.NUMBER, val: 1}] }
 }
 
 export function _FD(values: any[], state: TurtleState): TurtleState {
@@ -75,12 +110,26 @@ export function _HEADING(values: any[], state: TurtleState): Cell {
 export function _PENCOLOR(values: any[], state: TurtleState): Cell {
 	return { type: CellType.WORD, val: state.penColor}
 }
-
 export function _SETPENCOLOR(values: any[], state: TurtleState): TurtleState | null {
 	const color: string = values[0].val;
     return { 
       ...state, 
       penColor: color
+    };
+}
+
+export function _PENSIZE(values: any[], state: TurtleState): Cell {
+  const cell: Cell = { type: CellType.NUMBER, val: state.penSize};
+  return { type: CellType.LIST, val: [cell, cell] }
+}
+export function _SETPENSIZE(values: any[], state: TurtleState): TurtleState | null {
+  var arg: Cell = values[0];
+  if (arg.type === CellType.LIST)
+    arg = (arg.val)[0];
+  const size: number = arg.val;
+    return { 
+      ...state, 
+      penSize: size
     };
 }
 
