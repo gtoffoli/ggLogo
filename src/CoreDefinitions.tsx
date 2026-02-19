@@ -7,7 +7,7 @@ import { _NOP, _ERROR, _TRACK, _UNTRACK, _WAIT, _STOP, _OUTPUT, _REPEAT, _REPCOU
 import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _BUTFIRST, _BUTLAST, _COUNT, _ITEM, _WORDP, _LISTP } from './Structures';
 import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
 import { _NOT, _EQUALP, _NOTEQUALP } from './Logic';
-import { _NUMBERP, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
+import { _NUMBERP, _ABS, _INT, _ROUND, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
 import { _HOME, _CS, _WINDOW, _FENCE, _WRAP, _SETSCREEN, _SCREEN, _SETSCRUNCH, _SCRUNCH } from './InterpreterCore';
 import { _FD, _BK, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING } from './InterpreterCore';
 import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _PENSIZE, _SETPENSIZE, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './InterpreterCore';
@@ -172,14 +172,15 @@ export enum FunSignature {
 
 // codifica di classi di primitiva
 export enum FunClass {
-	TURT = 1,	// IS_PR_TARTA: turtle function
-	ASYNC = 2,
-	PROC = 3,	// IS_PR_PROC: can be executed only inside a procedure
+  CANVAS = 1, // function related to the GraphicWindowState
+  TURT = 2,	// IS_PR_TARTA: turtle function
+  ASYNC = 3,
   TXIN = 4, // IS_PR_SCRIVI: writes on screen or ..
-	TXOU = 5,	// IS_PR_SCRIVI: reads from keyboard or ..
-	EXEC = 6,	// IS_PR_ESEGUI: execution control
-	DEF = 7,	// IS_PR_DEF: Variable or procedure definition
-	OPER = 8, // infix operator
+  TXOU = 5,	// IS_PR_SCRIVI: reads from keyboard or ..
+  EXEC = 6,	// IS_PR_ESEGUI: execution control
+  DEF = 7,	// IS_PR_DEF: Variable or procedure definition
+  // PROC = 8, // IS_PR_PROC: can be executed only inside a procedure
+  // OPER = 9, // infix operator
 }
 
 // codifica di bit in descrittore di argomento a SFUN (from IperLogo)
@@ -190,9 +191,10 @@ export enum Arg {
   NUMERO = 8, // number
   LISTAPAR = 16, // list of words
   LISTANUM = 32, // list of numbers
-  STRINGA = 64, // string of chars
-  ARRAY  = 128 , // array
-  NOMEARC = 256, // file name
+  COLORE = 64, // RGB color
+  STRINGA = 128, // string of chars
+  ARRAY  = 256 , // array
+  NOMEARC = 512, // file name
 }
 
 // alias e aggregazioni di bit in descrittore di argomento a SFUN (from IperLogo)
@@ -242,10 +244,12 @@ export const CORE_DEFINITIONS = {
     ref: _SCREEN,
   } as CommandDef,
   SETSCRUNCH: {
+    classes: [FunClass.CANVAS],
     args: [{ name: "scala", type: A_LN }],
     ref: _SETSCRUNCH,
   } as CommandDef,
   SCRUNCH: {
+    classes: [FunClass.CANVAS],
     signature: [FunSignature.FUNCTION],
     ref: _SCRUNCH,
   } as CommandDef,
@@ -284,7 +288,7 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
   SETPENCOLOR: {
     classes: [FunClass.TURT],
-    args: [{ name: "colore", type: A_W_S }],
+    args: [{ name: "colore", type: Arg.COLORE }],
     ref: _SETPENCOLOR,
   } as CommandDef,
   PENUP: {
@@ -502,10 +506,20 @@ export const CORE_DEFINITIONS = {
     args: [{ name: "arg", type: null }],
     ref: _NUMBERP,
   } as CommandDef,
-  'SIGN': {
+  'ABS': {
     signature: [FunSignature.FUNCTION],
     args: [{ name: "arg", type: A_N }],
-    ref: _SUM,
+    ref: _ABS,
+  } as CommandDef,
+  'INT': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg", type: A_N }],
+    ref: _INT,
+  } as CommandDef,
+  'ROUND': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg", type: A_N }],
+    ref: _ROUND,
   } as CommandDef,
   'MINUS': {
     signature: [FunSignature.FUNCTION],

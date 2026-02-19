@@ -5,8 +5,9 @@
 import { CellType, Cell, CommandDef } from './CoreDefinitions';
 import { TurtleState, DrawingCommand } from './LogoState';
 import { initialTurtleState } from './logoReducer';
-import { keywordResolver, getByValue } from './UseLocalization';
+import { keywordResolver, getByValue, colorResolver } from './UseLocalization';
 import { throwError, function_key } from './Interpreter';
+import { nodeToString } from './Parser';
 
 const screenModes = ['OPEN', 'CLOSED', 'WRAP'];
 var screenMode: string = 'WRAP';
@@ -105,6 +106,29 @@ export function _SETHEADING(values: any[], state: TurtleState): TurtleState {
 }
 export function _HEADING(values: any[], state: TurtleState): Cell {
   return { type: CellType.NUMBER, val: state.heading }
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+  // Converte ogni componente in esadecimale e garantisce due cifre (padStart)
+  const toHex = (c) => c.toString(16).padStart(2, '0');
+  // Assicura che i valori siano numeri interi tra 0 e 255
+  const red = Math.max(0, Math.min(255, Math.round(r)));
+  const green = Math.max(0, Math.min(255, Math.round(g)));
+  const blue = Math.max(0, Math.min(255, Math.round(b))); 
+  // Combina i valori con il simbolo #
+  return `#${toHex(red)}${toHex(green)}${toHex(blue)}`;
+}
+export function checkFormatColor(arg: Cell, functionKey: string): string {
+  if (arg.type === CellType.WORD)
+    return { type: CellType.WORD, val: colorResolver(arg.val) }
+  else if (arg.type === CellType.LIST) {
+    var triple = arg.val.map((n: Cell) => n.val);
+    if ((triple.length === 3) && (triple.every(num => (!isNaN(num)) && (num >= 0)))) {
+      triple = triple.map((n) => parseFloat(n));
+      return { type: CellType.WORD, val: rgbToHex(triple[0], triple[1], triple[2]) }
+    }
+  }
+  throwError('e05', functionKey, nodeToString(arg, true));
 }
 
 export function _PENCOLOR(values: any[], state: TurtleState): Cell {

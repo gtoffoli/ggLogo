@@ -10,6 +10,18 @@ export function _NUMBERP(args: any[]): Cell {
   return { type: CellType.BOOLEAN, val: numberp(args[0]) };
 }
 
+export function _ABS(values: any[]): Cell {
+  return { type: CellType.NUMBER, val: Math.abs(values[0].val) };
+}
+
+export function _INT(values: any[]): Cell {
+  return { type: CellType.NUMBER, val: Math.trunc(values[0].val) };
+}
+
+export function _ROUND(values: any[]): Cell {
+  return { type: CellType.NUMBER, val: Math.round(values[0].val) };
+}
+
 export function _SIGN(values: any[]): Cell {
 	var sign = 0;
 	if (values[0].val < 0) sign = -1;

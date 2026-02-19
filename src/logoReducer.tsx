@@ -32,7 +32,8 @@ const initialWindowState: GraphicWindowState = {
 export const initialLogoState: LogoGlobalState = {
     windows: { "TARTA": initialWindowState },
     activeWindowId: "TARTA",
-    shellHistory: [{ id: crypto.randomUUID(), lineType: 'output', text: "Wellcome in the LOGO Interpreter!\n" }],
+    // shellHistory: [{ id: crypto.randomUUID(), lineType: 'output', text: "Wellcome in the LOGO Interpreter!\n" }],
+    shellHistory: [],
     echoInput: true,
     keyboardTarget: 'commands',
     editorContent: '',

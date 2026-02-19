@@ -25,6 +25,7 @@ import { localizedTruthValues, normalizeBoolean } from './Logic';
 import { InputSource, OutputChannel } from './Streams';
 import { ShellSource, ShellOutput, InteractiveData } from './Streams';
 import { keywordResolver, commandResolver } from './UseLocalization';
+import { checkFormatColor } from './InterpreterCore';
 
 export var globalVariables: Record<string, any> = {};
 export var userProcedures: Record<string, ProcedureDef> = {};
@@ -268,6 +269,9 @@ export class AsynchronousLogoInterpreter {
         case Arg.VEROFALSO:
           if (arg_type === CellType.BOOLEAN)
             return arg;
+          break;
+        case Arg.COLORE:
+            return checkFormatColor(arg, function_key);
           break;
         case Arg.PAROLA:
         case Arg.STRINGA:

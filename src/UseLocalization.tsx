@@ -5,7 +5,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { isSeparator, CORE_DEFINITIONS, CommandDef, ParamDef } from './CoreDefinitions';
-import { LANGUAGE_MAPS, LanguageMap, CoreDefinitionKeys } from './LocalizationMaps';
+import { LANGUAGE_MAPS, LanguageMap, CoreDefinitionKeys, COLOR_MAPS } from './LocalizationMaps';
 
 export type LanguageCode = keyof typeof LANGUAGE_MAPS;
 
@@ -50,6 +50,14 @@ export function keywordResolver(keyword: string): string {
   console.log('keywordResolver', keyword, coreKey);
   // Se non trovato, potrebbe essere una Keyword non tradotta o non valida
   return (coreKey) ? coreKey : undefined;
+}
+
+export function colorResolver(keyword: string): string {
+  // Cerca la keyword all'interno della mappa linguistica attiva
+  const activeMap = COLOR_MAPS[shared_langCode];
+  const coreKey: string | undefined = activeMap[keyword.toLowerCase()];
+  // Se non trovato, potrebbe essere una Keyword non tradotta o non valida
+  return (coreKey) ? coreKey : keyword;
 }
 
 export function commandResolver(commandName: string): CoreDefinitionKeys {

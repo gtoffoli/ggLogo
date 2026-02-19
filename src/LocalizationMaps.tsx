@@ -18,6 +18,7 @@ export const IT_MAP: LanguageMap = {
   // Puoi includere sia i nomi abbreviati che quelli completi se vuoi
   "A": "FD",
   "ALTRIMENTI": "IFFALSE",
+  "ARRO": "ROUND",
   "AS": "MAKE",
   "ASCAMPO": "SETSCREEN",
   "ASCOLPENNA": "SETPENCOLOR",
@@ -26,6 +27,7 @@ export const IT_MAP: LanguageMap = {
   "ASSEGNA": "MAKE",
   "ASPETTA": "WAIT",
   "ASSCALA": "SETSCRUNCH",
+  "ASSO": "ABS",
   "ASTEMPO": "SETTIME",
   "ASTRATTOPENNA": "SETPENSIZE",
   "AVANTI": "FD",
@@ -55,6 +57,7 @@ export const IT_MAP: LanguageMap = {
   "I": "BK",
   "INDIETRO": "BK",
   "INPRI": "FPUT",
+  "INT": "INT",
   "INULT": "LPUT",
   "LEGGICAR": "READCHAR",
   "LEGGILISTA": "READLIST",
@@ -140,6 +143,7 @@ export const IT_MAP: LanguageMap = {
 
 // Mappa per l'Inglese
 export const EN_MAP: LanguageMap = {
+  "ABS": "ABS",
   "CLEARSCREEN": "CS",
   "CS": "CS",
   "HOME": "HOME",
@@ -186,6 +190,8 @@ export const EN_MAP: LanguageMap = {
   "IFELSE": "IFELSE",
   "IFFALSE": "IFFALSE",
   "IFTRUE": "IFTRUE",
+  "INTEGER": "INT",
+  "INT": "INT",
   "INTEGER_QUOTIENT": "INTEGER_QUOTIENT",
   "ITEM": "ITEM",
   "LAST": "LAST",
@@ -220,6 +226,7 @@ export const EN_MAP: LanguageMap = {
   "READWORD": "READWORD",
   "REMAINDER": "REMAINDER",
   "REPCOUNT": "REPCOUNT",
+  "ROUND": "ROUND",
   "SCREEN": "SCREEN",
   "SCRUNCH": "SCRUNCH",
   "SENTENCE": "SENTENCE",
@@ -263,3 +270,54 @@ export const LANGUAGE_MAPS: Record<string, LanguageMap> = {
   'en': EN_MAP,
   // ... altre lingue ...
 };
+
+// Mappa per l'Inglese
+export const EN_COLORS: LanguageMap = {
+  "black": "black",
+  "blue": "blue",
+  "lime": "lime",
+  "cyan": "cyan",
+  "red": "red",
+  "magenta": "magenta",
+  "yellow": "yellow",
+  "white": "white",
+  "brown": "brown",
+  "tan": "tan",
+  "green": "green",
+  "aqua": "aqua",
+  "salmon": "salmon",
+  "purple": "purple",
+  "orange": "orange",
+  "gray": "gray",
+}
+
+
+// Mappa per l'Italiano
+export const IT_COLORS: LanguageMap = {
+  "nero": "black",
+  "blu": "blue",
+  "verde": "green",
+  "verdechiaro": "lime",
+  "celeste": "cyan",
+  "azzurro": "cyan",
+  "rosso": "red",
+  "magenta": "magenta",
+  "giallo": "yellow",
+  "bianco": "white",
+  "marrone": "brown",
+  "beige": "tan",
+  "cachi": "tan",
+  "verdescuro": "darkgreen",
+  "acqua": "aqua",
+  "salmone": "salmon",
+  "viola": "purple",
+  "arancio": "orange",
+  "grigio": "gray",
+}
+
+export const COLOR_MAPS: Record<string, string> = {
+  'it': IT_COLORS,
+  'en': EN_COLORS,
+  // ... altre lingue ...
+};
+
