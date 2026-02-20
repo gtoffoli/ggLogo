@@ -22,6 +22,8 @@ const initialWindowState: GraphicWindowState = {
     windowId: "TARTA",
     name: "TARTA",
     isActive: true,
+    scaling: [1, 1],
+    backgroundColor: '#fffff0', // Basato sul parametro BACKGROUNDCOLOR
     turtleState: initialTurtleState,
     drawingCommands: [],
     canvasContext: null, // Aggiunto per l'associazione al DOM (vedi punto 3)
@@ -42,9 +44,10 @@ export const initialLogoState: LogoGlobalState = {
 // Tipi di Azione
 type LogoAction = 
     | { type: 'DUMMY_STATE_CHANGE' }
+    | { type: 'REGISTER_CANVAS', windowId: string, context: CanvasRenderingContext2D, background: HTMLCanvasElement, foreground: HTMLCanvasElement  }
+    | { type: 'UPDATE_WINDOW_STATE', windowId: string, newState: GraphicWindowState }
     | { type: 'UPDATE_TURTLE_STATE', windowId: string, newState: Partial<TurtleState> }
     | { type: 'ADD_DRAWING_COMMAND', windowId: string, command: DrawingCommand }
-    | { type: 'REGISTER_CANVAS', windowId: string, context: CanvasRenderingContext2D, background: HTMLCanvasElement, foreground: HTMLCanvasElement  }
     | { type: 'CLEAR_SHELL_HISTORY' }
     | { type: 'TOGGLE_INPUT_ECHO' }
     | { type: 'UPDATE_CURRENT_OUTPUT_LINE', text: string }
@@ -60,6 +63,16 @@ export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlo
     switch (action.type) {
         case 'DUMMY_STATE_CHANGE':
           return state;
+        case 'UPDATE_WINDOW_STATE':
+            console.log('UPDATE_WINDOW_STATE', action.windowId);
+            return {
+                ...state,
+                windows: {
+                    ...state.windows,
+                    [action.windowId]:
+                        action.newState
+                }
+            };
         case 'UPDATE_TURTLE_STATE':
             console.log('UPDATE_TURTLE_STATE', action.windowId);
             return {

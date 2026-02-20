@@ -3,7 +3,7 @@
 // 251101 readded, after erroneous removal
 
 import { CellType, Cell, CommandDef } from './CoreDefinitions';
-import { TurtleState, DrawingCommand } from './LogoState';
+import { GraphicWindowState, TurtleState, DrawingCommand } from './LogoState';
 import { initialTurtleState } from './logoReducer';
 import { keywordResolver, getByValue, colorResolver } from './UseLocalization';
 import { throwError, function_key } from './Interpreter';
@@ -11,6 +11,31 @@ import { nodeToString } from './Parser';
 
 const screenModes = ['OPEN', 'CLOSED', 'WRAP'];
 var screenMode: string = 'WRAP';
+
+export function _SCREENSIZE(values: any[]): Cell {
+  return { type: CellType.LIST, val: [{ type: CellType.NUMBER, val: window.screen.width}, { type: CellType.NUMBER, val: window.screen.height}] }
+}
+
+export function _CANVASSIZE(values: any[], state: GraphicWindowState): Cell {
+  const canvas = state.backgroundRef;
+  const dx = parseInt(canvas.width);
+  const dy = parseInt(canvas.height);
+  console.log('_CANVASSIZE', canvas);
+  return { type: CellType.LIST, val: [{ type: CellType.NUMBER, val: dx}, { type: CellType.NUMBER, val: dy}] }
+}
+
+export function _SCRUNCH(values: any[], state: GraphicWindowState): Cell {
+  const xScale = state.scaling[0];
+  const yScale = state.scaling[1];
+  return { type: CellType.LIST, val: [{ type: CellType.NUMBER, val: xScale}, { type: CellType.NUMBER, val: yScale}] }
+}
+export function _SETSCRUNCH(values: any[], state: GraphicWindowState): GraphicWindowState {
+  const scale = values[0].val.map((n: Cell) => n.val);
+  return { 
+    ...state, 
+    scaling: scale
+  };
+}
 
 export function _CS(values: any[], state: TurtleState): { newState: TurtleState | null, command: DrawingCommand | null } {
 	console.log('function _CS');
@@ -48,13 +73,6 @@ export function _SETSCREEN(values: any[]): void {
 
 export function _SCREEN(values: any[]): Cell {
   return { type: CellType.WORD, val: getByValue(screenMode)}
-}
-
-export function _SETSCRUNCH(values: any[]): void {
-}
-
-export function _SCRUNCH(values: any[]): Cell {
-  return { type: CellType.LIST, val: [{ type: CellType.NUMBER, val: 1}, { type: CellType.NUMBER, val: 1}] }
 }
 
 export function _FD(values: any[], state: TurtleState): TurtleState {
@@ -129,6 +147,18 @@ export function checkFormatColor(arg: Cell, functionKey: string): string {
     }
   }
   throwError('e05', functionKey, nodeToString(arg, true));
+}
+
+
+export function _BACKGROUNDCOLOR(values: any[], state: GraphicWindowState): Cell {
+  return { type: CellType.WORD, val: state.backgroundColor}
+}
+export function _SETBACKGROUNDCOLOR(values: any[], state: GraphicWindowState): GraphicWindowState {
+  const color = values[0].val;
+  return { 
+    ...state, 
+    backgroundColor: color
+  };
 }
 
 export function _PENCOLOR(values: any[], state: TurtleState): Cell {

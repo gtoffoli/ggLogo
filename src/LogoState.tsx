@@ -33,6 +33,8 @@ export interface GraphicWindowState {
   windowId: string; // ID univoco, es. "TARTA" o "finestra2"
   name: string;
   isActive: boolean; // Indica se è la finestra correntemente in primo piano
+  scaling: number[]; // DX e DY
+  backgroundColor: string; // Basato sul parametro BACKGROUNDCOLOR
   turtleState: TurtleState;
   // Qui si potrebbero aggiungere le chiamate di disegno effettuate, per il rendering.
   // drawingCommands: any[]; 

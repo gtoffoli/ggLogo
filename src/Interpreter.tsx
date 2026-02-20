@@ -364,7 +364,27 @@ export class AsynchronousLogoInterpreter {
       else if (classes.includes(FunClass.TXOU)) {
         definition.ref(this.getCurrentOutput(), values);
       }
-      else if (classes.includes(FunClass.TURT)) {
+      else if (classes.includes(FunClass.CANVAS)) {
+        const activeWin = this.getState().windows[this.getState().activeWindowId];
+        var newWindowState: GraphicWindowState;
+        if (is_function) {
+          result = definition.ref(values, activeWin);
+        }
+        else {
+          newWindowState = definition.ref(values, activeWin);
+        }
+        // Dispatch (Aggiornamento dello Stato Globale)
+        if (newWindowState !== undefined) { // è stato calcolato un nuovo windowState: va comunicato
+          console.log('NEWSTATE', newWindowState);
+          this.dispatch({ 
+              type: 'UPDATE_WINDOW_STATE', 
+              windowId: this.getState().activeWindowId,
+              newState: newWindowState 
+          });
+          this.getState().windows[this.getState().activeWindowId] = newWindowState;
+        }
+      }
+      else if (classes.includes(FunClass.TURTLE)) {
         // const activeWin = this.state.windows[this.state.activeWindowId];
         const activeWin = this.getState().windows[this.getState().activeWindowId];
         if (!activeWin)
@@ -393,7 +413,6 @@ export class AsynchronousLogoInterpreter {
             command: drawingCommand 
           });
         }
-        // Dispatch (Aggiornamento dello Stato Globale)
         if (newTurtleState !== undefined) { // è stato calcolato un nuovo turtleState: va comunicato
           // console.log('NEWSTATE', newTurtleState);
           this.dispatch({ 

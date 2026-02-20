@@ -88,10 +88,13 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
     const canvas = windowState.backgroundRef;
     const ctx = windowState.canvasContext;
     const commands = windowState.drawingCommands;
+
+    ctx.fillStyle = windowState.backgroundColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     // 2. GESTIONE RESET: Se i comandi sono diminuiti o la lista è vuota, puliamo tutto
     if (commands.length < lastDrawnIndex.current) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // ctx.clearRect(0, 0, canvas.width, canvas.height);
       lastDrawnIndex.current = 0;
       console.log('Canvas: Reset totale');
     }
@@ -135,7 +138,9 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
           break;
 
         case 'CLEAR_CANVAS':
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          // ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = windowState.backgroundColor;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
           // Opzionale: se CLEAR_CANVAS è nel mezzo della lista, 
           // tecnicamente dovremmo ridisegnare tutto ciò che viene dopo.
           // In Logo di solito CLEAR svuota la lista, quindi lastDrawnIndex tornerà a 0.
@@ -146,7 +151,8 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
     // 4. AGGIORNAMENTO PUNTATORE: Salviamo dove siamo arrivati
     lastDrawnIndex.current = commands.length;
 
-  }, [windowState.drawingCommands]); // Molto importante: osserva solo i comandi, non tutto lo stato
+  // }, [windowState.drawingCommands]); // Molto importante: osserva solo i comandi, non tutto lo stato
+  }, [windowState]); // Molto importante: osserva solo i comandi, non tutto lo stato
 
   // --- EFFECT 3: LA TARTARUGA (FOREGROUND) ---
   useEffect(() => {

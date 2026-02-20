@@ -8,7 +8,7 @@ import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _BUTFIRST, _BUTLA
 import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
 import { _NOT, _EQUALP, _NOTEQUALP } from './Logic';
 import { _NUMBERP, _ABS, _INT, _ROUND, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
-import { _HOME, _CS, _WINDOW, _FENCE, _WRAP, _SETSCREEN, _SCREEN, _SETSCRUNCH, _SCRUNCH } from './InterpreterCore';
+import { _SCREENSIZE, _CANVASSIZE, _HOME, _CS, _WINDOW, _FENCE, _WRAP, _SETSCREEN, _SCREEN, _SETSCRUNCH, _SCRUNCH, _SETBACKGROUNDCOLOR, _BACKGROUNDCOLOR } from './InterpreterCore';
 import { _FD, _BK, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING } from './InterpreterCore';
 import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _PENSIZE, _SETPENSIZE, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './InterpreterCore';
 import { _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR } from './Communication';
@@ -173,7 +173,7 @@ export enum FunSignature {
 // codifica di classi di primitiva
 export enum FunClass {
   CANVAS = 1, // function related to the GraphicWindowState
-  TURT = 2,	// IS_PR_TARTA: turtle function
+  TURTLE = 2,	// IS_PR_TARTA: turtle function
   ASYNC = 3,
   TXIN = 4, // IS_PR_SCRIVI: writes on screen or ..
   TXOU = 5,	// IS_PR_SCRIVI: reads from keyboard or ..
@@ -226,6 +226,15 @@ export const turtleStrokes = ['CS', 'FD', 'BK',];
 // Mappa che contiene tutte le definizioni (la LOGICA del tuo interprete)
 export const CORE_DEFINITIONS = {
   // --- Comandi LOGO ---
+  SCREENSIZE: {
+    signature: [FunSignature.FUNCTION],
+    ref: _SCREENSIZE,
+  } as CommandDef,
+  CANVASSIZE: {
+    classes: [FunClass.CANVAS],
+    signature: [FunSignature.FUNCTION],
+    ref: _CANVASSIZE,
+  } as CommandDef,
   WINDOW: {
     ref: _WINDOW,
   } as CommandDef,
@@ -254,106 +263,116 @@ export const CORE_DEFINITIONS = {
     ref: _SCRUNCH,
   } as CommandDef,
   HOME: {
-    classes: [FunClass.TURT],
+    classes: [FunClass.TURTLE],
     ref: _HOME,
   } as CommandDef,
   CS: {
-    classes: [FunClass.TURT],
+    classes: [FunClass.TURTLE],
     ref: _CS,
   } as CommandDef,
   FD: {
-    classes: [FunClass.TURT],
+    classes: [FunClass.TURTLE],
     args: [{ name: "distanza", type: A_N }],
     ref: _FD,
   } as CommandDef,
   BK: {
-    classes: [FunClass.TURT],
+    classes: [FunClass.TURTLE],
     args: [{ name: "distanza", type: A_N }],
     ref: _BK,
   } as CommandDef,
   RT: {
-    classes: [FunClass.TURT],
+    classes: [FunClass.TURTLE],
     args: [{ name: "angolo", type: A_N }],
     ref: _RT,
   } as CommandDef,
   LT: {
-    classes: [FunClass.TURT],
+    classes: [FunClass.TURTLE],
     args: [{ name: "angolo", type: A_N }],
     ref: _LT,
   } as CommandDef,
+  BACKGROUNDCOLOR: {
+    classes: [FunClass.CANVAS],
+    signature: [FunSignature.FUNCTION],
+    ref: _BACKGROUNDCOLOR,
+  } as CommandDef,
+  SETBACKGROUNDCOLOR: {
+    classes: [FunClass.CANVAS],
+    args: [{ name: "colore", type: Arg.COLORE }],
+    ref: _SETBACKGROUNDCOLOR,
+  } as CommandDef,
   PENCOLOR: {
-    classes: [FunClass.TURT],
+    classes: [FunClass.TURTLE],
     signature: [FunSignature.FUNCTION],
     ref: _PENCOLOR,
   } as CommandDef,
   SETPENCOLOR: {
-    classes: [FunClass.TURT],
+    classes: [FunClass.TURTLE],
     args: [{ name: "colore", type: Arg.COLORE }],
     ref: _SETPENCOLOR,
   } as CommandDef,
   PENUP: {
-    classes: [FunClass.TURT],
+    classes: [FunClass.TURTLE],
     ref: _PENUP,
   } as CommandDef,
   PENDOWN: {
-    classes: [FunClass.TURT],
+    classes: [FunClass.TURTLE],
     ref: _PENDOWN,
   } as CommandDef,
   PENDOWNP: {
-    classes: [FunClass.TURT],
+    classes: [FunClass.TURTLE],
     signature: [FunSignature.FUNCTION],
     ref: _PENDOWNP,
   } as CommandDef,
   PENSIZE: {
-    classes: [FunClass.TURT],
+    classes: [FunClass.TURTLE],
     signature: [FunSignature.FUNCTION],
     ref: _PENSIZE,
   } as CommandDef,
   SETPENSIZE: {
-    classes: [FunClass.TURT],
+    classes: [FunClass.TURTLE],
     args: [{ name: "colore", type: A_LN_N_L }],
     ref: _SETPENSIZE,
   } as CommandDef,
   PENMODE: {
-    classes: [FunClass.TURT],
+    classes: [FunClass.TURTLE],
     signature: [FunSignature.FUNCTION],
     ref: _PENMODE,
   } as CommandDef,
   POS: {
-    classes: [FunClass.TURT],
+    classes: [FunClass.TURTLE],
     signature: [FunSignature.FUNCTION],
     ref: _POS,
   } as CommandDef,
   XCOR: {
-    classes: [FunClass.TURT],
+    classes: [FunClass.TURTLE],
     signature: [FunSignature.FUNCTION],
     ref: _XCOR,
   } as CommandDef,
   YCOR: {
-    classes: [FunClass.TURT],
+    classes: [FunClass.TURTLE],
     signature: [FunSignature.FUNCTION],
     ref: _YCOR,
   } as CommandDef,
   SETHEADING: {
-    classes: [FunClass.TURT],
+    classes: [FunClass.TURTLE],
     args: [{ name: "angolo", type: A_N }],
     ref: _SETHEADING,
   } as CommandDef,
   HEADING: {
-    classes: [FunClass.TURT],
+    classes: [FunClass.TURTLE],
     signature: [FunSignature.FUNCTION],
     ref: _HEADING,
   } as CommandDef,
   SHOWTURTLE: {
-    classes: [FunClass.TURT],
+    classes: [FunClass.TURTLE],
     ref: _SHOWTURTLE,
   } as CommandDef,
   HIDETURTLE: {
-    classes: [FunClass.TURT],
+    classes: [FunClass.TURTLE],
     ref: _HIDETURTLE,
   } as CommandDef,
   SHOWNP: {
-    classes: [FunClass.TURT],
+    classes: [FunClass.TURTLE],
     signature: [FunSignature.FUNCTION],
     ref: _SHOWNP,
   } as CommandDef,
