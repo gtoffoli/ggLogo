@@ -19,16 +19,18 @@ export const initialTurtleState: TurtleState = {
 };
 
 const initialWindowState: GraphicWindowState = {
-    windowId: "TARTA",
-    name: "TARTA",
-    isActive: true,
-    scaling: [1, 1],
-    backgroundColor: '#ffffff', // Basato sul parametro BACKGROUNDCOLOR
-    turtleState: initialTurtleState,
-    drawingCommands: [],
-    canvasContext: null, // Aggiunto per l'associazione al DOM (vedi punto 3)
-    backgroundRef: null,      // Aggiunto per l'associazione al DOM (vedi punto 3)
-    foregroundRef: null      // Aggiunto per l'associazione al DOM (vedi punto 3)
+  windowId: "TARTA",
+  name: "TARTA",
+  isActive: true,
+  scaling: [1, 1],
+  canvasOrigin: [400, 400], // [x, y]
+  canvasSize: [800, 800], // [dx, dy] BOUNDS are: [x-dx/2, x+dx/2, y-dx/2, y+dx/2]
+  backgroundColor: '#ffffff', // Basato sul parametro BACKGROUNDCOLOR
+  turtleState: initialTurtleState,
+  drawingCommands: [],
+  canvasContext: null, // Aggiunto per l'associazione al DOM (vedi punto 3)
+  backgroundRef: null,      // Aggiunto per l'associazione al DOM (vedi punto 3)
+  foregroundRef: null      // Aggiunto per l'associazione al DOM (vedi punto 3)
 };
 
 export const initialLogoState: LogoGlobalState = {

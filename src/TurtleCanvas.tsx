@@ -76,10 +76,15 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
           foreground: foregroundRef.current
       });
 
+
       // Imposta le dimensioni iniziali del Canvas (opzionale)
-      backgroundRef.current.width = backgroundRef.current.offsetWidth;
-      backgroundRef.current.height = backgroundRef.current.offsetHeight;
+      // backgroundRef.current.width = backgroundRef.current.offsetWidth;
+      // backgroundRef.current.height = backgroundRef.current.offsetHeight;
       const canvas = backgroundRef.current;
+      canvas.width = windowState.canvasSize[0];
+      canvas.height = windowState.canvasSize[1];
+      foregroundRef.current.width = windowState.canvasSize[0];
+      foregroundRef.current.height = windowState.canvasSize[1];
       ctx.fillStyle = windowState.backgroundColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
@@ -95,15 +100,15 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
     const commands = windowState.drawingCommands;
     const turtle = windowState.turtleState;
     
-    // 2. GESTIONE RESET: Se i comandi sono diminuiti o la lista è vuota, puliamo tutto
+    // 2. GESTIONE RESET: Se i comandi sono diminuiti o la lista è vuota, o è cambiato lo sfondo, puliamo tutto
     // if (commands.length < lastDrawnIndex.current) {
     if ((commands.length < lastDrawnIndex.current) || (windowState.backgroundColor != lastBackgroundColor)) {
       // ctx.clearRect(0, 0, canvas.width, canvas.height);
+      console.log('Canvas: Reset totale', windowState.backgroundColor, canvas.width, canvas.height);
       ctx.fillStyle = windowState.backgroundColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       lastDrawnIndex.current = 0;
       lastBackgroundColor = windowState.backgroundColor;
-      console.log('Canvas: Reset totale');
     }
 
     // Se non ci sono nuovi comandi, non fare nulla
@@ -146,7 +151,10 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
           break;
 
         case 'CLEAR_CANVAS':
-          // ctx.clearRect(0, 0, canvas.width, canvas.height);
+          canvas.width = windowState.canvasSize[0];
+          canvas.height = windowState.canvasSize[1];
+          foregroundRef.current.width = windowState.canvasSize[0];
+          foregroundRef.current.height = windowState.canvasSize[1];
           ctx.fillStyle = windowState.backgroundColor;
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           // Opzionale: se CLEAR_CANVAS è nel mezzo della lista, 
@@ -273,23 +281,17 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
           id="background-canvas"
           className="canvas-layer"
           ref={backgroundRef}
-          width={backgroundRef.offsetWidth} height={backgroundRef.offsetHeight}
+          width={backgroundRef.width} height={backgroundRef.height}
         />
         <canvas 
           id="foreground-canvas"
           className="canvas-layer"
           ref={foregroundRef}
-          width={750} height={641}
+          width={800} height={800}
         />
       </div>
     </PanelContainer>
   );
 };
 
-// export default TurtleCanvas;
 export default Canvas;
-
-//      <canvas 
-//        ref={backgroundRef} 
-//        style={{ width: '100%', height: '100%', display: 'block' }} 
-//       />

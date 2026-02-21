@@ -16,12 +16,60 @@ export function _SCREENSIZE(values: any[]): Cell {
   return { type: CellType.LIST, val: [{ type: CellType.NUMBER, val: window.screen.width}, { type: CellType.NUMBER, val: window.screen.height}] }
 }
 
+function setCanvasSize(dx: number, dy: number, state: GraphicWindowState): GraphicWindowState {
+  return state;
+} 
+
+function setCanvasOrigin(x: number, y: number, state: GraphicWindowState): GraphicWindowState {
+  return state;
+} 
+
 export function _CANVASSIZE(values: any[], state: GraphicWindowState): Cell {
+  /*
   const canvas = state.backgroundRef;
   const dx = parseInt(canvas.width);
   const dy = parseInt(canvas.height);
   console.log('_CANVASSIZE', canvas);
+  */
+  const size = state.canvasSize;
+  const dx = size[0];
+  const dy = size[1];
   return { type: CellType.LIST, val: [{ type: CellType.NUMBER, val: dx}, { type: CellType.NUMBER, val: dy}] }
+}
+export function _SETCANVASSIZE(values: any[], state: GraphicWindowState): any[] {
+  const size = values[0].val.map((n: Cell) => n.val);
+  const newState = { 
+    ...state, 
+    canvasSize: size
+  }
+  return [ newState, { type: 'CLEAR_CANVAS' }];
+}
+
+export function _BOUNDS(values: any[], state: GraphicWindowState): Cell {
+  const canvas = state.backgroundRef;
+  const dx = parseInt(canvas.width);
+  const dy = parseInt(canvas.height);
+  const xMin = - dx/2;
+  const xMax = dx/2;
+  const yMin = -dy/2;
+  const yMax = dy/2;
+  return { type: CellType.LIST, val: [
+    { type: CellType.NUMBER, val: xMin}, { type: CellType.NUMBER, val: xMax},
+    { type: CellType.NUMBER, val: yMin}, { type: CellType.NUMBER, val: yMax}] }
+}
+export function _SETBOUNDS(values: any[], state: GraphicWindowState): GraphicWindowState {
+  const quad = arg.val.map((n: Cell) => n.val);
+  var newState: GraphicWindowState;
+  if (quad.length === 4) {
+    const dx = quad[1] - quad[0];
+    const dy = quad[3] - quad[2];
+    if ((dx > 100) && (dy > 100)) {
+      const x = (quad[1] + quad[0]) / 2;
+      const y = (quad[3] + quad[2]) / 2;
+      newState = setCanvasSize(dx, dy, state);
+      newState = setCanvasOrigin(x, y, newState);
+    }
+  }
 }
 
 export function _SCRUNCH(values: any[], state: GraphicWindowState): Cell {
@@ -154,10 +202,12 @@ export function _BACKGROUNDCOLOR(values: any[], state: GraphicWindowState): Cell
 }
 export function _SETBACKGROUNDCOLOR(values: any[], state: GraphicWindowState): GraphicWindowState {
   const color = values[0].val;
-  return { 
+  var drawingCommand;
+  const newState = { 
     ...state, 
     backgroundColor: color
   };
+  return [ newState, drawingCommand ];
 }
 
 export function _PENCOLOR(values: any[], state: TurtleState): Cell {

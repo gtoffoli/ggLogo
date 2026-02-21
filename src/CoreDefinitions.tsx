@@ -8,7 +8,7 @@ import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _BUTFIRST, _BUTLA
 import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
 import { _NOT, _EQUALP, _NOTEQUALP } from './Logic';
 import { _NUMBERP, _ABS, _INT, _ROUND, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
-import { _SCREENSIZE, _CANVASSIZE, _HOME, _CS, _WINDOW, _FENCE, _WRAP, _SETSCREEN, _SCREEN, _SETSCRUNCH, _SCRUNCH, _SETBACKGROUNDCOLOR, _BACKGROUNDCOLOR } from './InterpreterCore';
+import { _SCREENSIZE, _CANVASSIZE, _SETCANVASSIZE, _HOME, _CS, _WINDOW, _FENCE, _WRAP, _SETSCREEN, _SCREEN, _SETSCRUNCH, _SCRUNCH, _SETBACKGROUNDCOLOR, _BACKGROUNDCOLOR } from './InterpreterCore';
 import { _FD, _BK, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING } from './InterpreterCore';
 import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _PENSIZE, _SETPENSIZE, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './InterpreterCore';
 import { _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR } from './Communication';
@@ -229,6 +229,11 @@ export const CORE_DEFINITIONS = {
   SCREENSIZE: {
     signature: [FunSignature.FUNCTION],
     ref: _SCREENSIZE,
+  } as CommandDef,
+  SETCANVASSIZE: {
+    classes: [FunClass.CANVAS],
+    args: [{ name: "size", type: A_LN }],
+    ref: _SETCANVASSIZE,
   } as CommandDef,
   CANVASSIZE: {
     classes: [FunClass.CANVAS],

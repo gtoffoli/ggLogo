@@ -367,12 +367,11 @@ export class AsynchronousLogoInterpreter {
       else if (classes.includes(FunClass.CANVAS)) {
         const activeWin = this.getState().windows[this.getState().activeWindowId];
         var newWindowState: GraphicWindowState;
-        if (is_function) {
+        var drawingCommand: DrawingCommand;
+        if (is_function)
           result = definition.ref(values, activeWin);
-        }
-        else {
-          newWindowState = definition.ref(values, activeWin);
-        }
+        else
+          [ newWindowState, drawingCommand ] = definition.ref(values, activeWin);
         // Dispatch (Aggiornamento dello Stato Globale)
         if (newWindowState !== undefined) { // è stato calcolato un nuovo windowState: va comunicato
           console.log('NEWSTATE', newWindowState);
@@ -383,9 +382,15 @@ export class AsynchronousLogoInterpreter {
           });
           this.getState().windows[this.getState().activeWindowId] = newWindowState;
         }
+        if (drawingCommand !== undefined) { // è stato preparato un nuovo comando
+          this.dispatch({ 
+            type: 'ADD_DRAWING_COMMAND', 
+            windowId: this.getState().activeWindowId,
+            command: drawingCommand 
+          });
+        }
       }
       else if (classes.includes(FunClass.TURTLE)) {
-        // const activeWin = this.state.windows[this.state.activeWindowId];
         const activeWin = this.getState().windows[this.getState().activeWindowId];
         if (!activeWin)
           console.log("ERRORE: Nessuna finestra grafica attiva.");
@@ -394,19 +399,17 @@ export class AsynchronousLogoInterpreter {
         var drawingCommand: DrawingCommand;
         if (turtleStroke) {
           [ newTurtleState, drawingCommand ] = definition.ref(values, activeWin.turtleState);
-          // console.log('turtleStroke', newTurtleState, drawingCommand);
         } else {
           if (is_function) {
             result = definition.ref(values, activeWin.turtleState);
           }
           else {
             newTurtleState = definition.ref(values, activeWin.turtleState);
-            // console.log('No turtleStroke', newTurtleState);
           }
         }
         // è da aggiungere un'operazione sul canvas
-        if (turtleStroke) { 
-          // console.log('drawingCommand', drawingCommand);
+        // if (turtleStroke) {  // è stato preparato un nuovo comando
+        if (drawingCommand !== undefined) {
           this.dispatch({ 
             type: 'ADD_DRAWING_COMMAND', 
             windowId: this.getState().activeWindowId,
@@ -414,7 +417,6 @@ export class AsynchronousLogoInterpreter {
           });
         }
         if (newTurtleState !== undefined) { // è stato calcolato un nuovo turtleState: va comunicato
-          // console.log('NEWSTATE', newTurtleState);
           this.dispatch({ 
               type: 'UPDATE_TURTLE_STATE', 
               windowId: this.getState().activeWindowId,
