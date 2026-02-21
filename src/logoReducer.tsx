@@ -23,7 +23,7 @@ const initialWindowState: GraphicWindowState = {
     name: "TARTA",
     isActive: true,
     scaling: [1, 1],
-    backgroundColor: '#fffff0', // Basato sul parametro BACKGROUNDCOLOR
+    backgroundColor: '#ffffff', // Basato sul parametro BACKGROUNDCOLOR
     turtleState: initialTurtleState,
     drawingCommands: [],
     canvasContext: null, // Aggiunto per l'associazione al DOM (vedi punto 3)

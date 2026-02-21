@@ -149,7 +149,6 @@ export function checkFormatColor(arg: Cell, functionKey: string): string {
   throwError('e05', functionKey, nodeToString(arg, true));
 }
 
-
 export function _BACKGROUNDCOLOR(values: any[], state: GraphicWindowState): Cell {
   return { type: CellType.WORD, val: state.backgroundColor}
 }

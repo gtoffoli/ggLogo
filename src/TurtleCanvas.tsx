@@ -47,7 +47,8 @@ interface TurtleCanvasProps {
 
 // const TurtleCanvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
 const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
-  console.log('TurtleCanvas - starting');
+  const scale = window.devicePixelRatio;
+  console.log('TurtleCanvas - starting', scale);
   const backgroundRef = useRef<HTMLCanvasElement>(null);
   const foregroundRef = useRef<HTMLCanvasElement>(null);
   const { state, dispatch, interpreter } = useLogoState();
@@ -56,6 +57,7 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
   const windowState = state.windows[windowId];
   // Nuovo approccio
   const lastDrawnIndex = useRef(0)
+  var lastBackgroundColor = useRef(windowState.backgroundColor)
 	// 't' è la funzione di traduzione
 	const { t, i18n } = useTranslation();
     
@@ -77,6 +79,9 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
       // Imposta le dimensioni iniziali del Canvas (opzionale)
       backgroundRef.current.width = backgroundRef.current.offsetWidth;
       backgroundRef.current.height = backgroundRef.current.offsetHeight;
+      const canvas = backgroundRef.current;
+      ctx.fillStyle = windowState.backgroundColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
   }, [dispatch, windowId]);
 
@@ -85,17 +90,19 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
     // 1. Controlli preliminari
     if (!windowState || !windowState.canvasContext) return;
     
-    const canvas = windowState.backgroundRef;
     const ctx = windowState.canvasContext;
+    const canvas = windowState.backgroundRef;
     const commands = windowState.drawingCommands;
-
-    ctx.fillStyle = windowState.backgroundColor;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const turtle = windowState.turtleState;
     
     // 2. GESTIONE RESET: Se i comandi sono diminuiti o la lista è vuota, puliamo tutto
-    if (commands.length < lastDrawnIndex.current) {
+    // if (commands.length < lastDrawnIndex.current) {
+    if ((commands.length < lastDrawnIndex.current) || (windowState.backgroundColor != lastBackgroundColor)) {
       // ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = windowState.backgroundColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
       lastDrawnIndex.current = 0;
+      lastBackgroundColor = windowState.backgroundColor;
       console.log('Canvas: Reset totale');
     }
 
@@ -129,7 +136,8 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
             ctx.lineTo(x + centerX, centerY + y);
             // ctx.lineWidth = 1;
             ctx.lineWidth = windowState.turtleState.penSize;
-            ctx.strokeStyle = color;
+            // ctx.strokeStyle = color;
+            ctx.strokeStyle = (turtle.penMode === 'PAINT') ? color : windowState.backgroundColor;
             ctx.stroke();
           } else {
             // Per MOVE_TO non disegniamo, il canvas sposta il "cursore" internamente
@@ -265,13 +273,13 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
           id="background-canvas"
           className="canvas-layer"
           ref={backgroundRef}
-          width={720} height={540}
+          width={backgroundRef.offsetWidth} height={backgroundRef.offsetHeight}
         />
         <canvas 
           id="foreground-canvas"
           className="canvas-layer"
           ref={foregroundRef}
-          width={720} height={540}
+          width={750} height={641}
         />
       </div>
     </PanelContainer>
