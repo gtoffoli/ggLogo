@@ -85,11 +85,6 @@ export function _SETSCRUNCH(values: any[], state: GraphicWindowState): GraphicWi
   };
 }
 
-export function _CS(values: any[], state: TurtleState): { newState: TurtleState | null, command: DrawingCommand | null } {
-	console.log('function _CS');
-  return [ initialTurtleState, { type: 'CLEAR_CANVAS' }];
-}
-
 export function _HOME(values: any[], state: TurtleState): TurtleState {
   return { 
     ...state, 
@@ -97,6 +92,16 @@ export function _HOME(values: any[], state: TurtleState): TurtleState {
     y: 0,
     heading:0
   };
+}
+
+export function _CLEAR(values: any[], state: TurtleState): { newState: TurtleState | null, command: DrawingCommand | null } {
+  console.log('function _CS');
+  return [ state, { type: 'CLEAR_CANVAS' }];
+}
+
+export function _CS(values: any[], state: TurtleState): { newState: TurtleState | null, command: DrawingCommand | null } {
+	console.log('function _CS');
+  return [ initialTurtleState, { type: 'CLEAR_CANVAS' }];
 }
 
 export function _WINDOW(values: any[]): void {

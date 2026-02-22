@@ -2,6 +2,7 @@
 // 2511218 first version
 
 import { CellType, Cell } from './CoreDefinitions';
+import { throwError, function_key } from './Interpreter';
 
 function numberp(cell: Cell): boolean {
   return ((cell.type === CellType.NUMBER) || ((cell.type === CellType.WORD) && (! isNaN(parseFloat(cell.val)))))
@@ -54,6 +55,33 @@ export function _PRODUCT(values: any[]): Cell {
 export function _QUOTIENT(values: any[]): Cell {
 	var quotient = values[0].val / values[1].val;
 	return { type: CellType.NUMBER, val: quotient };
+}
+
+export function _POWER(values: any[]): Cell {
+  const base = values[0].val;
+  const exp = values[1].val;
+  if (((base === 0) && (exp <= 0)) || ((base < 0) && (!Number.isInteger(exp))))
+    throwError('e05', function_key, exp);
+  return { type: CellType.NUMBER, val: Math.pow(base, exp) };
+}
+export function _EXP(values: any[]): Cell {
+  return { type: CellType.NUMBER, val: Math.exp(values[0].val) };
+}
+export function _SQRT(values: any[]): Cell {
+  const arg = values[0].val;
+  if (arg < 0) throwError('e05', function_key, arg);
+  return { type: CellType.NUMBER, val: Math.sqrt(arg) };
+}
+
+export function _LOG10(values: any[]): Cell {
+  const arg = values[0].val;
+  if (arg <= 0) throwError('e05', function_key, arg);
+  return { type: CellType.NUMBER, val: Math.log10(arg) };
+}
+export function _LN(values: any[]): Cell {
+  const arg = values[0].val;
+  if (arg <= 0) throwError('e05', function_key, arg);
+  return { type: CellType.NUMBER, val: Math.log(arg) };
 }
 
 export function _LESSP(values: any[]): Cell {

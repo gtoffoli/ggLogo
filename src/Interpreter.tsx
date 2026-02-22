@@ -54,7 +54,7 @@ export function throwError(key: string, fun?: string, arg?: string) {
   console.log('throwError', fun);
   var msg = i18n.t('err.' + key) + '\n';
   if (fun) msg = msg.replace('$1', getByValue(fun));
-  if (arg) msg = msg.replace('$2', arg);
+  if (arg != undefined) msg = msg.replace('$2', arg);
   throw new LogoError(msg);
 }
 

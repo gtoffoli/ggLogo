@@ -7,8 +7,9 @@ import { _NOP, _ERROR, _TRACK, _UNTRACK, _WAIT, _STOP, _OUTPUT, _REPEAT, _REPCOU
 import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _BUTFIRST, _BUTLAST, _COUNT, _ITEM, _WORDP, _LISTP } from './Structures';
 import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
 import { _NOT, _EQUALP, _NOTEQUALP } from './Logic';
-import { _NUMBERP, _ABS, _INT, _ROUND, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
-import { _SCREENSIZE, _CANVASSIZE, _SETCANVASSIZE, _HOME, _CS, _WINDOW, _FENCE, _WRAP, _SETSCREEN, _SCREEN, _SETSCRUNCH, _SCRUNCH, _SETBACKGROUNDCOLOR, _BACKGROUNDCOLOR } from './InterpreterCore';
+import { _ABS, _INT, _ROUND, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _POWER, _EXP, _SQRT, _LOG10, _LN } from './Math';
+import { _NUMBERP, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
+import { _SCREENSIZE, _CANVASSIZE, _SETCANVASSIZE, _HOME, _CLEAR, _CS, _WINDOW, _FENCE, _WRAP, _SETSCREEN, _SCREEN, _SETSCRUNCH, _SCRUNCH, _SETBACKGROUNDCOLOR, _BACKGROUNDCOLOR } from './InterpreterCore';
 import { _FD, _BK, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING } from './InterpreterCore';
 import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _PENSIZE, _SETPENSIZE, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './InterpreterCore';
 import { _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR } from './Communication';
@@ -221,7 +222,7 @@ const A_F_S = Arg.NOMEARC + Arg.STRINGA;
 const A_F_S_L = Arg.NOMEARC + Arg.STRINGA + Arg.LISTA;
 const A_F_LW_S_L = Arg.NOMEARC + Arg.LISTAPAR + Arg.STRINGA + Arg.LISTA;
 
-export const turtleStrokes = ['CS', 'FD', 'BK',];
+export const turtleStrokes = ['CS', 'CLEAR', 'FD', 'BK',];
 
 // Mappa che contiene tutte le definizioni (la LOGICA del tuo interprete)
 export const CORE_DEFINITIONS = {
@@ -270,6 +271,10 @@ export const CORE_DEFINITIONS = {
   HOME: {
     classes: [FunClass.TURTLE],
     ref: _HOME,
+  } as CommandDef,
+  CLEAR: {
+    classes: [FunClass.TURTLE],
+    ref: _CLEAR,
   } as CommandDef,
   CS: {
     classes: [FunClass.TURTLE],
@@ -589,6 +594,36 @@ export const CORE_DEFINITIONS = {
     signature: [FunSignature.FUNCTION],
     args: [{ name: "dividendo", type: A_N }, { name: "divisore", type: A_N }],
     ref: _QUOTIENT,
+  } as CommandDef,
+  'POWER': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "base", type: A_N }, { name: "esponente", type: A_N }],
+    ref: _POWER,
+  } as CommandDef,
+  '^': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "base", type: A_N }, { name: "esponente", type: A_N }],
+    ref: _POWER,
+  } as CommandDef,
+  'EXP': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "esponente", type: A_N }],
+    ref: _EXP,
+  } as CommandDef,
+  'SQRT': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "esponente", type: A_N }],
+    ref: _SQRT,
+  } as CommandDef,
+  'LOG10': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg", type: A_N }],
+    ref: _LOG10,
+  } as CommandDef,
+  'LN': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg", type: A_N }],
+    ref: _LN,
   } as CommandDef,
   'NOT': {
     signature: [FunSignature.FUNCTION],
