@@ -9,7 +9,7 @@ import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LO
 import { _NOT, _EQUALP, _NOTEQUALP } from './Logic';
 import { _ABS, _INT, _ROUND, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _POWER, _EXP, _SQRT, _LOG10, _LN } from './Math';
 import { _NUMBERP, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
-import { _SCREENSIZE, _CANVASSIZE, _SETCANVASSIZE, _HOME, _CLEAR, _CS, _WINDOW, _FENCE, _WRAP, _SETSCREEN, _SCREEN, _SETSCRUNCH, _SCRUNCH, _SETBACKGROUNDCOLOR, _BACKGROUNDCOLOR } from './InterpreterCore';
+import { _SCREENSIZE, _CANVASSIZE, _SETCANVASSIZE, _HOME, _CLEAR, _CS, _WINDOW, _FENCE, _WRAP, _SETSCREEN, _SCREEN, _SETSCALE, _SCALE, _SETBACKGROUNDCOLOR, _BACKGROUNDCOLOR } from './InterpreterCore';
 import { _FD, _BK, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING } from './InterpreterCore';
 import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _PENSIZE, _SETPENSIZE, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './InterpreterCore';
 import { _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR } from './Communication';
@@ -222,6 +222,7 @@ const A_F_S = Arg.NOMEARC + Arg.STRINGA;
 const A_F_S_L = Arg.NOMEARC + Arg.STRINGA + Arg.LISTA;
 const A_F_LW_S_L = Arg.NOMEARC + Arg.LISTAPAR + Arg.STRINGA + Arg.LISTA;
 
+// export const turtleStrokes = ['CS', 'CLEAR', 'SETSCALE', 'FD', 'BK',];
 export const turtleStrokes = ['CS', 'CLEAR', 'FD', 'BK',];
 
 // Mappa che contiene tutte le definizioni (la LOGICA del tuo interprete)
@@ -258,15 +259,15 @@ export const CORE_DEFINITIONS = {
     signature: [FunSignature.FUNCTION],
     ref: _SCREEN,
   } as CommandDef,
-  SETSCRUNCH: {
+  SETSCALE: {
     classes: [FunClass.CANVAS],
     args: [{ name: "scala", type: A_LN }],
-    ref: _SETSCRUNCH,
+    ref: _SETSCALE,
   } as CommandDef,
-  SCRUNCH: {
+  SCALE: {
     classes: [FunClass.CANVAS],
     signature: [FunSignature.FUNCTION],
-    ref: _SCRUNCH,
+    ref: _SCALE,
   } as CommandDef,
   HOME: {
     classes: [FunClass.TURTLE],

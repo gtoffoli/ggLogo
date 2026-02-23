@@ -14,14 +14,13 @@ import { initialTurtleState } from './logoReducer';
 // ... importa DrawingCommand, GraphicWindowState, etc.
 
 // const drawIperLogoTurtle = (ctx: CanvasRenderingContext2D, turtle: TurtleState) => {
-const drawIperLogoTurtle = (ctx: CanvasRenderingContext2D, turtle: TurtleState, canvas: HTMLCanvasElement) => {
+const drawIperLogoTurtle = (ctx: CanvasRenderingContext2D, turtle: TurtleState, foreground: HTMLCanvasElement, container: HTMLCanvasElement) => {
   const { x, y, heading } = turtle;
   console.log('drawIperLogoTurtle', x, y, heading)
 
   ctx.save();
   // Spostiamo l'origine nel punto della tartaruga
-  // ctx.translate(x, y);
-  ctx.translate(x  + canvas.width/2, y + canvas.height/2);
+  ctx.translate(x  + foreground.width/2, y + foreground.height/2);
   // Ruotiamo il contesto (LOGO usa gradi, JS usa radianti)
   // Nota: LOGO 0° è verso l'alto, Canvas 0 è verso destra. Sottraiamo 90°.
   ctx.rotate((heading - 90) * Math.PI / 180);
@@ -45,10 +44,10 @@ interface TurtleCanvasProps {
     windowId: string; // "TARTA"
 }
 
-// const TurtleCanvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
 const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
   const scale = window.devicePixelRatio;
   console.log('TurtleCanvas - starting', scale);
+  const containerRef = useRef<HTMLCanvasElement>(null);
   const backgroundRef = useRef<HTMLCanvasElement>(null);
   const foregroundRef = useRef<HTMLCanvasElement>(null);
   const { state, dispatch, interpreter } = useLogoState();
@@ -63,7 +62,6 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
     
   // 1. REGISTRAZIONE DEL CONTESTO CANVASS NEL REDUX STATE
   useEffect(() => {
-    // if (backgroundRef.current) {
     if (backgroundRef.current && foregroundRef.current) {
       const ctx = backgroundRef.current.getContext('2d');
       // Invia l'azione per registrare il contesto nello stato globale
@@ -80,6 +78,7 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
       // Imposta le dimensioni iniziali del Canvas (opzionale)
       // backgroundRef.current.width = backgroundRef.current.offsetWidth;
       // backgroundRef.current.height = backgroundRef.current.offsetHeight;
+      const container = containerRef.current;
       const canvas = backgroundRef.current;
       canvas.width = windowState.canvasSize[0];
       canvas.height = windowState.canvasSize[1];
@@ -87,6 +86,8 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
       foregroundRef.current.height = windowState.canvasSize[1];
       ctx.fillStyle = windowState.backgroundColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // container.scrollTo(container.width / 2, container.height / 2);
+      container.scrollTo(canvas.width / 2, canvas.height / 2);
     }
   }, [dispatch, windowId]);
 
@@ -101,8 +102,8 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
     const turtle = windowState.turtleState;
     
     // 2. GESTIONE RESET: Se i comandi sono diminuiti o la lista è vuota, o è cambiato lo sfondo, puliamo tutto
-    // if (commands.length < lastDrawnIndex.current) {
-    if ((commands.length < lastDrawnIndex.current) || (windowState.backgroundColor != lastBackgroundColor)) {
+    console.log('useEffect', commands.length, lastDrawnIndex.current, windowState.backgroundColor, lastBackgroundColor.current);
+    if ((commands.length < lastDrawnIndex.current) || (windowState.backgroundColor != lastBackgroundColor.current)) {
       // ctx.clearRect(0, 0, canvas.width, canvas.height);
       console.log('Canvas: Reset totale', windowState.backgroundColor, canvas.width, canvas.height);
       ctx.fillStyle = windowState.backgroundColor;
@@ -153,13 +154,16 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
         case 'CLEAR_CANVAS':
           canvas.width = windowState.canvasSize[0];
           canvas.height = windowState.canvasSize[1];
-          foregroundRef.current.width = windowState.canvasSize[0];
-          foregroundRef.current.height = windowState.canvasSize[1];
+          const foreground = foregroundRef.current;
+          foreground.width = windowState.canvasSize[0];
+          foreground.height = windowState.canvasSize[1];
           ctx.fillStyle = windowState.backgroundColor;
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           // Opzionale: se CLEAR_CANVAS è nel mezzo della lista, 
           // tecnicamente dovremmo ridisegnare tutto ciò che viene dopo.
           // In Logo di solito CLEAR svuota la lista, quindi lastDrawnIndex tornerà a 0.
+          if (turtle.visible)
+            drawIperLogoTurtle(foreground.getContext('2d'), turtle, foregroundRef.current, containerRef.current);
           break;
       }
     }
@@ -167,23 +171,22 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
     // 4. AGGIORNAMENTO PUNTATORE: Salviamo dove siamo arrivati
     lastDrawnIndex.current = commands.length;
 
-  // }, [windowState.drawingCommands]); // Molto importante: osserva solo i comandi, non tutto lo stato
-  }, [windowState]); // Molto importante: osserva solo i comandi, non tutto lo stato
+  }, [windowState.drawingCommands, windowState.canvasSize, windowState.backgroundColor]);
 
   // --- EFFECT 3: LA TARTARUGA (FOREGROUND) ---
   useEffect(() => {
-    const canvas = foregroundRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const foreground = foregroundRef.current;
+    if (!foreground) return;
+    const ctx = foreground.getContext('2d');
     if (!ctx) return;
 
     // 1. Puliamo il layer della tartaruga (fondamentale!)
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, foreground.width, foreground.height);
 
     // 2. Disegniamo la tartaruga se è visibile
     const turtle = windowState.turtleState;
     if (turtle.visible)
-      drawIperLogoTurtle(ctx, turtle, canvas);
+      drawIperLogoTurtle(ctx, turtle, foreground, containerRef.current);
   }, [windowState.turtleState]); // Si attiva a ogni cambio di posizione/direzione
 
   // --- DEFINIZIONE DEI MENU (Hook per l'esecuzione dei comandi) ---
@@ -225,7 +228,6 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
     link.click();
   };
 
-  // const exportSVG = (width: number, height: number, commands: DrawingCommand[]) => {
   const exportSVG = () => {
     let width = 800;
     let height = 800;
@@ -276,7 +278,7 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
       borderColor="#007bff" // Blu
       menuItems={menuA}
     >
-      <div className="canvas-container">
+      <div className="canvas-container" ref={containerRef}>
         <canvas 
           id="background-canvas"
           className="canvas-layer"
@@ -287,7 +289,7 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
           id="foreground-canvas"
           className="canvas-layer"
           ref={foregroundRef}
-          width={800} height={800}
+          width={foregroundRef.width} height={foregroundRef.height}
         />
       </div>
     </PanelContainer>

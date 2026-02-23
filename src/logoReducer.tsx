@@ -22,7 +22,7 @@ const initialWindowState: GraphicWindowState = {
   windowId: "TARTA",
   name: "TARTA",
   isActive: true,
-  scaling: [1, 1],
+  scaling: null, // [1, 1],
   canvasOrigin: [400, 400], // [x, y]
   canvasSize: [800, 800], // [dx, dy] BOUNDS are: [x-dx/2, x+dx/2, y-dx/2, y+dx/2]
   backgroundColor: '#ffffff', // Basato sul parametro BACKGROUNDCOLOR

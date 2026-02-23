@@ -10,7 +10,10 @@ import { throwError, function_key } from './Interpreter';
 import { nodeToString } from './Parser';
 
 const screenModes = ['OPEN', 'CLOSED', 'WRAP'];
-var screenMode: string = 'WRAP';
+var screenMode: string = 'OPEN'; // 'WRAP';
+type Point = { x: number; y: number; }
+type Bounds = { xMin: number; xMax: number; yMin: number; yMax: number; }
+var canvasBounds: Bounds = {xMin: -400, xMax: 400, yMin: -400, yMax: 400};  
 
 export function _SCREENSIZE(values: any[]): Cell {
   return { type: CellType.LIST, val: [{ type: CellType.NUMBER, val: window.screen.width}, { type: CellType.NUMBER, val: window.screen.height}] }
@@ -25,12 +28,6 @@ function setCanvasOrigin(x: number, y: number, state: GraphicWindowState): Graph
 } 
 
 export function _CANVASSIZE(values: any[], state: GraphicWindowState): Cell {
-  /*
-  const canvas = state.backgroundRef;
-  const dx = parseInt(canvas.width);
-  const dy = parseInt(canvas.height);
-  console.log('_CANVASSIZE', canvas);
-  */
   const size = state.canvasSize;
   const dx = size[0];
   const dy = size[1];
@@ -38,6 +35,7 @@ export function _CANVASSIZE(values: any[], state: GraphicWindowState): Cell {
 }
 export function _SETCANVASSIZE(values: any[], state: GraphicWindowState): any[] {
   const size = values[0].val.map((n: Cell) => n.val);
+  canvasBounds = {xMin: -size[0]/2, xMax: size[0]/2, yMin: -size[1]/2, yMax: size[1]/2};
   const newState = { 
     ...state, 
     canvasSize: size
@@ -45,44 +43,20 @@ export function _SETCANVASSIZE(values: any[], state: GraphicWindowState): any[] 
   return [ newState, { type: 'CLEAR_CANVAS' }];
 }
 
-export function _BOUNDS(values: any[], state: GraphicWindowState): Cell {
-  const canvas = state.backgroundRef;
-  const dx = parseInt(canvas.width);
-  const dy = parseInt(canvas.height);
-  const xMin = - dx/2;
-  const xMax = dx/2;
-  const yMin = -dy/2;
-  const yMax = dy/2;
-  return { type: CellType.LIST, val: [
-    { type: CellType.NUMBER, val: xMin}, { type: CellType.NUMBER, val: xMax},
-    { type: CellType.NUMBER, val: yMin}, { type: CellType.NUMBER, val: yMax}] }
-}
-export function _SETBOUNDS(values: any[], state: GraphicWindowState): GraphicWindowState {
-  const quad = arg.val.map((n: Cell) => n.val);
-  var newState: GraphicWindowState;
-  if (quad.length === 4) {
-    const dx = quad[1] - quad[0];
-    const dy = quad[3] - quad[2];
-    if ((dx > 100) && (dy > 100)) {
-      const x = (quad[1] + quad[0]) / 2;
-      const y = (quad[3] + quad[2]) / 2;
-      newState = setCanvasSize(dx, dy, state);
-      newState = setCanvasOrigin(x, y, newState);
-    }
-  }
-}
-
-export function _SCRUNCH(values: any[], state: GraphicWindowState): Cell {
-  const xScale = state.scaling[0];
-  const yScale = state.scaling[1];
+export function _SCALE(values: any[], state: GraphicWindowState): Cell {
+  const xScale = (state.scaling) ? state.scaling[0] : 1;
+  const yScale = (state.scaling) ? state.scaling[1] : 1;
   return { type: CellType.LIST, val: [{ type: CellType.NUMBER, val: xScale}, { type: CellType.NUMBER, val: yScale}] }
 }
-export function _SETSCRUNCH(values: any[], state: GraphicWindowState): GraphicWindowState {
-  const scale = values[0].val.map((n: Cell) => n.val);
-  return { 
+export function _SETSCALE(values: any[], state: GraphicWindowState): GraphicWindowState {
+  var scale = values[0].val.map((c: Cell) => parseInt(c.val));
+  if ((scale[0] === 1) && (scale[1] === 1))
+    scale = null;
+  const newState = {
     ...state, 
     scaling: scale
   };
+  return [newState, undefined];
 }
 
 export function _HOME(values: any[], state: TurtleState): TurtleState {
@@ -278,39 +252,97 @@ function precision(n) {
   return Math.round(n * f) / f;
 }
 
+function clampSegment(p1: Point, p2: Point, bounds: Bounds): Point[] {
+  const { xMin, xMax, yMin, yMax } = bounds;
+  var t;
+  var xHit;
+  var yHit;
+  var hitPoint
+  console.log('clampSegment - in', p1, p2, bounds);
+  if (p2.x > xMax) { // Se p2 è fuori a destra
+    t = (xMax - p1.x) / (p2.x - p1.x);
+    yHit = p1.y + t * (p2.y - p1.y);
+    p2 = { x: xMax, y: yHit }; // hitPoint
+    console.log('clampSegment right', p2);
+  }
+  else if (p2.y > yMax) { // Se p2 è fuori in alto
+    t = (yMax - p1.y) / (p2.y - p1.y);
+    xHit = p1.x + t * (p2.x - p1.x);
+    p2 = { x: xHit, y: yMax }; // hitPoint
+    console.log('clampSegment top', p2);
+  }
+  else if (p2.x < xMin) { // Se p2 è fuori a sinistra (da controllare)
+    t = (p1.x - xMin) / (p2.x - p1.x);
+    yHit = p1.y + t * (p2.y - p1.y);
+    p2 = { x: xMin, y: yHit }; // hitPoint
+    console.log('clampSegment left', p2);
+  }
+  else if (p2.y < yMin) { // Se p2 è fuori in basso (da controllare)
+    t = (p1.y - yMin) / (p2.y - p1.y);
+    xHit = p1.x + t * (p2.x - p1.x);
+    p2 = { x: xHit, y: yMin }; // hitPoint
+    console.log('clampSegment bottom', p2);
+  }
+  return p2;
+}
+
+function processMovement(p1: Point, p2: Point, bounds: Bounds): Point[] {
+  if (screenMode === 'CLOSED') {
+    return [p1, p2];
+  }
+  else if (screenMode === 'WRAP') {
+    return [p1, p2];
+  }
+}
+
 /**
  * Calcola il comando (LINE_TO o MOVE_TO) da inviare al canvas e il nuovo stato (pos) della tartaruga dopo un comando tipo FD o BK
  */
 export function calculateForward(state: TurtleState, distance: number): any[] {
   const rad = state.heading * Math.PI / 180;
-  const newX = precision(state.x + distance * Math.sin(rad));
-  const newY = precision(state.y - distance * Math.cos(rad)); // LOGO usa Y decrescente verso l'alto
-  
-  let drawingCommand: DrawingCommand | null = null;
-
-  const newState: TurtleState = { 
+  var newX = precision(state.x + distance * Math.sin(rad));
+  var newY = precision(state.y - distance * Math.cos(rad)); // LOGO usa Y decrescente verso l'alto
+ 
+  if (screenMode === 'CLOSED') {
+    var p1 = {x: state.x, y: state.y};
+    var p2 = {x: newX, y: newY};
+    p2 = clampSegment(p1, p2, canvasBounds);
+    newX = p2.x;
+    newY = p2.y;
+  }
+  const newState: TurtleState = {
     ...state, 
     x: newX, 
     y: newY 
   };
-  
-  if (state.penDown) {
-    drawingCommand = {
-      type: 'LINE_TO',
-      x: newX,
-      y: newY,
-      color: state.penColor,
-      thickness: 1 // Usiamo un valore fisso per ora
-    };
-  } else {
-    drawingCommand = {
-      type: 'MOVE_TO',
-      x: newX,
-      y: newY
-    };
+
+  if ((screenMode === 'OPEN') || (screenMode === 'CLOSED')) {
+    var drawingCommand: DrawingCommand;
+    if (state.penDown) {
+       drawingCommand = {
+        type: 'LINE_TO',
+        x: newX,
+        y: newY,
+        color: state.penColor,
+        // thickness: 1 // Usiamo un valore fisso per ora
+        thickness: state.penSize // Usiamo un valore fisso per ora
+      };
+    } else {
+      drawingCommand = {
+        type: 'MOVE_TO',
+        x: newX,
+        y: newY
+      };
+    }
+    return [ newState, drawingCommand ];
   }
-  
-  return [ newState, drawingCommand ];
+  else {
+    let p1 = { x: state.x, y: state.y };
+    let p2 = { x: newX, y: newY };
+    let drawingCommands: DrawingCommand[] = [];
+    
+    return [ state, undefined ];  
+  }
 }
 
 /**
@@ -324,18 +356,3 @@ export function calculateRight(state: TurtleState, angle: number): TurtleState {
   };
   return newState;
 }
-/*
-export function calculateRight(state: TurtleState, angle: number): TurtleState {
-  var newHeading = state.heading + angle;
-  if (newHeading >= 0)
-    newHeading = newHeading % 360;
-  else
-    while (newHeading < 0)
-      newHeading = newHeading + 360; 
-  var newState: TurtleState = { 
-    ...state, 
-    heading: newHeading
-  };
-  return newState;
-}
-*/
