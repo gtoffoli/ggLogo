@@ -131,7 +131,7 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
           // Troviamo il punto di partenza
           let prevX = 0;
           let prevY = 0;
-          if (i > 0) {
+          if ((i > 0) && (['MOVE_TO', 'LINE_TO'].includes(commands[i - 1].type))) {
             prevX = commands[i - 1].x;
             prevY = commands[i - 1].y;
           }

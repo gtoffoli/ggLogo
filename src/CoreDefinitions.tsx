@@ -9,6 +9,7 @@ import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LO
 import { _NOT, _EQUALP, _NOTEQUALP } from './Logic';
 import { _ABS, _INT, _ROUND, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _POWER, _EXP, _SQRT, _LOG10, _LN } from './Math';
 import { _NUMBERP, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
+import { _RAD, _SIN, _COS, _TAN, _ARCTAN, _RADSIN, _RADCOS, _RADTAN, _RADARCTAN } from './Math';
 import { _SCREENSIZE, _CANVASSIZE, _SETCANVASSIZE, _HOME, _CLEAR, _CS, _WINDOW, _FENCE, _WRAP, _SETSCREEN, _SCREEN, _SETSCALE, _SCALE, _SETBACKGROUNDCOLOR, _BACKGROUNDCOLOR } from './InterpreterCore';
 import { _FD, _BK, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING } from './InterpreterCore';
 import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _PENSIZE, _SETPENSIZE, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './InterpreterCore';
@@ -626,6 +627,53 @@ export const CORE_DEFINITIONS = {
     args: [{ name: "arg", type: A_N }],
     ref: _LN,
   } as CommandDef,
+
+  'RAD': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg", type: A_N }],
+    ref: _RAD,
+  } as CommandDef,
+  'SIN': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg", type: A_N }],
+    ref: _SIN,
+  } as CommandDef,
+  'COS': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg", type: A_N }],
+    ref: _COS,
+  } as CommandDef,
+  'TAN': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg", type: A_N }],
+    ref: _TAN,
+  } as CommandDef,
+  'ARCTAN': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg", type: A_N }],
+    ref: _ARCTAN,
+  } as CommandDef,
+  'RADSIN': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg", type: A_N }],
+    ref: _RADSIN,
+  } as CommandDef,
+  'RADCOS': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg", type: A_N }],
+    ref: _RADCOS,
+  } as CommandDef,
+  'RADTAN': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg", type: A_N }],
+    ref: _RADTAN,
+  } as CommandDef,
+  'RADARCTAN': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg", type: A_N }],
+    ref: _RADARCTAN,
+  } as CommandDef,
+
   'NOT': {
     signature: [FunSignature.FUNCTION],
     args: [{ name: "arg", type: A_B }],

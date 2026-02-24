@@ -84,6 +84,43 @@ export function _LN(values: any[]): Cell {
   return { type: CellType.NUMBER, val: Math.log(arg) };
 }
 
+export function _RAD(values: any[]): Cell {
+  const arg = values[0].val;
+  return { type: CellType.NUMBER, val: arg * Math.PI/180};
+}
+export function _RADSIN(values: any[]): Cell {
+  const arg = values[0].val;
+  return { type: CellType.NUMBER, val: Math.sin(arg) };
+}
+export function _RADCOS(values: any[]): Cell {
+  const arg = values[0].val;
+  return { type: CellType.NUMBER, val: Math.cos(arg) };
+}
+export function _RADTAN(values: any[]): Cell {
+  const arg = values[0].val;
+  return { type: CellType.NUMBER, val: Math.tan(arg) };
+}
+export function _RADARCTAN(values: any[]): Cell {
+  const arg = values[0].val;
+  return { type: CellType.NUMBER, val: Math.atan(arg) };
+}
+export function _SIN(values: any[]): Cell {
+  const arg = values[0].val;
+  return { type: CellType.NUMBER, val: Math.sin(arg * Math.PI/180) };
+}
+export function _COS(values: any[]): Cell {
+  const arg = values[0].val;
+  return { type: CellType.NUMBER, val: Math.cos(arg * Math.PI/180) };
+}
+export function _TAN(values: any[]): Cell {
+  const arg = values[0].val;
+  return { type: CellType.NUMBER, val: Math.tan(arg * Math.PI/180) };
+}
+export function _ARCTAN(values: any[]): Cell {
+  const arg = values[0].val;
+  return { type: CellType.NUMBER, val: Math.atan(arg * 180 / Math.PI) };
+}
+
 export function _LESSP(values: any[]): Cell {
 	var value = (values[0].val < values[1].val);
 	return { type: CellType.BOOLEAN, val: value };

@@ -10,7 +10,7 @@ import { throwError, function_key } from './Interpreter';
 import { nodeToString } from './Parser';
 
 const screenModes = ['OPEN', 'CLOSED', 'WRAP'];
-var screenMode: string = 'OPEN'; // 'WRAP';
+var screenMode: string = 'CLOSED'; // 'WRAP';
 type Point = { x: number; y: number; }
 type Bounds = { xMin: number; xMax: number; yMin: number; yMax: number; }
 var canvasBounds: Bounds = {xMin: -400, xMax: 400, yMin: -400, yMax: 400};  
@@ -265,21 +265,21 @@ function clampSegment(p1: Point, p2: Point, bounds: Bounds): Point[] {
     p2 = { x: xMax, y: yHit }; // hitPoint
     console.log('clampSegment right', p2);
   }
-  else if (p2.y > yMax) { // Se p2 è fuori in alto
+  else if (p2.y > yMax) { // Se p2 è fuori in basso
     t = (yMax - p1.y) / (p2.y - p1.y);
     xHit = p1.x + t * (p2.x - p1.x);
     p2 = { x: xHit, y: yMax }; // hitPoint
     console.log('clampSegment top', p2);
   }
-  else if (p2.x < xMin) { // Se p2 è fuori a sinistra (da controllare)
+  else if (p2.x < xMin) { // Se p2 è fuori a sinistra
     t = (p1.x - xMin) / (p2.x - p1.x);
-    yHit = p1.y + t * (p2.y - p1.y);
+    yHit = p1.y - t * (p2.y - p1.y);
     p2 = { x: xMin, y: yHit }; // hitPoint
     console.log('clampSegment left', p2);
   }
-  else if (p2.y < yMin) { // Se p2 è fuori in basso (da controllare)
+  else if (p2.y < yMin) { // Se p2 è fuori in alto
     t = (p1.y - yMin) / (p2.y - p1.y);
-    xHit = p1.x + t * (p2.x - p1.x);
+    xHit = p1.x - t * (p2.x - p1.x);
     p2 = { x: xHit, y: yMin }; // hitPoint
     console.log('clampSegment bottom', p2);
   }
@@ -340,7 +340,6 @@ export function calculateForward(state: TurtleState, distance: number): any[] {
     let p1 = { x: state.x, y: state.y };
     let p2 = { x: newX, y: newY };
     let drawingCommands: DrawingCommand[] = [];
-    
     return [ state, undefined ];  
   }
 }
