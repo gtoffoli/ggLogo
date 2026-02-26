@@ -47,20 +47,21 @@ export function isSeparator(s: string): boolean {
 }
 
 export enum ModParola {
-	VERB = 1,		// parola non preceduta da modificatore
+	VERB = 1,		  // parola non preceduta da modificatore
 	LITERAL = 2,	// parola preceduta da QUOTE
 	VARIABLE = 3,	// parola preceduta da COLON
 }
 export enum CellType {
-	LIST = 0,
-	QUOTE = 1,
-	OPERATOR = 2,	// operatore
-	NUMBER = 3, 	// numero
-	WORD = 4,		// parola Logo
-	BOOLEAN = 5,	// valore logico
-	VAR = 6, 		// variabile Logo
-	SFUN = 7,		// funzione primitiva
-	UFUN = 8,		// funzione di utente (procedura)
+  LIST = 0,
+  QUOTE = 1,
+  OPERATOR = 2,// operatore
+  NUMBER = 3,  // numero
+  WORD = 4,    // parola Logo
+  BOOLEAN = 5, // valore logico
+  VAR = 6,     // variabile Logo
+  SFUN = 7,    // funzione primitiva
+  UFUN = 8,    // funzione di utente (procedura)
+  BLANK = 9,
 }
 
 // typed token in the Parser output
@@ -70,17 +71,17 @@ export type Cell = {
 } // | null;
 
 export enum Delimiter {
-	DEL_PARSINISTRA = '(',
-	DEL_PARDESTRA = ')',
+  DEL_PARSINISTRA = '(',
+  DEL_PARDESTRA = ')',
 }
 
 // codifica dei tipi di contesto (id_contesto)
 export enum contextType {
-	CT_TOP = 0,			// contesto iniziale (top_level)
-	CT_PAUSA = 1,		// contesto attivato da PAUSA
-	CT_RECUPERA = 2,	// contesto attivato da RECUPERA
-	CT_PROCEDURE = 3, // procedura di utente
-	CT_EVENT = 4,
+  CT_TOP = 0,       // contesto iniziale (top_level)
+  CT_PAUSA = 1,     // contesto attivato da PAUSA
+  CT_RECUPERA = 2,  // contesto attivato da RECUPERA
+  CT_PROCEDURE = 3, // procedura di utente
+  CT_EVENT = 4,
 }
 
 // see contesti in Contesti.h of il32

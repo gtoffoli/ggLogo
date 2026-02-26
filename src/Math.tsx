@@ -41,7 +41,12 @@ export function _SUM(values: any[]): Cell {
 }
 
 export function _DIFFERENCE(values: any[]): Cell {
-	var difference = values[0].val - values[1].val;
+//	var difference = values[0].val - values[1].val;
+  var difference = values[0].val;
+  if (values.length === 1)
+    difference = -difference; // meno unario
+  else
+    difference = difference - values[1].val; // meno ubiario
 	return { type: CellType.NUMBER, val: difference };
 }
 

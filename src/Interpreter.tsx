@@ -16,7 +16,7 @@ import { SEPARATORS, isSeparator, SystemFunction, CORE_DEFINITIONS, CommandDef, 
 import { UserFunction, ProcedureDef, Arg } from './CoreDefinitions';
 import { getByValue } from './UseLocalization';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
-import { Parse, infix_operators, unParse, nodeToString } from './Parser';
+import { Parse, infix_operators, BLANK, unParse, nodeToString } from './Parser';
 import { contesti, liv_contesto, liv_analisi, v_stack, is_stop, is_traccia, risultato } from './LogoControl';
 import { push_sv, pop_sv,  push_arg, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_out, parenin, parenout } from './LogoControl';
 import { ini_main,ini_exec, ini_valuta, AssertContesto } from './LogoControl';
@@ -501,7 +501,7 @@ export class AsynchronousLogoInterpreter {
       // console.log('token-0', mod_parola);
       // console.log('token-1', liv_contesto, ctx.block, ctx.i_line, ctx.i_token, cell, mod_parola);
       // console.log('token-2', ctx);
-      ctx.i_token += 1; // next token!!! (quello in corso di valutazione è già incell)
+      ctx.i_token += 1; // next token!!! (quello in corso di valutazione è già in cell)
       coreKey = null;
       switch (cell.type) {
         case CellType.LIST:
@@ -512,6 +512,9 @@ export class AsynchronousLogoInterpreter {
             mod_parola = ModParola.LITERAL;
           else // cell.val === ':'
             mod_parola = ModParola.VARIABLE;
+          break;
+        case CellType.NUMBER: // può derivare solo dal riconoscimento lessicale di un '-' unario
+          push_arg(ctx, cell);
           break;
         case CellType.WORD:
           if (mod_parola === ModParola.LITERAL) {
@@ -603,13 +606,25 @@ export class AsynchronousLogoInterpreter {
               else
                 parenout (ctx, 1);
               break;
+            case CellType.BLANK:
+              mod_parola = ModParola.VERB;
+              break;
             default: // infix operator: + - * / ^  = < >
-              // console.log('DEFAULT', cell.val);
+              const n_arg_attesi = ctx.n_arg_attesi;
               coreKey = cell.val;
               definition = CORE_DEFINITIONS[coreKey];
               funzione = { type: CellType.SFUN, coreKey: coreKey, definition: definition};
-              // console.log('OPERATOR-2', cell.val, coreKey, definition);
               sf_in(ctx, funzione); // come gestire operando precedente? come gestire +/- prefissi?
+              // cerca di riconoscere il meno unario non lessicale
+              if ((coreKey === '-') &&
+                  // preceduto da altro operatore infisso ?
+                  (((ctx.i_token > 1) &&
+                   (infix_operators.includes(ctx.block[ctx.i_line][ctx.i_token-2].val))) ||
+                  (n_arg_attesi === 0)
+                )) {
+                  console.log('MENO UNARIO');
+                  ctx.n_arg_attesi -= 1; // si tratta di meno unario
+                }
               break;
           }
       }
