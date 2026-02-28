@@ -279,8 +279,24 @@ export class AsynchronousLogoInterpreter {
           if (arg_type === CellType.WORD)
             return arg;
           return false;
-        case Arg.LISTAPAR:
+          break;
         case Arg.LISTANUM:
+          if (arg_type === CellType.LIST) {
+            var numList = [];
+            var cell;
+            for (var j=0; j<arg.val.length; j++) {
+              cell = arg.val[j];
+              if (cell.type === CellType.NUMBER)
+                numList.push(cell);
+              else if ((cell.type === CellType.WORD) && (! isNaN(cell.val)))
+                numList.push({ type: CellType.NUMBER, val: Number(cell.val)});
+              else return false;
+            }
+            return { type: CellType.LIST, val: numList };
+          }
+          return false;
+          break;
+        case Arg.LISTAPAR:
         case Arg.LISTA:
           if (arg_type === CellType.LIST)
             return arg;

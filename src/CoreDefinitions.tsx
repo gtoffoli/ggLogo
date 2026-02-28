@@ -11,7 +11,7 @@ import { _ABS, _INT, _ROUND, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIE
 import { _NUMBERP, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
 import { _RAD, _SIN, _COS, _TAN, _ARCTAN, _RADSIN, _RADCOS, _RADTAN, _RADARCTAN } from './Math';
 import { _SCREENSIZE, _CANVASSIZE, _SETCANVASSIZE, _HOME, _CLEAR, _CS, _WINDOW, _FENCE, _WRAP, _SETSCREEN, _SCREEN, _SETSCALE, _SCALE, _SETBACKGROUNDCOLOR, _BACKGROUNDCOLOR } from './InterpreterCore';
-import { _FD, _BK, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING } from './InterpreterCore';
+import { _SETPOS, _SETX, _SETY, _SETXY, _TOWARDS, _FD, _BK, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING } from './InterpreterCore';
 import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _PENSIZE, _SETPENSIZE, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './InterpreterCore';
 import { _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR } from './Communication';
 import { _TIME, _SETTIME } from './TimeMusic';
@@ -225,7 +225,7 @@ const A_F_S_L = Arg.NOMEARC + Arg.STRINGA + Arg.LISTA;
 const A_F_LW_S_L = Arg.NOMEARC + Arg.LISTAPAR + Arg.STRINGA + Arg.LISTA;
 
 // export const turtleStrokes = ['CS', 'CLEAR', 'SETSCALE', 'FD', 'BK',];
-export const turtleStrokes = ['CS', 'CLEAR', 'FD', 'BK',];
+export const turtleStrokes = ['CS', 'CLEAR', 'SETPOS', 'SETXY', 'SETX', 'SETY', 'FD', 'BK',];
 
 // Mappa che contiene tutte le definizioni (la LOGICA del tuo interprete)
 export const CORE_DEFINITIONS = {
@@ -282,6 +282,32 @@ export const CORE_DEFINITIONS = {
   CS: {
     classes: [FunClass.TURTLE],
     ref: _CS,
+  } as CommandDef,
+  TOWARDS: {
+    classes: [FunClass.TURTLE],
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "coordinate", type: A_LN }],
+    ref: _TOWARDS,
+  } as CommandDef,
+  SETPOS: {
+    classes: [FunClass.TURTLE],
+    args: [{ name: "coordinate", type: A_LN }],
+    ref: _SETPOS,
+  } as CommandDef,
+  SETXY: {
+    classes: [FunClass.TURTLE],
+    args: [{ name: "x", type: A_N }, { name: "y", type: A_N }],
+    ref: _SETXY,
+  } as CommandDef,
+  SETX: {
+    classes: [FunClass.TURTLE],
+    args: [{ name: "x", type: A_N }],
+    ref: _SETX,
+  } as CommandDef,
+  SETY: {
+    classes: [FunClass.TURTLE],
+    args: [{ name: "y", type: A_N }],
+    ref: _SETY,
   } as CommandDef,
   FD: {
     classes: [FunClass.TURTLE],
