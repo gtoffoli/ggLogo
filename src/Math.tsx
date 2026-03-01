@@ -126,6 +126,22 @@ export function _ARCTAN(values: any[]): Cell {
   return { type: CellType.NUMBER, val: Math.atan(arg * 180 / Math.PI) };
 }
 
+export function _RANDOM(values: any[]): Cell {
+  var random;
+  if (values.length === 1)
+    random = Math.floor(Math.random() * values[0].val);
+  else if (values.length > 2)
+    throwError('e11');
+  else if ((values[1].val -  values[0].val) < 1)
+    throwError('e05', function_key, values[1].val);
+  else {
+    const min = Math.floor(values[0].val);
+    const max = Math.ceil(values[1].val);
+    random = Math.floor(Math.random() * (max - min)) + min;
+  }
+  return { type: CellType.NUMBER, val: random };
+}
+
 export function _LESSP(values: any[]): Cell {
 	var value = (values[0].val < values[1].val);
 	return { type: CellType.BOOLEAN, val: value };

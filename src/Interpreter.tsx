@@ -252,11 +252,11 @@ export class AsynchronousLogoInterpreter {
 
   // controlla la validità del valore di un argomento di funzione
   // se necessario e possibile ne converte il tipo
-  private check_arg(arg: Cell, argDefinition): boolean {
+  private check_arg(arg: Cell, argDefinition): any | boolean {
     const arg_type = arg.type;
     if (!argDefinition.type) // è ammesso qualsiasi tipo
       return arg;
-    const bits = intToBitArray(argDefinition.type, 8);
+    const bits = intToBitArray(argDefinition.type, 12);
     console.log('check_arg', arg, definition, bits);
     for (let i = 0; i < bits.length; i++) {
       switch (bits[i]) {
@@ -301,6 +301,14 @@ export class AsynchronousLogoInterpreter {
           if (arg_type === CellType.LIST)
             return arg;
           break;
+        case Arg.NONEMPTY_WORD:
+          if ((arg_type === CellType.WORD) && (arg.val.length > 0))
+            return arg;
+          break;
+        case Arg.NONEMPTY_LIST:
+          if ((arg_type === CellType.LIST) && (arg.val.length > 0))
+            return arg;
+          break;
       }
     }
     return false;
@@ -325,7 +333,9 @@ export class AsynchronousLogoInterpreter {
     var definition; // vincoli sul valore di un argomento, dalla definizione della funzione
     for (var i=0; i<n; i++) { // controlla la validità di ogni argomento
       arg = raw_values[i];
-      definition = arg_definitions[Math.min(i, n-1)]; // tiene conto di argomenti in numero indefinito
+      // definition = arg_definitions[Math.min(i, n-1)]; // tiene conto di argomenti in numero indefinito
+      definition = arg_definitions[Math.min(i, arg_definitions.length-1)]; // tiene conto di argomenti in numero indefinito
+      console.log('get_values', n, i, n-1);
       checked_arg = this.check_arg(arg, definition);
       if (checked_arg)
         values.push(checked_arg);

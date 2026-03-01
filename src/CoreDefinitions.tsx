@@ -7,7 +7,7 @@ import { _NOP, _ERROR, _TRACK, _UNTRACK, _WAIT, _STOP, _OUTPUT, _REPEAT, _REPCOU
 import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _FIRSTS, _LASTS, _BUTFIRST, _BUTLAST, _BUTFIRSTS, _BUTLASTS, _COUNT, _ITEM, _WORDP, _LISTP } from './Structures';
 import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
 import { _NOT, _EQUALP, _NOTEQUALP } from './Logic';
-import { _ABS, _INT, _ROUND, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _POWER, _EXP, _SQRT, _LOG10, _LN } from './Math';
+import { _ABS, _INT, _ROUND, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _POWER, _EXP, _SQRT, _LOG10, _LN, _RANDOM } from './Math';
 import { _NUMBERP, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
 import { _RAD, _SIN, _COS, _TAN, _ARCTAN, _RADSIN, _RADCOS, _RADTAN, _RADARCTAN } from './Math';
 import { _SCREENSIZE, _CANVASSIZE, _SETCANVASSIZE, _BOUNDS, _HOME, _CLEAR, _CS, _WINDOW, _FENCE, _WRAP, _SETSCREEN, _SCREEN, _SETSCALE, _SCALE, _SETBACKGROUNDCOLOR, _BACKGROUNDCOLOR } from './InterpreterCore';
@@ -196,13 +196,16 @@ export enum Arg {
   LISTANUM = 32, // list of numbers
   COLORE = 64, // RGB color
   STRINGA = 128, // string of chars
-  ARRAY  = 256 , // array
-  NOMEARC = 512, // file name
+  NONEMPTY_LIST = 256,
+  NONEMPTY_WORD = 512,
+  ARRAY  = 1024 , // array
+  NOMEARC = 2048, // file name
 }
 
 // alias e aggregazioni di bit in descrittore di argomento a SFUN (from IperLogo)
 const A_B = Arg.VEROFALSO;
 const A_L = Arg.LISTA;
+const A_NEL = Arg.NONEMPTY_LIST;
 const A_N = Arg.NUMERO;
 const A_S = Arg.STRINGA;
 const A_S_L = Arg.STRINGA + Arg.LISTA;
@@ -216,7 +219,9 @@ const A_LN_L = Arg.LISTANUM + Arg.LISTA;
 const A_LN_N_L = Arg.LISTANUM + Arg.NUMERO + Arg.LISTA;
 const A_LN_LW_L = Arg.LISTANUM + Arg.LISTAPAR + Arg.LISTA;
 const A_W = Arg.PAROLA;
+const A_NEW = Arg.NONEMPTY_WORD;
 const A_W_L = Arg.PAROLA + Arg.LISTA;
+const A_NEW_NEL = Arg.NONEMPTY_WORD + Arg.NONEMPTY_LIST;
 const A_W_S = Arg.PAROLA + Arg.STRINGA;
 const A_W_S_L = Arg.PAROLA + Arg.STRINGA + Arg.LISTA;
 const A_W_LW_S_L = Arg.PAROLA + Arg.LISTAPAR + Arg.STRINGA + Arg.LISTA;
@@ -441,22 +446,22 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
   FPUT: {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "arg1", type: null }, { name: "arg2", type: A_S_L}],
+    args: [{ name: "arg1", type: null }, { name: "arg2", type: A_L}],
     ref: _FPUT,
   } as CommandDef,
   LPUT: {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "arg1", type: null }, { name: "arg2", type: A_S_L}],
+    args: [{ name: "arg1", type: null }, { name: "arg2", type: A_L}],
     ref: _LPUT,
   } as CommandDef,
   FIRST: {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "word_or_list", type: A_S_L }],
+    args: [{ name: "word_or_list", type: A_NEW_NEL }],
     ref: _FIRST,
   } as CommandDef,
   LAST: {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "word_or_list", type: A_S_L }],
+    args: [{ name: "word_or_list", type: A_NEW_NEL }],
     ref: _LAST,
   } as CommandDef,
   FIRSTS: {
@@ -471,12 +476,12 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
   BUTFIRST: {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "word_or_list", type: A_S_L }],
+    args: [{ name: "word_or_list", type: A_NEW_NEL }],
     ref: _BUTFIRST,
   } as CommandDef,
   BUTLAST: {
     signature: [FunSignature.FUNCTION],
-    args: [{ name: "word_or_list", type: A_S_L }],
+    args: [{ name: "word_or_list", type: A_NEW_NEL }],
     ref: _BUTLAST,
   } as CommandDef,
   BUTFIRSTS: {
@@ -723,6 +728,11 @@ export const CORE_DEFINITIONS = {
     signature: [FunSignature.FUNCTION],
     args: [{ name: "arg", type: A_N }],
     ref: _RADARCTAN,
+  } as CommandDef,
+  'RANDOM': {
+    signature: [FunSignature.FUNCTION, FunSignature.ONEORMORE],
+    args: [{ name: "range_or_min", type: A_N }],
+    ref: _RANDOM,
   } as CommandDef,
 
   'NOT': {

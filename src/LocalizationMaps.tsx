@@ -17,6 +17,7 @@ export type LanguageMap = Record<string, CoreDefinitionKeys>;
 export const IT_MAP: LanguageMap = {
   // Puoi includere sia i nomi abbreviati che quelli completi se vuoi
   "A": "FD",
+  "ACASO": "RANDOM",
   "ALTRIMENTI": "IFFALSE",
   "ARCTAN": "ARCTAN",
   "ARRO": "ROUND",
@@ -66,8 +67,10 @@ export const IT_MAP: LanguageMap = {
   "I": "BK",
   "INDIETRO": "BK",
   "INPRI": "FPUT",
+  "INPRIMO": "FPUT",
   "INT": "INT",
   "INULT": "LPUT",
+  "INULTIMO": "LPUT",
   "LEGGICAR": "READCHAR",
   "LEGGILISTA": "READLIST",
   "LEGGIPAROLA": "READWORD",
@@ -271,6 +274,7 @@ export const EN_MAP: LanguageMap = {
   "RADCOS": "RADCOS",
   "RADSIN": "RADSIN",
   "RADTAN": "RADTAN",
+  "RANDOM": "RANDOM",
   "READCHAR": "READCHAR",
   "READLIST": "READLIST",
   "READWORD": "READWORD",

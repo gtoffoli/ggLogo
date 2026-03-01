@@ -36,7 +36,6 @@ export function _SENTENCE(args: any[]): Cell {
 }
 
 export function _COUNT(args: any[]): Cell {
-	console.log('function _COUNT', args);
 	var sequence = args[0].val;
 	if (!(args[0].type === CellType.LIST))
 		sequence = sequence.toString();
@@ -44,17 +43,13 @@ export function _COUNT(args: any[]): Cell {
 }
 
 export function _FPUT(args: any[]): void {
-	console.log('function _FPUT', args[0],args[1]);
-	const element = args[0];
 	const list = args[1].val;
-	// return { type: CellType.LIST, val: list.unshift(element) };
-	return { type: CellType.LIST, val: [element].concat(list) };
+	return { type: CellType.LIST, val: [args[0]].concat(list) };
 }
 export function _LPUT(args: any[]): void {
-	console.log('function _LPUT', args[0],args[1]);
-	const element = args[0].val;
 	const list = args[1].val;
-	return { type: CellType.LIST, val: list.push(element) };
+	list.push(args[0]);
+	return { type: CellType.LIST, val: list };
 }
 
 function firstItem(arg: any[]): Cell {
