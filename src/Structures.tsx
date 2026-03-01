@@ -2,6 +2,7 @@
 // 251222 - 1st version: inspired to Ilparlis.cpp of IperLogo
 
 import { CellType, Cell } from './CoreDefinitions';
+import { throwError, function_key } from './Interpreter';
 
 
 export function _WORD(args: any[]): Cell {
@@ -56,36 +57,58 @@ export function _LPUT(args: any[]): void {
 	return { type: CellType.LIST, val: list.push(element) };
 }
 
+function firstItem(arg: any[]): Cell {
+  if (arg.type === CellType.LIST) {
+    const list = arg.val;
+    if (list.length)
+      return list[0];
+  }
+  else {
+    const word = arg.val.toString();
+    if (word.length)
+      return { type: CellType.WORD, val: word.substring(0,1) };
+  }
+}
+function lastItem(arg: any[]): Cell {
+  if (arg.type === CellType.LIST) {
+    const list = arg.val;
+    const length = list.length;
+    if (length)
+      return list[length-1];
+  }
+  else {
+    var word = arg.val.toString();
+    if (word.length)
+      return { type: CellType.WORD, val: word.slice(-1) };
+  }
+}
+
 export function _FIRST(args: any[]): Cell {
 	console.log('function _FIRST', args);
 	var arg = args[0];
-	if (arg.type === CellType.LIST) {
-		const list = arg.val;
-		if (list.length)
-			return list[0];
-	}
-	else {
-		const word = arg.val.toString();
-		if (word.length)
-			return { type: CellType.WORD, val: word.substring(0,1) };
-	}
-	// err_arg1();
+  return firstItem(args[0]);
 }
 export function _LAST(args: any[]): Cell {
 	console.log('function _LAST', args);
-	var arg = args[0];
-	if (arg.type === CellType.LIST) {
-		const list = arg.val;
-		const length = list.length;
-		if (length)
-			return list[length-1];
-	}
-	else {
-		var word = arg.val.toString();
-		if (word.length)
-			return { type: CellType.WORD, val: word.slice(-1) };
-	}
+  return lastItem(args[0]);
 	// err_arg1();
+}
+
+export function _FIRSTS(args: any[]): Cell {
+  console.log('function _FIRSTS', args);
+  var sequence = args[0].val;
+  var firsts = [];
+  for (var i=0; i < sequence.length; i++)
+    firsts.push(firstItem(sequence[i]));
+  return { type: CellType.LIST, val: firsts };
+}
+export function _LASTS(args: any[]): Cell {
+  console.log('function _LASTS', args);
+  var sequence = args[0].val;
+  var lasts = [];
+  for (var i=0; i < sequence.length; i++)
+    lasts.push(lastItem(sequence[i]));
+  return { type: CellType.LIST, val: lasts };
 }
 
 export function _BUTFIRST(args: any[]): Cell {
@@ -111,6 +134,33 @@ export function _BUTLAST(args: any[]): Cell {
 			return { type: CellType.WORD, val: value.toString().slice(0, -1) };
 	}
 	// err_arg1(); 
+}
+
+export function _BUTFIRSTS(args: any[]): Cell {
+  console.log('function _BUTFIRSTS', args);
+  var sequence = args[0].val;
+  var butfirsts = [];
+  for (var i=0; i < sequence.length; i++) {
+    var item = sequence[i];
+    if (item.type === CellType.LIST)
+      butfirsts.push( { type: CellType.LIST, val: item.val.slice(1) });
+    else
+      butfirsts.push( { type: CellType.WORD, val: item.val.toString().slice(1) });
+  }
+  return { type: CellType.LIST, val: butfirsts };
+}
+export function _BUTLASTS(args: any[]): Cell {
+  console.log('function _BUTLASTS', args);
+  var sequence = args[0].val;
+  var butlasts = [];
+  for (var i=0; i < sequence.length; i++) {
+    var item = sequence[i];
+    if (item.type === CellType.LIST)
+      butlasts.push({ type: CellType.LIST, val: item.val.slice(0, -1)});
+    else
+      butlasts.push({ type: CellType.WORD, val: item.val.toString().slice(0, -1) });
+  }
+  return { type: CellType.LIST, val: butlasts };
 }
 
 export function _ITEM(args: any[]): Cell {

@@ -4,13 +4,13 @@
 
 
 import { _NOP, _ERROR, _TRACK, _UNTRACK, _WAIT, _STOP, _OUTPUT, _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
-import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _BUTFIRST, _BUTLAST, _COUNT, _ITEM, _WORDP, _LISTP } from './Structures';
+import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _FIRSTS, _LASTS, _BUTFIRST, _BUTLAST, _BUTFIRSTS, _BUTLASTS, _COUNT, _ITEM, _WORDP, _LISTP } from './Structures';
 import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
 import { _NOT, _EQUALP, _NOTEQUALP } from './Logic';
 import { _ABS, _INT, _ROUND, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _POWER, _EXP, _SQRT, _LOG10, _LN } from './Math';
 import { _NUMBERP, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
 import { _RAD, _SIN, _COS, _TAN, _ARCTAN, _RADSIN, _RADCOS, _RADTAN, _RADARCTAN } from './Math';
-import { _SCREENSIZE, _CANVASSIZE, _SETCANVASSIZE, _HOME, _CLEAR, _CS, _WINDOW, _FENCE, _WRAP, _SETSCREEN, _SCREEN, _SETSCALE, _SCALE, _SETBACKGROUNDCOLOR, _BACKGROUNDCOLOR } from './InterpreterCore';
+import { _SCREENSIZE, _CANVASSIZE, _SETCANVASSIZE, _BOUNDS, _HOME, _CLEAR, _CS, _WINDOW, _FENCE, _WRAP, _SETSCREEN, _SCREEN, _SETSCALE, _SCALE, _SETBACKGROUNDCOLOR, _BACKGROUNDCOLOR } from './InterpreterCore';
 import { _SETPOS, _SETX, _SETY, _SETXY, _TOWARDS, _FD, _BK, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING } from './InterpreterCore';
 import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _PENSIZE, _SETPENSIZE, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './InterpreterCore';
 import { _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR } from './Communication';
@@ -244,6 +244,10 @@ export const CORE_DEFINITIONS = {
     signature: [FunSignature.FUNCTION],
     ref: _CANVASSIZE,
   } as CommandDef,
+  BOUNDS: {
+    signature: [FunSignature.FUNCTION],
+    ref: _BOUNDS,
+  } as CommandDef,
   WINDOW: {
     ref: _WINDOW,
   } as CommandDef,
@@ -455,6 +459,16 @@ export const CORE_DEFINITIONS = {
     args: [{ name: "word_or_list", type: A_S_L }],
     ref: _LAST,
   } as CommandDef,
+  FIRSTS: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "list_of_words_or_lists", type: A_L }],
+    ref: _FIRSTS,
+  } as CommandDef,
+  LASTS: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "list_of_words_or_lists", type: A_L }],
+    ref: _LASTS,
+  } as CommandDef,
   BUTFIRST: {
     signature: [FunSignature.FUNCTION],
     args: [{ name: "word_or_list", type: A_S_L }],
@@ -464,6 +478,16 @@ export const CORE_DEFINITIONS = {
     signature: [FunSignature.FUNCTION],
     args: [{ name: "word_or_list", type: A_S_L }],
     ref: _BUTLAST,
+  } as CommandDef,
+  BUTFIRSTS: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "list_of_words_or_lists", type: A_L }],
+    ref: _BUTFIRSTS,
+  } as CommandDef,
+  BUTLASTS: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "list_of_words_or_lists", type: A_L }],
+    ref: _BUTLASTS,
   } as CommandDef,
   ITEM: {
     signature: [FunSignature.FUNCTION],

@@ -43,6 +43,12 @@ export function _SETCANVASSIZE(values: any[], state: GraphicWindowState): any[] 
   return [ newState, { type: 'CLEAR_CANVAS' }];
 }
 
+export function _BOUNDS (values: any[]): Cell {
+  return { type: CellType.LIST,
+           val: [{ type: CellType.NUMBER, val: canvasBounds.xMin }, { type: CellType.NUMBER, val: canvasBounds.xMax },
+                 { type: CellType.NUMBER, val: canvasBounds.yMin }, { type: CellType.NUMBER, val: canvasBounds.yMax }] }
+}
+
 export function _SCALE(values: any[], state: GraphicWindowState): Cell {
   const xScale = (state.scaling) ? state.scaling[0] : 1;
   const yScale = (state.scaling) ? state.scaling[1] : 1;
@@ -297,6 +303,10 @@ function calculateHeading (p1: Point, p2: Point): number {
   return rad;
 }
 
+/* Google AI Overview:
+  Clamping and clipping in computer graphics both manage data outside defined boundaries but differ fundamentally:
+  clamping forces values to the nearest edge (restricting range);
+  clipping removes or cuts off geometry/pixels outside a viewing area or volume. */
 function clampSegment(p1: Point, p2: Point, bounds: Bounds): Point {
   const { xMin, xMax, yMin, yMax } = bounds;
   var t;
@@ -331,16 +341,7 @@ function clampSegment(p1: Point, p2: Point, bounds: Bounds): Point {
   return p2;
 }
 
-function processMovement(p1: Point, p2: Point, bounds: Bounds): Point[] {
-  if (screenMode === 'CLOSED') {
-    return [p1, p2];
-  }
-  else if (screenMode === 'WRAP') {
-    return [p1, p2];
-  }
-}
-
-// dovrebbe essere usata anche da calculateForward, che attualmente è autonoma
+// ora è usata anche da calculateForward, che precedentemente era autonoma
 function setNewPos(state: TurtleState, p: Point): [ newState: TurtleState, drawingCommand: DrawingCommand] {
   var p1 = {x: state.x, y: state.y};
   var p2 = {x: p.x, y: -p.y};  // LOGO usa Y decrescente verso l'alto
@@ -379,47 +380,10 @@ function setNewPos(state: TurtleState, p: Point): [ newState: TurtleState, drawi
 export function calculateForward(state: TurtleState, distance: number): [ newState: TurtleState, drawingCommand: DrawingCommand] {
   const rad = state.heading * Math.PI / 180;
   var newX = precision(state.x + distance * Math.sin(rad));
-  var newY = precision(state.y - distance * Math.cos(rad)); // LOGO usa Y decrescente verso l'alto
- 
-  if (screenMode === 'CLOSED') {
-    var p1 = {x: state.x, y: state.y};
-    var p2 = {x: newX, y: newY};
-    p2 = clampSegment(p1, p2, canvasBounds);
-    newX = p2.x;
-    newY = p2.y;
-  }
-  const newState: TurtleState = {
-    ...state, 
-    x: newX, 
-    y: newY 
-  };
+  // var newY = precision(state.y - distance * Math.cos(rad)); // LOGO usa Y decrescente verso l'alto
+  var newY = - precision(state.y - distance * Math.cos(rad)); // LOGO usa Y decrescente verso l'alto
 
-  if ((screenMode === 'OPEN') || (screenMode === 'CLOSED')) {
-    var drawingCommand: DrawingCommand;
-    if (state.penDown) {
-       drawingCommand = {
-        type: 'LINE_TO',
-        x: newX,
-        y: newY,
-        color: state.penColor,
-        // thickness: 1 // Usiamo un valore fisso per ora
-        thickness: state.penSize // Usiamo un valore fisso per ora
-      };
-    } else {
-      drawingCommand = {
-        type: 'MOVE_TO',
-        x: newX,
-        y: newY
-      };
-    }
-    return [ newState, drawingCommand ];
-  }
-  else {
-    let p1 = { x: state.x, y: state.y };
-    let p2 = { x: newX, y: newY };
-    let drawingCommands: DrawingCommand[] = [];
-    return [ state, undefined ];  
-  }
+  return setNewPos(state, { x: newX, y: newY });
 }
 
 /**
