@@ -2,7 +2,7 @@
 // 251222 - 1st version: inspired to Ilparlis.cpp of IperLogo
 
 import { CellType, Cell } from './CoreDefinitions';
-import { throwError, function_key } from './Interpreter';
+import { throwError } from './Interpreter';
 
 
 export function _WORD(args: any[]): Cell {

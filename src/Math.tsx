@@ -2,7 +2,7 @@
 // 2511218 first version
 
 import { CellType, Cell } from './CoreDefinitions';
-import { throwError, function_key } from './Interpreter';
+import { throwError } from './Interpreter';
 
 function numberp(cell: Cell): boolean {
   return ((cell.type === CellType.NUMBER) || ((cell.type === CellType.WORD) && (! isNaN(parseFloat(cell.val)))))
@@ -66,7 +66,7 @@ export function _POWER(values: any[]): Cell {
   const base = values[0].val;
   const exp = values[1].val;
   if (((base === 0) && (exp <= 0)) || ((base < 0) && (!Number.isInteger(exp))))
-    throwError('e05', function_key, exp);
+    throwError('e05', null, exp);
   return { type: CellType.NUMBER, val: Math.pow(base, exp) };
 }
 export function _EXP(values: any[]): Cell {
@@ -74,18 +74,18 @@ export function _EXP(values: any[]): Cell {
 }
 export function _SQRT(values: any[]): Cell {
   const arg = values[0].val;
-  if (arg < 0) throwError('e05', function_key, arg);
+  if (arg < 0) throwError('e05', null, arg);
   return { type: CellType.NUMBER, val: Math.sqrt(arg) };
 }
 
 export function _LOG10(values: any[]): Cell {
   const arg = values[0].val;
-  if (arg <= 0) throwError('e05', function_key, arg);
+  if (arg <= 0) throwError('e05', null, arg);
   return { type: CellType.NUMBER, val: Math.log10(arg) };
 }
 export function _LN(values: any[]): Cell {
   const arg = values[0].val;
-  if (arg <= 0) throwError('e05', function_key, arg);
+  if (arg <= 0) throwError('e05', null, arg);
   return { type: CellType.NUMBER, val: Math.log(arg) };
 }
 
@@ -126,20 +126,53 @@ export function _ARCTAN(values: any[]): Cell {
   return { type: CellType.NUMBER, val: Math.atan(arg * 180 / Math.PI) };
 }
 
+/* Mulberry32 è un generatore a 32 bit molto semplice ma con ottime proprietà statistiche,
+   scritto originariamente da Tommy Ettinger. (from Claude Sonnet 4.6 */
+class Mulberry32 {
+  private seed: number;
+  constructor(seed: number) {
+    this.seed = seed >>> 0; // conversione a unsigned 32-bit integer
+  }
+  next(): number {
+    this.seed = (this.seed + 0x6d2b79f5) >>> 0;
+    let z = this.seed;
+    z = Math.imul(z ^ (z >>> 15), z | 1);
+    z ^= z + Math.imul(z ^ (z >>> 7), z | 61);
+    z = (z ^ (z >>> 14)) >>> 0;
+    return z / 4294967296;
+  }
+  nextInt(min: number, max: number): number {
+    return Math.floor(this.next() * (max - min + 1)) + min;
+  }
+  reset(seed: number): void {
+    this.seed = seed >>> 0;
+  }
+}
+const fixedSeed = 42; // 20260203; // data odierna: non dovrebbe influire molto sulla bontà del generatore
+const randomGenerator = new Mulberry32(fixedSeed);
 export function _RANDOM(values: any[]): Cell {
-  var random;
+  var random_0_1; // intermediate result in the range [0 1)
+  var random: number; // final result
+  // random_0_1 = Math.random();
+  random_0_1 = randomGenerator.next();
   if (values.length === 1)
-    random = Math.floor(Math.random() * values[0].val);
+    random = Math.floor(random_0_1 * values[0].val);
   else if (values.length > 2)
     throwError('e11');
   else if ((values[1].val -  values[0].val) < 1)
-    throwError('e05', function_key, values[1].val);
+    throwError('e05', null, values[1].val);
   else {
     const min = Math.floor(values[0].val);
     const max = Math.ceil(values[1].val);
-    random = Math.floor(Math.random() * (max - min)) + min;
+    random = Math.floor(random_0_1 * (max - min)) + min;
   }
   return { type: CellType.NUMBER, val: random };
+}
+export function _RERANDOM(values: any[]): void {
+  var seed: number;
+  if (values.length === 1) seed = values[0].val;
+  else seed = fixedSeed;
+  randomGenerator.reset(seed);
 }
 
 export function _LESSP(values: any[]): Cell {
@@ -166,4 +199,3 @@ export function equalNumbers(n1: number, n2: number): boolean {
 export function unEqualNumbers(n1: number, n2: number): boolean {
 	return (n1 === n2) ? false : true;
 }
-

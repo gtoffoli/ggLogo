@@ -6,7 +6,7 @@ import { CellType, Cell, CommandDef } from './CoreDefinitions';
 import { GraphicWindowState, TurtleState, DrawingCommand } from './LogoState';
 import { initialTurtleState } from './logoReducer';
 import { keywordResolver, getByValue, colorResolver } from './UseLocalization';
-import { throwError, function_key } from './Interpreter';
+import { throwError } from './Interpreter';
 import { nodeToString } from './Parser';
 
 const screenModes = ['OPEN', 'CLOSED', 'WRAP'];
@@ -101,7 +101,7 @@ export function _SETSCREEN(values: any[]): void {
   if ((foundKey) && (screenModes.includes(foundKey)))
     screenMode = foundKey;
   else
-    throwError('e05', function_key, values[0].val);
+    throwError('e05', null, values[0].val);
 }
 
 export function _SCREEN(values: any[]): Cell {
@@ -113,7 +113,7 @@ export function _TOWARDS(values: any[], state: TurtleState): Cell {
   // perché non funziona?
   // if ((Math.round(p2.x) === Math.round(p1.x)) && (Math.round(p2.y) === Math.round(p1.y)))
   if ((p2.x === p1.x) && (p2.y === p1.y))
-    throwError('e05', function_key, nodeToString(values[0], true));
+    throwError('e05', null, nodeToString(values[0], true));
   return { type: CellType.NUMBER, val: calculateHeading(p1, p2) };
 }
 

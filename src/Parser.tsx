@@ -331,6 +331,6 @@ export function nodeToString(node: Cell | Cell[], showBrackets: boolean): string
   }
   else output += node.toString();
   output = output.replace(/\ \]/, "]");
+  output = output.replace(/\[\ /, "[");
   return output;
 }
-

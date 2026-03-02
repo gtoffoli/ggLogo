@@ -50,11 +50,13 @@ export class LogoError extends Error {
   }
 }
 
-export function throwError(key: string, fun?: string, arg?: string) {
-  console.log('throwError', fun);
+export function throwError(key: string, fun?: any, arg?: string) {
+  console.log('throwError', key, fun, function_key, (fun === null));
   var msg = i18n.t('err.' + key) + '\n';
-  if (fun) msg = msg.replace('$1', getByValue(fun));
-  if (arg != undefined) msg = msg.replace('$2', arg);
+  if (fun === null) msg = msg.replace('$1', getByValue(function_key));
+  else if (fun) msg = msg.replace('$1', getByValue(fun));
+  // if (arg != undefined) msg = msg.replace('$2', arg);
+  if (arg != undefined) msg = msg.replace('$2', nodeToString(arg, true));
   throw new LogoError(msg);
 }
 
@@ -340,7 +342,8 @@ export class AsynchronousLogoInterpreter {
       if (checked_arg)
         values.push(checked_arg);
       else
-        throwError('e05', function_key, arg.val);
+        // throwError('e05', function_key, arg.val);
+        throwError('e05', function_key, arg);
     }
     return values;
   }
