@@ -75,17 +75,6 @@ export function _UNTRACK(args: any[]): void {
        throwError('e06', null, args[i].val);
 }
 
-export async function wait(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-export async function _WAIT(values: any[]) {
-  const ms = values[0].val;
-  console.log('_WAIT 1', ms);
-  await wait(ms); 
-  console.log('_WAIT 2', ms);
-}
-
 export function _STOP(ctx: Context, values: any[]): void {
   console.log('function _STOP', values);
   is_stop = true;

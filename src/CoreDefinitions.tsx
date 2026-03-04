@@ -3,7 +3,7 @@
 // 251115 - added FunClass; added ref field to CommandDef
 
 
-import { _NOP, _ERROR, _TRACK, _UNTRACK, _WAIT, _STOP, _OUTPUT, _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
+import { _NOP, _ERROR, _TRACK, _UNTRACK, _STOP, _OUTPUT, _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
 import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _FIRSTS, _LASTS, _BUTFIRST, _BUTLAST, _BUTFIRSTS, _BUTLASTS, _COUNT, _ITEM, _WORDP, _LISTP } from './Structures';
 import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
 import { _NOT, _EQUALP, _NOTEQUALP } from './Logic';
@@ -14,11 +14,11 @@ import { _SCREENSIZE, _CANVASSIZE, _SETCANVASSIZE, _BOUNDS, _HOME, _CLEAR, _CS, 
 import { _SETPOS, _SETX, _SETY, _SETXY, _TOWARDS, _FD, _BK, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING } from './InterpreterCore';
 import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _PENSIZE, _SETPENSIZE, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './InterpreterCore';
 import { _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR } from './Communication';
-import { _TIME, _SETTIME } from './TimeMusic';
+import { _TIME, _SETTIME, _WAIT, _MIDIOPEN, _MIDIMSG } from './TimeMusic';
 
 export const SEPARATORS = {
 	// "\t\r\":()+-*/^<=> "
-	//  0 0 0 00000223341110}
+	//  0 0 0 00000223341110}, 
 	'\r': { precedence: 0},
 	'\b': { precedence: 0},
 	'\"': { precedence: 0},
@@ -837,6 +837,14 @@ export const CORE_DEFINITIONS = {
     classes: [FunClass.ASYNC],
     args: [{ name: "time", type: A_N }],
     ref: _WAIT,
+  } as CommandDef,
+  MIDIOPEN: {
+    classes: [FunClass.ASYNC],
+    ref: _MIDIOPEN,
+  } as CommandDef,
+  MIDIMSG: {
+    args: [{ name: "time", type: A_LN }],
+    ref: _MIDIMSG,
   } as CommandDef,
   STOP: {
     classes: [FunClass.EXEC],
