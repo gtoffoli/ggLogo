@@ -49,7 +49,8 @@ type LogoAction =
     | { type: 'REGISTER_CANVAS', windowId: string, context: CanvasRenderingContext2D, background: HTMLCanvasElement, foreground: HTMLCanvasElement  }
     | { type: 'UPDATE_WINDOW_STATE', windowId: string, newState: GraphicWindowState }
     | { type: 'UPDATE_TURTLE_STATE', windowId: string, newState: Partial<TurtleState> }
-    | { type: 'ADD_DRAWING_COMMAND', windowId: string, command: DrawingCommand }
+    // | { type: 'ADD_DRAWING_COMMAND', windowId: string, command: DrawingCommand }
+    | { type: 'ADD_DRAWING_COMMANDS', windowId: string, commands: DrawingCommand[] }
     | { type: 'CLEAR_SHELL_HISTORY' }
     | { type: 'TOGGLE_INPUT_ECHO' }
     | { type: 'UPDATE_CURRENT_OUTPUT_LINE', text: string }
@@ -90,16 +91,18 @@ export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlo
                     }
                 }
             };
-        case 'ADD_DRAWING_COMMAND':
+        // case 'ADD_DRAWING_COMMAND':
+        case 'ADD_DRAWING_COMMANDS':
             const win = state.windows[action.windowId];
-            console.log('ADD_DRAWING_COMMAND', win);
+            console.log('ADD_DRAWING_COMMANDS', win);
             return {
                 ...state,
                 windows: {
                     ...state.windows,
                     [action.windowId]: {
                         ...win,
-                        drawingCommands: [...win.drawingCommands, action.command]
+                        // drawingCommands: [...win.drawingCommands, action.command]
+                        drawingCommands: win.drawingCommands.concat(action.commands)
                     }
                 }
             };

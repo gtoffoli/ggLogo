@@ -13,6 +13,8 @@ const screenModes = ['OPEN', 'CLOSED', 'WRAP'];
 var screenMode: string = 'CLOSED'; // 'WRAP';
 type Point = { x: number; y: number; }
 type Bounds = { xMin: number; xMax: number; yMin: number; yMax: number; }
+type Segment = { s: Point, e: Point }
+
 var canvasBounds: Bounds = {xMin: -400, xMax: 400, yMin: -400, yMax: 400};  
 
 export function _SCREENSIZE(values: any[]): Cell {
@@ -74,6 +76,7 @@ export function _HOME(values: any[], state: TurtleState): TurtleState {
   };
 }
 
+/*
 export function _CLEAR(values: any[], state: TurtleState): { newState: TurtleState | null, command: DrawingCommand | null } {
   console.log('function _CS');
   return [ state, { type: 'CLEAR_CANVAS' }];
@@ -82,6 +85,16 @@ export function _CLEAR(values: any[], state: TurtleState): { newState: TurtleSta
 export function _CS(values: any[], state: TurtleState): { newState: TurtleState | null, command: DrawingCommand | null } {
 	console.log('function _CS');
   return [ initialTurtleState, { type: 'CLEAR_CANVAS' }];
+}
+*/
+export function _CLEAR(values: any[], state: TurtleState): { newState: TurtleState | null, commands: DrawingCommand[] } {
+  console.log('function _CS');
+  return [ state, [{ type: 'CLEAR_CANVAS' }] ];
+}
+
+export function _CS(values: any[], state: TurtleState): { newState: TurtleState | null, commands: DrawingCommand[] } {
+  console.log('function _CS');
+  return [ initialTurtleState, [{ type: 'CLEAR_CANVAS' }] ];
 }
 
 export function _WINDOW(values: any[]): void {
@@ -117,35 +130,41 @@ export function _TOWARDS(values: any[], state: TurtleState): Cell {
   return { type: CellType.NUMBER, val: calculateHeading(p1, p2) };
 }
 
-export function _SETPOS(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommand: DrawingCommand] {
+// export function _SETPOS(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommand: DrawingCommand] {
+export function _SETPOS(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
   const xy: Cell[] = values[0].val;
   const p: Point = { x: xy[0].val, y: xy[1].val };
   console.log('_SETPOS', state, p);
   return setNewPos(state, p);
 }
-export function _SETXY(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommand: DrawingCommand] {
+// export function _SETXY(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommand: DrawingCommand] {
+export function _SETXY(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
   const p: Point = { x: values[0].val, y: values[1].val };
   console.log('_SETXY', state, p);
   return setNewPos(state, p);
 }
-export function _SETX(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommand: DrawingCommand] {
+// export function _SETX(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommand: DrawingCommand] {
+export function _SETX(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
   const p: Point = { x: values[0].val, y: state.y };
   console.log('_SETX', state, p);
   return setNewPos(state, p);
 }
-export function _SETY(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommand: DrawingCommand] {
+// export function _SETY(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommand: DrawingCommand] {
+export function _SETY(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
   const p: Point = { x: state.x, y: values[0].val };
   console.log('_SETX', state, p);
   return setNewPos(state, p);
 }
 
-export function _FD(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommand: DrawingCommand] {
+// export function _FD(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommand: DrawingCommand] {
+export function _FD(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
 	const distance: number = values[0].val;
 	console.log('function _FD', distance);
 	return calculateForward(state, distance);
 }
 
-export function _BK(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommand: DrawingCommand] {
+// export function _BK(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommand: DrawingCommand] {
+export function _BK(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
 	const distance: number = -(values[0].val);
 	return calculateForward(state, distance);
 }
@@ -341,19 +360,80 @@ function clampSegment(p1: Point, p2: Point, bounds: Bounds): Point {
   return p2;
 }
 
+function calculateWrapSegments(p1: Point, p2: Point, bounds: Bounds): {s: Point, e: Point}[] {
+  const { xMin, xMax, yMin, yMax } = bounds;
+  const width = xMax - xMin;
+  const height = yMax - yMin;
+
+  // Se il punto d'arrivo è dentro i bordi, restituiamo il segmento unico
+  if (p2.x >= xMin && p2.x <= xMax && p2.y >= yMin && p2.y <= yMax) {
+    return [{ s: p1, e: p2 }];
+  }
+
+  // Troviamo quale bordo viene colpito per primo
+  let t = 1;
+  let edge: 'L' | 'R' | 'T' | 'B' | null = null;
+
+  if (p2.x > xMax) { t = (xMax - p1.x) / (p2.x - p1.x); edge = 'R'; }
+  else if (p2.x < xMin) { t = (xMin - p1.x) / (p2.x - p1.x); edge = 'L'; }
+  
+  // Verifichiamo se colpisce prima un bordo verticale o orizzontale
+  let ty = 1;
+  if (p2.y > yMax) ty = (yMax - p1.y) / (p2.y - p1.y);
+  else if (p2.y < yMin) ty = (yMin - p1.y) / (p2.y - p1.y);
+
+  if (ty < t) { t = ty; edge = p2.y > yMax ? 'T' : 'B'; }
+
+  // Punto di collisione sul bordo
+  const hit = {
+    x: p1.x + t * (p2.x - p1.x),
+    y: p1.y + t * (p2.y - p1.y)
+  };
+
+  // Punto di rientro dal lato opposto
+  const reEntry = { ...hit };
+  if (edge === 'R') reEntry.x = xMin;
+  else if (edge === 'L') reEntry.x = xMax;
+  else if (edge === 'T') reEntry.y = yMin;
+  else if (edge === 'B') reEntry.y = yMax;
+
+  // Calcoliamo la parte rimanente del movimento
+  const remainingP2 = {
+    x: reEntry.x + (p2.x - hit.x),
+    y: reEntry.y + (p2.y - hit.y)
+  };
+
+  // Ricorsione: il pezzo rimanente potrebbe colpire un altro bordo
+  return [
+    { s: p1, e: hit },
+    ...calculateWrapSegments(reEntry, remainingP2, bounds)
+  ];
+}
+
 // ora è usata anche da calculateForward, che precedentemente era autonoma
-function setNewPos(state: TurtleState, p: Point): [ newState: TurtleState, drawingCommand: DrawingCommand] {
+// function setNewPos(state: TurtleState, p: Point): [ newState: TurtleState, drawingCommand: DrawingCommand] {
+function setNewPos(state: TurtleState, p: Point): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
   var p1 = {x: state.x, y: state.y};
   var p2 = {x: p.x, y: -p.y};  // LOGO usa Y decrescente verso l'alto
-  if (screenMode === 'CLOSED')
-    p2 = clampSegment(p1, p2, canvasBounds);
-  const newState: TurtleState = {
+  var segments: Segment[];
+  var newState: TurtleState;
+
+  if (screenMode === 'WRAP') {
+    segments = calculateWrapSegments(p1, p2, canvasBounds);
+    p2 = segments[-1].e;
+  }
+  else {
+    if (screenMode === 'CLOSED')
+      p2 = clampSegment(p1, p2, canvasBounds);
+    segments = [{s: p1, e: p2}];
+  }
+  newState = {
     ...state, 
     x: p2.x, 
     y: p2.y 
   };
-  console.log('setNewPos', state, p, p1, p2, newState);
-  // if ((screenMode === 'OPEN') || (screenMode === 'CLOSED')) {
+  // console.log('setNewPos', state, p, p1, p2, newState);
+
   var drawingCommand: DrawingCommand;
   if (state.penDown) {
      drawingCommand = {
@@ -370,14 +450,16 @@ function setNewPos(state: TurtleState, p: Point): [ newState: TurtleState, drawi
       y: p2.y 
     };
   }
-  return [ newState, drawingCommand ];
-  // }
+  console.log('setNewPos', p2, drawingCommand);
+  // return [ newState, drawingCommand ];
+  return [ newState, [drawingCommand] ];
 }
 
 /**
  * Calcola il comando (LINE_TO o MOVE_TO) da inviare al canvas e il nuovo stato (pos) della tartaruga dopo un comando tipo FD o BK
  */
-export function calculateForward(state: TurtleState, distance: number): [ newState: TurtleState, drawingCommand: DrawingCommand] {
+// export function calculateForward(state: TurtleState, distance: number): [ newState: TurtleState, drawingCommand: DrawingCommand] {
+export function calculateForward(state: TurtleState, distance: number): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
   const rad = state.heading * Math.PI / 180;
   var newX = precision(state.x + distance * Math.sin(rad));
   // var newY = precision(state.y - distance * Math.cos(rad)); // LOGO usa Y decrescente verso l'alto

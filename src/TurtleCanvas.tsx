@@ -16,7 +16,6 @@ import { initialTurtleState } from './logoReducer';
 // const drawIperLogoTurtle = (ctx: CanvasRenderingContext2D, turtle: TurtleState) => {
 const drawIperLogoTurtle = (ctx: CanvasRenderingContext2D, turtle: TurtleState, foreground: HTMLCanvasElement, container: HTMLCanvasElement) => {
   const { x, y, heading } = turtle;
-  console.log('drawIperLogoTurtle', x, y, heading)
 
   ctx.save();
   // Spostiamo l'origine nel punto della tartaruga
@@ -102,10 +101,8 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
     const turtle = windowState.turtleState;
     
     // 2. GESTIONE RESET: Se i comandi sono diminuiti o la lista è vuota, o è cambiato lo sfondo, puliamo tutto
-    console.log('useEffect', commands.length, lastDrawnIndex.current, windowState.backgroundColor, lastBackgroundColor.current);
     if ((commands.length < lastDrawnIndex.current) || (windowState.backgroundColor != lastBackgroundColor.current)) {
       // ctx.clearRect(0, 0, canvas.width, canvas.height);
-      console.log('Canvas: Reset totale', windowState.backgroundColor, canvas.width, canvas.height);
       ctx.fillStyle = windowState.backgroundColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       lastDrawnIndex.current = 0;
@@ -212,9 +209,11 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
 
   const handleClearCanvas = () => {
     dispatch({ 
-      type: 'ADD_DRAWING_COMMAND', 
+      // type: 'ADD_DRAWING_COMMAND', 
+      type: 'ADD_DRAWING_COMMANDS', 
       windowId: windowId,
-      command: { type: 'CLEAR_CANVAS' }
+      // command: { type: 'CLEAR_CANVAS' }
+      commands: [{ type: 'CLEAR_CANVAS' }]
     });
   };
 
