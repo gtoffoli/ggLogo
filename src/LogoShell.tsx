@@ -10,7 +10,7 @@ import './i18n';
 import { useTranslation } from 'react-i18next';
 import PanelContainer from './PanelContainer';
 import { useLocalization, LanguageCode } from './UseLocalization';
-import { ShellLine } from './LogoState';
+// import { ShellLine } from './LogoState';
 import { useLogoState } from './LogoStateContext';
 import { ShellSource , BufferSource } from './Streams';
 import { localizeTruthValues } from './Logic';

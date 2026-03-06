@@ -4,16 +4,19 @@
 
 
 // Definisce l'interfaccia per una linea di output su Shell
-export type ShellLine {
+export type ShellLine = {
   id: string;
   text: string;
   type: 'input' | 'output'  | 'error' | 'system';
 }
 
+export type Point = { x: number; y: number; }
+
 // Definisce un comando di disegno elementare
 export type DrawingCommand = 
   | { type: 'MOVE_TO', x: number, y: number }
   | { type: 'LINE_TO', x: number, y: number, color: string, thickness: number }
+  | { type: 'POLYGON', fillColor: string, path: Point[] }
   | { type: 'CLEAR_CANVAS' };
 
 // 1. Definisce lo stato specifico di una Finestra Grafica (Canvas/Tartaruga)

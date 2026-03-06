@@ -148,6 +148,16 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
           }
           break;
 
+        case 'POLYGON':
+          const { fillColor, path } = currentCmd;
+          ctx.beginPath();
+          ctx.moveTo(path[0].x + centerX, path[0].y + centerY);
+          path.forEach(p => ctx.lineTo(p.x + centerX, p.y + centerY));
+          ctx.closePath(); // Chiude automaticamente la figura
+          ctx.fillStyle = fillColor;
+          ctx.fill();
+          break;
+
         case 'CLEAR_CANVAS':
           canvas.width = windowState.canvasSize[0];
           canvas.height = windowState.canvasSize[1];

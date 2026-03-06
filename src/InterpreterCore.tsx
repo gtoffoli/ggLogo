@@ -11,11 +11,13 @@ import { nodeToString } from './Parser';
 
 const screenModes = ['OPEN', 'CLOSED', 'WRAP'];
 var screenMode: string = 'CLOSED'; // 'WRAP';
+
 type Point = { x: number; y: number; }
 type Bounds = { xMin: number; xMax: number; yMin: number; yMax: number; }
 type Segment = { s: Point, e: Point }
 
 var canvasBounds: Bounds = {xMin: -400, xMax: 400, yMin: -400, yMax: 400};  
+var activePath: Point[] = []; // serve per il comando FILL; viene resettato da FILLSTART e FILL
 
 export function _SCREENSIZE(values: any[]): Cell {
   return { type: CellType.LIST, val: [{ type: CellType.NUMBER, val: window.screen.width}, { type: CellType.NUMBER, val: window.screen.height}] }
@@ -364,7 +366,6 @@ function calculateWrapSegments(p1: Point, p2: Point, bounds: Bounds): {s: Point,
   const { xMin, xMax, yMin, yMax } = bounds;
   const width = xMax - xMin;
   const height = yMax - yMin;
-
   // Se il punto d'arrivo è dentro i bordi, restituiamo il segmento unico
   if (p2.x >= xMin && p2.x <= xMax && p2.y >= yMin && p2.y <= yMax) {
     return [{ s: p1, e: p2 }];
@@ -410,49 +411,61 @@ function calculateWrapSegments(p1: Point, p2: Point, bounds: Bounds): {s: Point,
   ];
 }
 
+function pointsEqual(p1: Point, p2: Point): boolean {
+  return ((p1.x == p2.x) && (p1.y == p2.y))
+}
+
 // ora è usata anche da calculateForward, che precedentemente era autonoma
 // function setNewPos(state: TurtleState, p: Point): [ newState: TurtleState, drawingCommand: DrawingCommand] {
 function setNewPos(state: TurtleState, p: Point): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
-  var p1 = {x: state.x, y: state.y};
-  var p2 = {x: p.x, y: -p.y};  // LOGO usa Y decrescente verso l'alto
+  var p1: Point = {x: state.x, y: state.y};
+  var p2: Point = {x: p.x, y: -p.y};  // LOGO usa Y decrescente verso l'alto
   var segments: Segment[];
   var newState: TurtleState;
+  var drawingCommands: DrawingCommand[];
 
   if (screenMode === 'WRAP') {
     segments = calculateWrapSegments(p1, p2, canvasBounds);
-    p2 = segments[-1].e;
+    p2 = segments[segments.length-1].e;
   }
   else {
     if (screenMode === 'CLOSED')
       p2 = clampSegment(p1, p2, canvasBounds);
     segments = [{s: p1, e: p2}];
   }
+  var drawingCommand: DrawingCommand;
+  drawingCommands = [];
+  for (var i=0; i < segments.length; i++) {
+    const segment: Segment = segments[i];
+    const { s, e } = segment;
+    if ((i > 0) && (!pointsEqual(s, segments[i-1].e))) {
+      drawingCommands.push({ type: 'MOVE_TO', x: s.x, y: s.y });
+    }
+    if (state.penDown) {
+       drawingCommand = {
+        type: 'LINE_TO',
+        x: e.x, 
+        y: e.y,
+        color: state.penColor,
+        thickness: state.penSize
+      };
+    } else {
+      drawingCommand = {
+        type: 'MOVE_TO',
+        x: e.x, 
+        y: e.y 
+      };
+    }
+    drawingCommands.push(drawingCommand);
+  }
   newState = {
     ...state, 
     x: p2.x, 
     y: p2.y 
   };
-  // console.log('setNewPos', state, p, p1, p2, newState);
-
-  var drawingCommand: DrawingCommand;
-  if (state.penDown) {
-     drawingCommand = {
-      type: 'LINE_TO',
-      x: p2.x, 
-      y: p2.y,
-      color: state.penColor,
-      thickness: state.penSize
-    };
-  } else {
-    drawingCommand = {
-      type: 'MOVE_TO',
-      x: p2.x, 
-      y: p2.y 
-    };
-  }
-  console.log('setNewPos', p2, drawingCommand);
-  // return [ newState, drawingCommand ];
-  return [ newState, [drawingCommand] ];
+  if ((activePath) && (screenMode === 'CLOSED'))
+    activePath.push(p2);
+  return [ newState, drawingCommands ];
 }
 
 /**
@@ -478,4 +491,22 @@ export function calculateRight(state: TurtleState, angle: number): TurtleState {
     heading: newHeading < 0 ? newHeading + 360 : newHeading
   };
   return newState;
+}
+
+export function _FILLSTART(values: any[], state: TurtleState): TurtleState {
+  if (screenMode === 'CLOSED')
+    activePath = [{ x: state.x, y: state.y }]
+  return state;
+}
+
+export function _FILL(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
+  const color = values[0].val;
+  var drawingCommand: DrawingCommand;
+  var drawingCommands: DrawingCommand[];
+  if (activePath.length >= 3) {
+    drawingCommand = { type: 'POLYGON', fillColor: color, path: activePath };
+    drawingCommands = [drawingCommand];
+  }
+  activePath = [];
+  return [ state, drawingCommands ];
 }
