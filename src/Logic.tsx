@@ -55,3 +55,42 @@ export function _NOTEQUALP(values: any[]): Cell {
 		value = unEqualNumbers(values[0].val, values[1].val);
 	return { type: CellType.BOOLEAN, val: value };
 }
+
+export function _BITOR(values: any[]): Cell {
+  var bitor = 0x00000000 >>> 0;
+  for (var i=0; i<values.length; i++)
+    bitor = bitor | values[i].val;
+  return { type: CellType.NUMBER, val: bitor };
+}
+export function _BITAND(values: any[]): Cell {
+  var bitand = 0xFFFFFFFF >>> 0;
+  for (var i=0; i<values.length; i++)
+    bitand = bitand & values[i].val;
+  return { type: CellType.NUMBER, val: bitand };
+}
+export function _BITXOR(values: any[]): Cell {
+  var bitxor = 0x00000000 >>> 0;
+  for (var i=0; i<values.length; i++)
+    bitxor = bitxor ^ values[i].val;
+  return { type: CellType.NUMBER, val: bitxor };
+}
+export function _BITNOT(values: any[]): Cell {
+  var bitnot = ~(values[0].val >>> 0);
+  return { type: CellType.NUMBER, val: bitnot };
+}
+
+export function _ASHIFT(values: any[]): Cell {
+  const bitcount = values[1].val;
+  var ashift = values[0].val;
+  if (bitcount > 0) ashift = ashift << bitcount;
+  if (bitcount < 0) ashift = ashift >> (-bitcount);
+  return { type: CellType.NUMBER, val: ashift };
+}
+export function _LSHIFT(values: any[]): Cell {
+  const bitcount = values[1].val;
+  var lshift = values[0].val >>> 0;
+  if (bitcount > 0) lshift = lshift << bitcount;
+  if (bitcount < 0) lshift = lshift >>> (-bitcount);
+  return { type: CellType.NUMBER, val: lshift };
+}
+

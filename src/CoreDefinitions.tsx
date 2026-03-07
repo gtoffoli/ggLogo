@@ -6,7 +6,7 @@
 import { _NOP, _ERROR, _TRACK, _UNTRACK, _STOP, _OUTPUT, _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
 import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _FIRSTS, _LASTS, _BUTFIRST, _BUTLAST, _BUTFIRSTS, _BUTLASTS, _COUNT, _ITEM, _WORDP, _LISTP } from './Structures';
 import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
-import { _NOT, _EQUALP, _NOTEQUALP } from './Logic';
+import { _NOT, _EQUALP, _NOTEQUALP, _BITOR, _BITAND, _BITXOR, _BITNOT, _ASHIFT, _LSHIFT } from './Logic';
 import { _ABS, _INT, _ROUND, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _POWER, _EXP, _SQRT, _LOG10, _LN, _RANDOM, _RERANDOM } from './Math';
 import { _NUMBERP, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
 import { _RAD, _SIN, _COS, _TAN, _ARCTAN, _RADSIN, _RADCOS, _RADTAN, _RADARCTAN } from './Math';
@@ -813,6 +813,37 @@ export const CORE_DEFINITIONS = {
     signature: [FunSignature.FUNCTION],
     args: [{ name: "arg1", type: null }, { name: "arg2", type: null }],
     ref: _GREATEREQUALP,
+  } as CommandDef,
+
+  'BITOR': {
+    signature: [FunSignature.FUNCTION, FunSignature.ONEORMORE],
+    args: [{ name: "arg1", type: A_N }, { name: "arg2", type: A_N }],
+    ref: _BITOR,
+  } as CommandDef,
+  'BITAND': {
+    signature: [FunSignature.FUNCTION, FunSignature.ONEORMORE],
+    args: [{ name: "arg1", type: A_N }, { name: "arg2", type: A_N }],
+    ref: _BITAND,
+  } as CommandDef,
+  'BITXOR': {
+    signature: [FunSignature.FUNCTION, FunSignature.ONEORMORE],
+    args: [{ name: "arg1", type: A_N }, { name: "arg2", type: A_N }],
+    ref: _BITXOR,
+  } as CommandDef,
+  'BITNOT': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg", type: A_N }],
+    ref: _BITNOT,
+  } as CommandDef,
+  'ASHIFT': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg1", type: A_N }, { name: "arg2", type: A_N }],
+    ref: _ASHIFT,
+  } as CommandDef,
+  'LSHIFT': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg1", type: A_N }, { name: "arg2", type: A_N }],
+    ref: _LSHIFT,
   } as CommandDef,
 
   ERROR: {
