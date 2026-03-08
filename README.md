@@ -14,14 +14,14 @@ I will welcome critiques, collaboration for testing and development and possibly
 
 ggLogo ha a lot of ancestors; some of them were co-authored by me and my colleague and friend Giovanni Lariccia; I mention a few:
 - the original Logo developed ad BBN on behalf of an MIT multidisciplinary research group (1971-1973);
-- *sLogo*: an Italian version of Logo, developed by Giovanni Toffoli and Giovanni Lariccia on MsDOS, wit C and C++ (1982-1984, 1986-);
+- *sLogo*: an Italian version of Logo, developed by Giovanni Toffoli and Giovanni Lariccia on MsDOS, wit C and C++ (1982-1996);
 - *mLogo*: a successor of sLogo, derived from sLogo for the educational branch of the Arnoldo Mondadori publisher,
   based on an idea and with the support of Egidio Pentiraro  (1984-1985);
 - *MswLogo*: a Microsoft product that we took in part as a comparison term in designing Iperlogo (1995-2002;
-- *Iperlogo*: an extended implementation of the Logo language for Windows,
+- *Iperlogo*: an extended implementation of the Logo language for Windows (1996-2005);
   developed at LINK srl with the collaboration of Mariarosaria Manco and Corrado Mayer;
   it supported multiple graphical windows, editor windows and browser windows;
-- *Iperlogo+*: an internal product of LINK srl, with even more extensive functionality,
+- *Iperlogo+*: an internal product of LINK srl, with even more extensive functionality (1999-2005);
   besides the traditional Turtle graphics, it supported object graphics based on the Obective Views library by Stingray Software;
   it is a frozen project, but recently I recovered the (dirty) project files and archived it: https://github.com/gtoffoli/iperlogo;
 - *jsLogo*: another open-source version of Logo, available on the GitHub repository; see: https://github.com/inexorabletash/jslogo.
