@@ -111,7 +111,7 @@ export function _WRAP(values: any[]): void {
   screenMode = 'WRAP';
 }
 
-export function _SETSCREEN(values: any[]): void {
+export function _SETTURTLEMODE(values: any[]): void {
   const foundKey = keywordResolver(values[0].val);
   if ((foundKey) && (screenModes.includes(foundKey)))
     screenMode = foundKey;
@@ -119,7 +119,7 @@ export function _SETSCREEN(values: any[]): void {
     throwError('e05', null, values[0].val);
 }
 
-export function _SCREEN(values: any[]): Cell {
+export function _TURTLEMODE(values: any[]): Cell {
   return { type: CellType.WORD, val: getByValue(screenMode)}
 }
 export function _TOWARDS(values: any[], state: TurtleState): Cell {

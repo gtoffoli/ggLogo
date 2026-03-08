@@ -170,6 +170,19 @@ export function _ITEM(args: any[]): Cell {
 		return { type: CellType.WORD, val: sequence.toString().charAt(index-1) };
 }
 
+export function _ASCII(args: any[]): Cell {[0].val;
+  var string = args[0].val;
+  if (string.length < 1) throwError('e05', null, args[0]);
+  var carCode = string.charCodeAt(0);
+  return { type: CellType.NUMBER, val: carCode };
+}
+export function _CHAR(args: any[]): Cell {
+  var string = '';
+  for (var i=0; i < args.length; i++)
+    string += String.fromCharCode(args[i].val);
+  return { type: CellType.WORD, val: string };
+}
+
 function wordp(cell: Cell): boolean {
 	return ((cell.type===CellType.WORD) || (cell.type===CellType.NUMBER) || (cell.type===CellType.BOOLEAN))	
 }
