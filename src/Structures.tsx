@@ -159,7 +159,6 @@ export function _BUTLASTS(args: any[]): Cell {
 }
 
 export function _ITEM(args: any[]): Cell {
-	console.log('function _ITEM', args);
 	var index = args[0].val;
 	var sequence = args[1].val;
 	if (index < 1 || index > sequence.length)
@@ -169,8 +168,25 @@ export function _ITEM(args: any[]): Cell {
 	else
 		return { type: CellType.WORD, val: sequence.toString().charAt(index-1) };
 }
+export function _MEMBERP(args: any[]): Cell {
+  var item: any = args[0].val;
+  var sequence: string | any[] = args[1].val;
+  console.log('_MEMBERP 1', item, sequence);
+  if (args[1].type === CellType.LIST)
+    sequence = sequence.map((n: Cell) => n.val);
+  var memberp: boolean = sequence.includes(item);
+  console.log('_MEMBERP', item, sequence);
+  return { type: CellType.BOOLEAN, val: memberp };
+}
 
-export function _ASCII(args: any[]): Cell {[0].val;
+export function _LOWERCASE(args: any[]): Cell {
+   return { type: CellType.WORD, val: args[0].val.toLowerCase() };
+}
+export function _UPPERCASE(args: any[]): Cell {
+   return { type: CellType.WORD, val: args[0].val.toUpperCase() };
+}
+
+export function _ASCII(args: any[]): Cell {
   var string = args[0].val;
   if (string.length < 1) throwError('e05', null, args[0]);
   var carCode = string.charCodeAt(0);
@@ -187,11 +203,12 @@ function wordp(cell: Cell): boolean {
 	return ((cell.type===CellType.WORD) || (cell.type===CellType.NUMBER) || (cell.type===CellType.BOOLEAN))	
 }
 export function _WORDP(args: any[]): Cell {
-	console.log('function _WORDP', args);
 	return { type: CellType.BOOLEAN, val: wordp(args[0]) };
 }
-
 export function _LISTP(args: any[]): Cell {
-	console.log('function _LISTP', args);
-	return { type: CellType.BOOLEAN, val: (args[0].type === CellType.LIST) };
+  return { type: CellType.BOOLEAN, val: (args[0].type === CellType.LIST) };
+}
+export function _EMPTYP(args: any[]): Cell {
+  var emptyp: boolean = (args[0].val.length === 0) ? true : false;
+  return { type: CellType.BOOLEAN, val: emptyp };
 }

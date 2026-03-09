@@ -262,6 +262,10 @@ export function Parse(input: string): any[] {
 				      cell_type = CellType.OPERATOR;
 				    break;
         	case CharClass.OTHER:
+            if (!isNaN(token)) {
+              cell_type = CellType.NUMBER;
+              token = parseFloat(token);
+            }
 						cell_type = CellType.WORD;
 						break;
 				}

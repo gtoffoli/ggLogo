@@ -39,6 +39,60 @@ const drawIperLogoTurtle = (ctx: CanvasRenderingContext2D, turtle: TurtleState, 
   ctx.restore();
 };
 
+/* Per implementare `FILL` (riempimento a macchia d'olio), non possiamo usare i comandi vettoriali del Canvas.
+   Dobbiamo operare sui pixel.
+   Ecco un algoritmo **iterativo** (per evitare lo "stack overflow" della ricorsione su aree grandi) */
+
+// algoritmo floodFill classico, alternativo a quello realizzato in risposta ad un DrawingCommand di tipo 'POLYGON'
+// (ancora non è utilizzato da una primitiva, come in jsLogo)
+function floodFill(ctx, startX, startY, fillColor) {
+  const width = ctx.canvas.width;
+  const height = ctx.canvas.height;
+  
+  // 1. Ottieni tutti i pixel del canvas in un colpo solo
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const data = imageData.data;
+
+  // 2. Leggi il colore del pixel di partenza (il "colore da sostituire")
+  const startPos = (Math.floor(startY) * width + Math.floor(startX)) * 4;
+  const startR = data[startPos];
+  const startG = data[startPos + 1];
+  const startB = data[startPos + 2];
+  const startA = data[startPos + 3];
+
+  // Se il colore è già quello desiderato, esci
+  if (isSameColor(startR, startG, startB, startA, fillColor)) return;
+
+  // 3. Coda dei pixel da processare
+  const stack = [[Math.floor(startX), Math.floor(startY)]];
+  while (stack.length > 0) {
+    const [x, y] = stack.pop();
+    const pos = (y * width + x) * 4;
+
+    if (isSameColor(data[pos], data[pos+1], data[pos+2], data[pos+3], [startR, startG, startB, startA])) {
+      // Colora il pixel
+      data[pos] = fillColor[0];
+      data[pos + 1] = fillColor[1];
+      data[pos + 2] = fillColor[2];
+      data[pos + 3] = 255;
+
+      // Aggiungi i vicini (su, giù, sinistra, destra)
+      if (x > 0) stack.push([x - 1, y]);
+      if (x < width - 1) stack.push([x + 1, y]);
+      if (y > 0) stack.push([x, y - 1]);
+      if (y < height - 1) stack.push([x, y + 1]);
+    }
+  }
+  
+  // 4. Riporta i pixel modificati sul canvas
+  ctx.putImageData(imageData, 0, 0);
+}
+
+function isSameColor(r, g, b, a, target) {
+  return r === target[0] && g === target[1] && b === target[2] && a === target[3];
+}
+
+
 interface TurtleCanvasProps {
     windowId: string; // "TARTA"
 }
@@ -123,7 +177,7 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
       switch (currentCmd.type) {
         case 'MOVE_TO':
         case 'LINE_TO':
-          const { x, y, color } = currentCmd;
+          var { x, y, color } = currentCmd;
           
           // Troviamo il punto di partenza
           let prevX = 0;
@@ -148,8 +202,23 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
           }
           break;
 
+        case 'ARC':
+          var { x, y, radius, startAngle, endAngle, color, fillColor } = currentCmd;
+          ctx.beginPath();
+          ctx.arc(x + centerX, y + centerY, radius, startAngle, endAngle);
+          if (fillColor) {
+            ctx.fillStyle = fillColor;
+            ctx.fill();
+          }
+          if (color) {
+            ctx.lineWidth = windowState.turtleState.penSize;
+            ctx.strokeStyle = color;
+            ctx.stroke();
+          }
+          break;
+
         case 'POLYGON':
-          const { fillColor, path } = currentCmd;
+          var { fillColor, path } = currentCmd;
           ctx.beginPath();
           ctx.moveTo(path[0].x + centerX, path[0].y + centerY);
           path.forEach(p => ctx.lineTo(p.x + centerX, p.y + centerY));

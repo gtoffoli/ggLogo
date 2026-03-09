@@ -17,6 +17,7 @@ export type DrawingCommand =
   | { type: 'MOVE_TO', x: number, y: number }
   | { type: 'LINE_TO', x: number, y: number, color: string, thickness: number }
   | { type: 'POLYGON', fillColor: string, path: Point[] }
+  | { type: 'ARC', x: number, y: number, radius: number, startAngle: number, endAngle: number, color: string, fillColor: string | null }
   | { type: 'CLEAR_CANVAS' };
 
 // 1. Definisce lo stato specifico di una Finestra Grafica (Canvas/Tartaruga)

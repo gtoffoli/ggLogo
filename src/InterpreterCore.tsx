@@ -78,35 +78,19 @@ export function _HOME(values: any[], state: TurtleState): TurtleState {
   };
 }
 
-/*
-export function _CLEAR(values: any[], state: TurtleState): { newState: TurtleState | null, command: DrawingCommand | null } {
-  console.log('function _CS');
-  return [ state, { type: 'CLEAR_CANVAS' }];
-}
-
-export function _CS(values: any[], state: TurtleState): { newState: TurtleState | null, command: DrawingCommand | null } {
-	console.log('function _CS');
-  return [ initialTurtleState, { type: 'CLEAR_CANVAS' }];
-}
-*/
 export function _CLEAR(values: any[], state: TurtleState): { newState: TurtleState | null, commands: DrawingCommand[] } {
-  console.log('function _CS');
   return [ state, [{ type: 'CLEAR_CANVAS' }] ];
 }
-
 export function _CS(values: any[], state: TurtleState): { newState: TurtleState | null, commands: DrawingCommand[] } {
-  console.log('function _CS');
   return [ initialTurtleState, [{ type: 'CLEAR_CANVAS' }] ];
 }
 
 export function _WINDOW(values: any[]): void {
   screenMode = 'OPEN';
 }
-
 export function _FENCE(values: any[]): void {
   screenMode = 'CLOSED';
 }
-
 export function _WRAP(values: any[]): void {
   screenMode = 'WRAP';
 }
@@ -118,10 +102,10 @@ export function _SETTURTLEMODE(values: any[]): void {
   else
     throwError('e05', null, values[0].val);
 }
-
 export function _TURTLEMODE(values: any[]): Cell {
   return { type: CellType.WORD, val: getByValue(screenMode)}
 }
+
 export function _TOWARDS(values: any[], state: TurtleState): Cell {
   const p1 = { x: state.x, y: state.y};
   const p2 = { x: values[0].val[0].val, y: values[0].val[1].val};
@@ -132,40 +116,28 @@ export function _TOWARDS(values: any[], state: TurtleState): Cell {
   return { type: CellType.NUMBER, val: calculateHeading(p1, p2) };
 }
 
-// export function _SETPOS(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommand: DrawingCommand] {
 export function _SETPOS(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
   const xy: Cell[] = values[0].val;
   const p: Point = { x: xy[0].val, y: xy[1].val };
-  console.log('_SETPOS', state, p);
   return setNewPos(state, p);
 }
-// export function _SETXY(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommand: DrawingCommand] {
 export function _SETXY(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
   const p: Point = { x: values[0].val, y: values[1].val };
-  console.log('_SETXY', state, p);
   return setNewPos(state, p);
 }
-// export function _SETX(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommand: DrawingCommand] {
 export function _SETX(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
   const p: Point = { x: values[0].val, y: state.y };
-  console.log('_SETX', state, p);
   return setNewPos(state, p);
 }
-// export function _SETY(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommand: DrawingCommand] {
 export function _SETY(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
   const p: Point = { x: state.x, y: values[0].val };
-  console.log('_SETX', state, p);
   return setNewPos(state, p);
 }
 
-// export function _FD(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommand: DrawingCommand] {
 export function _FD(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
 	const distance: number = values[0].val;
-	console.log('function _FD', distance);
 	return calculateForward(state, distance);
 }
-
-// export function _BK(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommand: DrawingCommand] {
 export function _BK(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
 	const distance: number = -(values[0].val);
 	return calculateForward(state, distance);
@@ -173,13 +145,10 @@ export function _BK(values: any[], state: TurtleState): [ newState: TurtleState,
 
 export function _RT(values: any[], state: TurtleState): TurtleState {
 	const angle: number = values[0].val;
-	console.log('function _RT', angle);
 	return calculateRight(state, angle);
 }
-
 export function _LT(values: any[], state: TurtleState): TurtleState {
 	const angle: number = -(values[0].val);
-  console.log('function _LT', angle);
 	return calculateRight(state, angle);
 }
 
@@ -189,7 +158,6 @@ export function _PENUP(values: any[], state: TurtleState): TurtleState {
     penDown: false
   };
 }
-
 export function _PENDOWN(values: any[], state: TurtleState): TurtleState {
   return { 
     ...state, 
@@ -334,30 +302,25 @@ function clampSegment(p1: Point, p2: Point, bounds: Bounds): Point {
   var xHit;
   var yHit;
   var hitPoint
-  console.log('clampSegment - in', p1, p2, bounds);
   if (p2.x > xMax) { // Se p2 è fuori a destra
     t = (xMax - p1.x) / (p2.x - p1.x);
     yHit = p1.y + t * (p2.y - p1.y);
     p2 = { x: xMax, y: yHit }; // hitPoint
-    console.log('clampSegment right', p2);
   }
   else if (p2.y > yMax) { // Se p2 è fuori in basso
     t = (yMax - p1.y) / (p2.y - p1.y);
     xHit = p1.x + t * (p2.x - p1.x);
     p2 = { x: xHit, y: yMax }; // hitPoint
-    console.log('clampSegment top', p2);
   }
   else if (p2.x < xMin) { // Se p2 è fuori a sinistra
     t = (p1.x - xMin) / (p2.x - p1.x);
     yHit = p1.y - t * (p2.y - p1.y);
     p2 = { x: xMin, y: yHit }; // hitPoint
-    console.log('clampSegment left', p2);
   }
   else if (p2.y < yMin) { // Se p2 è fuori in alto
     t = (p1.y - yMin) / (p2.y - p1.y);
     xHit = p1.x - t * (p2.x - p1.x);
     p2 = { x: xHit, y: yMin }; // hitPoint
-    console.log('clampSegment bottom', p2);
   }
   return p2;
 }
@@ -509,4 +472,23 @@ export function _FILL(values: any[], state: TurtleState): [ newState: TurtleStat
   }
   activePath = [];
   return [ state, drawingCommands ];
+}
+
+export function calculateArc(state: TurtleState, angle: number, radius: number): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
+  var endAngle = ((state.heading-90+angle) % 360) * Math.PI/180;
+  var drawingCommand: DrawingCommand;
+  var drawingCommands: DrawingCommand[];
+  drawingCommand = { type: 'ARC', x: state.x, y: state.y, radius: radius, startAngle: (state.heading-90) * Math.PI/180, endAngle: endAngle, color: state.penColor, fillColor: null };
+  drawingCommands = [drawingCommand];
+  return [ state, drawingCommands ];
+}
+export function _ARC(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
+  const angle = values[0].val;
+  if ((angle < 0) || (angle > 360)) throwError('e05', null, nodeToString(values[0], false));
+  const radius = values[1].val;
+  return calculateArc(state, angle, radius);
+}
+export function _CIRCLE(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
+  const radius = values[0].val;
+  return calculateArc(state, 360, radius);
 }

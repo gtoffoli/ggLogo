@@ -5,14 +5,14 @@
 
 import { _NOP, _ERROR, _TRACK, _UNTRACK, _STOP, _OUTPUT, _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
 import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _FIRSTS, _LASTS, _BUTFIRST, _BUTLAST, _BUTFIRSTS, _BUTLASTS, _COUNT, _ITEM } from './Structures';
-import { _ASCII, _CHAR, _WORDP, _LISTP } from './Structures';
+import { _LOWERCASE, _UPPERCASE, _ASCII, _CHAR, _WORDP, _LISTP, _EMPTYP, _MEMBERP } from './Structures';
 import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
 import { _NOT, _EQUALP, _NOTEQUALP, _BITOR, _BITAND, _BITXOR, _BITNOT, _ASHIFT, _LSHIFT } from './Logic';
 import { _ABS, _INT, _ROUND, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _POWER, _EXP, _SQRT, _LOG10, _LN, _RANDOM, _RERANDOM } from './Math';
 import { _NUMBERP, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
 import { _RAD, _SIN, _COS, _TAN, _ARCTAN, _RADSIN, _RADCOS, _RADTAN, _RADARCTAN } from './Math';
 import { _SCREENSIZE, _CANVASSIZE, _SETCANVASSIZE, _BOUNDS, _HOME, _CLEAR, _CS, _WINDOW, _FENCE, _WRAP, _SETTURTLEMODE, _TURTLEMODE, _SETSCALE, _SCALE, _SETBACKGROUNDCOLOR, _BACKGROUNDCOLOR } from './InterpreterCore';
-import { _SETPOS, _SETX, _SETY, _SETXY, _TOWARDS, _FD, _BK, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING, _FILL, _FILLSTART } from './InterpreterCore';
+import { _SETPOS, _SETX, _SETY, _SETXY, _TOWARDS, _FD, _BK, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING, _FILL, _FILLSTART, _ARC, _CIRCLE } from './InterpreterCore';
 import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _PENSIZE, _SETPENSIZE, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './InterpreterCore';
 import { _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR } from './Communication';
 import { _TIME, _SETTIME, _WAIT, _MIDIOPEN, _MIDIMSG } from './TimeMusic';
@@ -231,7 +231,7 @@ const A_F_S_L = Arg.NOMEARC + Arg.STRINGA + Arg.LISTA;
 const A_F_LW_S_L = Arg.NOMEARC + Arg.LISTAPAR + Arg.STRINGA + Arg.LISTA;
 
 // export const turtleStrokes = ['CS', 'CLEAR', 'SETSCALE', 'FD', 'BK',];
-export const turtleStrokes = ['CS', 'CLEAR', 'SETPOS', 'SETXY', 'SETX', 'SETY', 'FD', 'BK', 'FILL'];
+export const turtleStrokes = ['CS', 'CLEAR', 'SETPOS', 'SETXY', 'SETX', 'SETY', 'FD', 'BK', 'FILL', 'ARC', 'CIRCLE'];
 
 // Mappa che contiene tutte le definizioni (la LOGICA del tuo interprete)
 export const CORE_DEFINITIONS = {
@@ -434,6 +434,17 @@ export const CORE_DEFINITIONS = {
     classes: [FunClass.TURTLE],
     ref: _FILLSTART,
   } as CommandDef,
+  ARC: {
+    classes: [FunClass.TURTLE],
+    args: [{ name: "angolo", type: A_N }, { name: "raggio", type: A_N }],
+    ref: _ARC,
+  } as CommandDef,
+  CIRCLE: {
+    classes: [FunClass.TURTLE],
+    args: [{ name: "raggio", type: A_N }],
+    ref: _CIRCLE,
+  } as CommandDef,
+
   WORD: {
     signature: [FunSignature.FUNCTION, FunSignature.ONEORMORE],
     args: [{ name: "arg1", type: A_S_L }, { name: "arg2", type: null}],
@@ -509,6 +520,16 @@ export const CORE_DEFINITIONS = {
     args: [{ name: "index", type:  A_N }, { name: "sequence", type: A_S_L_A}],
     ref: _ITEM,
   } as CommandDef,
+  LOWERCASE: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg1", type: A_W_S }],
+    ref: _LOWERCASE,
+  } as CommandDef,
+  UPPERCASE: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg1", type: A_W_S }],
+    ref: _UPPERCASE,
+  } as CommandDef,
   ASCII: {
     signature: [FunSignature.FUNCTION],
     args: [{ name: "arg1", type: A_W_S }],
@@ -528,6 +549,21 @@ export const CORE_DEFINITIONS = {
     signature: [FunSignature.FUNCTION],
     args: [{ name: "arg", type: null }],
     ref: _LISTP,
+  } as CommandDef,
+  EMPTYP: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg", type: A_W_S_L }],
+    ref: _EMPTYP,
+  } as CommandDef,
+  MEMBERP: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg", type: null }, { name: "arg", type: A_W_S_L }],
+    ref: _MEMBERP,
+  } as CommandDef,
+  SUBSTRINGP: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg", type: A_W_S }, { name: "arg", type: A_W_S }],
+    ref: _MEMBERP,
   } as CommandDef,
 
   MAKE: {
