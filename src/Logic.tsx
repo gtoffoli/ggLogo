@@ -38,6 +38,24 @@ export function localizeTruthValues(langCode): void {
 export function _NOT(values: any[]): Cell {
 	return { type: CellType.BOOLEAN, val: (!values[0].val) };
 }
+export function _OR(values: any[]): Cell {
+  var or = false;
+  for (var i=0; i<values.length; i++)
+    or = or || values[i].val;
+  return { type: CellType.BOOLEAN, val: or };
+}
+export function _AND(values: any[]): Cell {
+  var and = true;
+  for (var i=0; i<values.length; i++)
+    and = and && values[i].val;
+  return { type: CellType.BOOLEAN, val: and };
+}
+export function _XOR(values: any[]): Cell {
+  var xor = false;
+  for (var i=0; i<values.length; i++)
+    xor = (!(xor && values[i].val));
+  return { type: CellType.BOOLEAN, val: xor };
+}
 
 export function _EQUALP(values: any[]): Cell {
 	var value: boolean;

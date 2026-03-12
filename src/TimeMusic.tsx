@@ -25,7 +25,8 @@ export async function _WAIT(values: any[]) {
   console.log('_WAIT 2', ms);
 }
 
-let synth = null;
+let synth = null; // OmniOscillator routed through an AmplitudeEnvelope
+let samplers = []; // Samplers eache able to repitch a few sample sounds from a real instrument
 
 export const _MIDIOPEN = async (values: any[]) => {
   await Tone.start();
@@ -34,8 +35,34 @@ export const _MIDIOPEN = async (values: any[]) => {
   return "Tone.js WebAudio Engine Ready - Internal Synth";
   // return { type: CellType.WORD, val: "Tone.js WebAudio Engine Ready - Internal Synth" };};
 }
+
+export const _MIDILOADINSTRUMENT = async (values: any[]) => {
+  var instrumentName = values[0].val;
+  // 1. Pulizia memoria precedente
+  // if (sampler) sampler.dispose();
+
+  // 2. Mappatura (Esempio: carichi solo 3 note, Tone.js calcola le altre)
+  // Il fetch avviene solo qui, ovvero "On Demand"
+  console.log(`_MIDILOADINSTRUMENT`, `/ggLogo/assets/sounds/${instrumentName}-mp3/`);
+  let sampler = new Tone.Sampler({
+    urls: {
+      "C4": `C4.mp3`,
+      "G4": `G4.mp3`,
+      "C5": `C5.mp3`,
+    },
+    baseUrl: `/ggLogo/assets/sounds/${instrumentName}-mp3/`,
+    onload: () => {
+      console.log(`${instrumentName} caricato correttamente!`);
+      this.triggerAttackRelease(["C4", "G4", "C5"], 4);
+    }
+  }).toDestination();
+  samplers.push(sampler);
+};
+
 export const _MIDIMSG = (values: any[]) => {
-  if (!synth) return;
+  var maxChannel = samplers.length;
+  if ((!synth) && (!maxChannel))
+    return
 
   const msg = values[0].val;
   const msgLength = msg.length;
@@ -52,22 +79,33 @@ export const _MIDIMSG = (values: any[]) => {
     // Logica MIDI Standard
     const channel = status & 0x0F; // Gli ultimi 4 bit sono il canale
     const command = status & 0xF0; // I primi 4 bit sono il comando
+    console.log('_MIDIMSG', channel, command)
 
     if (command === 144) { // 0x90: Note On
       if (d2 > 0) {
         // Convertiamo il numero MIDI (es. 60) in nota (es. "C4")
         const freq = Tone.Frequency(d1, "midi").toNote();
         const velocity = d2 / 127; // Tone.js usa 0..1
-        synth.triggerAttack(freq, Tone.now(), velocity);
+        console.log('_MIDIMSG', freq, velocity)
+        if (channel === 0)
+          synth.triggerAttack(freq, Tone.now(), velocity);
+        else if (channel <= maxChannel)
+          samplers[channel - 1].triggerAttack(freq, Tone.now(), velocity);
       } else {
         // Velocity 0 equivale a Note Off
         const freq = Tone.Frequency(d1, "midi").toNote();
-        synth.triggerRelease(freq, Tone.now());
+        if (channel === 0)
+          synth.triggerRelease(freq, Tone.now());
+        else if (channel <= maxChannel)
+          samplers[channel - 1].triggerRelease(freq, Tone.now());
       }
     } 
     else if (command === 128) { // 0x80: Note Off
       const freq = Tone.Frequency(d1, "midi").toNote();
-      synth.triggerRelease(freq, Tone.now());
+      if (channel === 0)
+        synth.triggerRelease(freq, Tone.now());
+      else if (channel <= maxChannel)
+        samplers[channel - 1].triggerRelease(freq, Tone.now());
     }
   }
 };

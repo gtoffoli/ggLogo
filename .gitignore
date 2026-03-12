@@ -1,6 +1,9 @@
 # dependencies (bun install)
 node_modules
 
+# large user assets
+assets
+
 # eclipse
 .project
 
