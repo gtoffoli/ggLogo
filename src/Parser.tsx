@@ -308,6 +308,19 @@ export function unParse(body: any[]): any[] {
   return nodeToString(body, true);
 }
 
+export function toLogoCell(value: any): Cell {
+  if (Array.isArray(value)) {
+    let array = [];
+    for (var i=0; i<value.length; i++)
+      array.push(toLogoCell(value[i]))
+    return { type: CellType.LIST, val: array }
+  }
+  if (!isNaN(value))
+    return { type: CellType.NUMBER, val: value }
+  else
+    return { type: CellType.WORD, val: value }
+}
+
 // da rivedere
 export function nodeToString(node: Cell | Cell[], showBrackets: boolean): string {
   var output = "";

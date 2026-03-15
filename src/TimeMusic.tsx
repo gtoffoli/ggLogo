@@ -2,8 +2,10 @@
 // 260216 - 1st version
 
 import * as Tone from 'tone';
+import path from 'path';
 import { CellType, Cell } from './CoreDefinitions';
 import { throwError} from './Interpreter';
+import { toLogoCell} from './Parser';
 
 var referenceTime: number = 0;
 
@@ -25,17 +27,41 @@ export async function _WAIT(values: any[]) {
   console.log('_WAIT 2', ms);
 }
 
-let synth = null; // OmniOscillator routed through an AmplitudeEnvelope
-let samplers = []; // Samplers eache able to repitch a few sample sounds from a real instrument
+type MidiChannel = {
+  name: string; // name of the instrument in the sound sample library
+  instrument: Tone.Synth | Tone.Sampler; // Tone instrument object
+}
+let synth: MidiChannel | null = null; // OmniOscillator routed through an AmplitudeEnvelope
+let samplers: MidiChannel[] = []; // Tone Sampler instances, eache able to repitch sample sounds from a real instrument
 
+// needed only for use of the basic Synthetizer
 export const _MIDIOPEN = async (values: any[]) => {
   await Tone.start();
   // Creiamo un PolySynth per gestire più note contemporaneamente (polifonia)
-  synth = new Tone.PolySynth(Tone.Synth).toDestination();
-  return "Tone.js WebAudio Engine Ready - Internal Synth";
-  // return { type: CellType.WORD, val: "Tone.js WebAudio Engine Ready - Internal Synth" };};
+  let instrument = new Tone.PolySynth(Tone.Synth).toDestination();
+  synth = { name: 'Synth', instrument: instrument };
+  // return "Tone.js WebAudio Engine Ready - Internal Synth";
+}
+// closes the basic Synthetizer and releases possibly loaded instruments
+export const _MIDICLOSE = async (values: any[]) => {
+  if (synth)
+    synth.instrument.dispose();
+  synth = null;
+  for (var i = 0; i < samplers.length; i++)
+    samplers[i].instrument.dispose();
+  samplers = [];
 }
 
+// ouputs list of instruments associated to MIDI "channels"
+export function _MIDICHANNELS (values: any[]): Cell {
+  var channels = [];
+  if (synth)
+    channels.push([0, synth.name]);
+  for (var i = 0; i < samplers.length; i++)
+    channels.push([i+1, samplers[i].name]);
+  return toLogoCell(channels);
+}
+// loads an "instrument" from an MP3 sound sample library, partially copied as local assets
 export const _MIDILOADINSTRUMENT = async (values: any[]) => {
   var instrumentName = values[0].val;
   // 1. Pulizia memoria precedente
@@ -43,23 +69,22 @@ export const _MIDILOADINSTRUMENT = async (values: any[]) => {
 
   // 2. Mappatura (Esempio: carichi solo 3 note, Tone.js calcola le altre)
   // Il fetch avviene solo qui, ovvero "On Demand"
-  console.log(`_MIDILOADINSTRUMENT`, `/ggLogo/assets/sounds/${instrumentName}-mp3/`);
   let sampler = new Tone.Sampler({
     urls: {
       "C4": `C4.mp3`,
       "G4": `G4.mp3`,
       "C5": `C5.mp3`,
     },
-    baseUrl: `/ggLogo/assets/sounds/${instrumentName}-mp3/`,
+    baseUrl: `/sounds/${instrumentName}-mp3/`,
     onload: () => {
       console.log(`${instrumentName} caricato correttamente!`);
-      this.triggerAttackRelease(["C4", "G4", "C5"], 4);
     }
   }).toDestination();
-  samplers.push(sampler);
+  samplers.push({ name: instrumentName, instrument: sampler });
 };
 
-export const _MIDIMSG = (values: any[]) => {
+// inteprets a list of messages in MIDI notation as commands to Tone instruments
+export const _MIDIMSG = async (values: any[]) => {
   var maxChannel = samplers.length;
   if ((!synth) && (!maxChannel))
     return
@@ -88,24 +113,26 @@ export const _MIDIMSG = (values: any[]) => {
         const velocity = d2 / 127; // Tone.js usa 0..1
         console.log('_MIDIMSG', freq, velocity)
         if (channel === 0)
-          synth.triggerAttack(freq, Tone.now(), velocity);
-        else if (channel <= maxChannel)
-          samplers[channel - 1].triggerAttack(freq, Tone.now(), velocity);
+          synth.instrument.triggerAttack(freq, Tone.now(), velocity);
+        else if (channel <= maxChannel) {
+          console.log('_MIDIMSG sampler:', samplers[channel - 1].instrument);
+          samplers[channel - 1].instrument.triggerAttack(freq, Tone.now(), velocity);
+        }
       } else {
         // Velocity 0 equivale a Note Off
         const freq = Tone.Frequency(d1, "midi").toNote();
         if (channel === 0)
-          synth.triggerRelease(freq, Tone.now());
+          synth.instrument.triggerRelease(freq, Tone.now());
         else if (channel <= maxChannel)
-          samplers[channel - 1].triggerRelease(freq, Tone.now());
+          samplers[channel - 1].instrument.triggerRelease(freq, Tone.now());
       }
     } 
     else if (command === 128) { // 0x80: Note Off
       const freq = Tone.Frequency(d1, "midi").toNote();
       if (channel === 0)
-        synth.triggerRelease(freq, Tone.now());
+        synth.instrument.triggerRelease(freq, Tone.now());
       else if (channel <= maxChannel)
-        samplers[channel - 1].triggerRelease(freq, Tone.now());
+        samplers[channel - 1].instrument.triggerRelease(freq, Tone.now());
     }
   }
 };

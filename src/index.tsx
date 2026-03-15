@@ -3,8 +3,22 @@ import index from "./index.html";
 
 const server = serve({
   routes: {
+    "/*": {
+      async GET(req) {
+        const url = new URL(req.url);
+        const path = url.pathname;
+
+        // 1. Prova a vedere se il file esiste nella cartella public
+        const publicFile = Bun.file(`./public${path}`);
+        if (await publicFile.exists()) {
+          return new Response(publicFile);
+        }
+      }
+    },
+
     // Serve index.html for all unmatched routes.
-    "/*": index,
+    // "/*": index,
+    "/": index,
 
     "/api/hello": {
       async GET(req) {
@@ -27,6 +41,7 @@ const server = serve({
         message: `Hello, ${name}!`,
       });
     },
+
   },
 
   development: process.env.NODE_ENV !== "production" && {

@@ -2,7 +2,7 @@
 node_modules
 
 # large user assets
-assets
+public/sounds
 
 # eclipse
 .project
