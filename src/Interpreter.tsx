@@ -1,14 +1,5 @@
 // Interpreter.tsx
 // 251024 - 1st version: extracted logoInterpreter function from LogoShell.tsx
-// 251025 - as proposed by Gemini on 251024
-// 251104 - logoInterpreter gets command definitions (not used yet) and localization thanks to additional arguments 
-// 251107 - started extension of Parser
-// 251114 - dry command execution in auxiliary functions of Intepreter
-// 251115 - integration of command execution with CommandDef (added the ref field)
-// 251129 - propagation downward of resolveCommand also to functions in LogoControl module
-// 251230 - converted TAB to spaces and revised the indentation 
-
-
 
 import i18n from './i18n';
 import { ModParola, CellType, Delimiter, Cell, Context, ParamDef } from './CoreDefinitions';
@@ -17,7 +8,7 @@ import { UserFunction, ProcedureDef, Arg } from './CoreDefinitions';
 import { getByValue } from './UseLocalization';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
 import { Parse, infix_operators, BLANK, unParse, nodeToString } from './Parser';
-import { contesti, liv_contesto, liv_analisi, v_stack, is_stop, is_traccia, risultato } from './LogoControl';
+import { contesti, liv_contesto, liv_analisi, v_stack, is_stop, is_traccia, risultato, stopAsynchronousActivities } from './LogoControl';
 import { push_sv, pop_sv,  push_arg, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_out, parenin, parenout } from './LogoControl';
 import { ini_main,ini_exec, ini_valuta, AssertContesto } from './LogoControl';
 import { isProcedureDefinition, iniDefine, pushProcedureLine } from './LogoDefine';
@@ -25,7 +16,7 @@ import { localizedTruthValues, normalizeBoolean } from './Logic';
 import { InputSource, OutputChannel } from './Streams';
 import { ShellSource, ShellOutput, InteractiveData } from './Streams';
 import { keywordResolver, commandResolver } from './UseLocalization';
-import { checkFormatColor } from './InterpreterCore';
+import { checkFormatColor } from './TurtleGraphics';
 
 export var globalVariables: Record<string, any> = {};
 export var userProcedures: Record<string, ProcedureDef> = {};
@@ -42,6 +33,9 @@ var zeroormore = false;  // true if primitive accepts an indefinite number of ar
 var is_function = false;// true if primitive returns a result
 
 const N_MINIMO = 1; // minimo numero di argomenti per la funzione corrente
+
+var isInterrupting: boolean = false;
+export function setInterruption(value: boolean) { isInterrupting = value; }
 
 export class LogoError extends Error {
   constructor(public message: string, public code?: string) {
@@ -114,9 +108,15 @@ export class AsynchronousLogoInterpreter {
   // Ciclo principale di esecuzione
   public async run() {
     console.log('AsynchronousLogoInterpreter - Ciclo principale di esecuzione');
+    setInterruption(false);
     while (this.sourceStack.length > 0) {
       try {
         console.log('AsynchronousLogoInterpreter WAITING:');
+        // Check-point critico
+        if (isInterrupting) {
+          setInterruption(false);
+          throw new Error("USER_INTERRUPT");
+        }
         // const currentSource = this.sourceStack[this.sourceStack.length - 1];
         const line = await this.getCurrentSource().getLine();
   
@@ -137,15 +137,20 @@ export class AsynchronousLogoInterpreter {
         // ESECUZIONE DEL COMANDO
         await this.executeLine(line.trim());
       } catch (error: any) {
-        console.error("Errore durante l'esecuzione:", error.message);
+        // console.error("Errore durante l'esecuzione:", error.message);
+        if ((error as Error).message === "USER_INTERRUPT") {
+          console.log("Esecuzione interrotta dall'utente.");
+          // Qui gestiamo la pulizia
+          await stopAsynchronousActivities();
+          this.resetExecutionState();
+        }
         // 1. Gestione del feedback all'utente
-        if (error instanceof LogoError) {
+        else if (error instanceof LogoError) {
           // this.output.error(error.message); // Usa il canale d'errore della Shell
           this.reportError(error);
         } else {
           // Questo è un errore di sistema (bug nel TS)
           console.error("Errore di sistema:", error.message);
-          // this.output.error("ERRORE INTERNO: " + error.message);
         }
         // In caso di errore critico potresti voler svuotare la pila per tornare alla Shell
         // 2. REINIZIALIZZAZIONE (Il "Reset")
@@ -178,13 +183,16 @@ export class AsynchronousLogoInterpreter {
   }
 
   private resetExecutionState() {
+    // Chiamare // ini_valuta(); ?
     // Svuota lo stack delle sorgenti tranne la Shell
     while (this.sourceStack.length > 1) {
       this.sourceStack.pop();
     }
+    ini_main();
+    ini_exec();
     // Qui potresti voler svuotare anche lo stack delle variabili locali 
     // o degli stati pendenti (es. cicli REPEAT interrotti)
-    console.log("Interprete resettato dopo l'errore.");
+    console.log("Interprete resettato dopo errore o interruzione.");
   }
 
   public getCurrentSource(): InputSource {
@@ -364,6 +372,11 @@ export class AsynchronousLogoInterpreter {
   }
 
   private async executeFunction(ctx) {
+    // Check-point critico
+    if (isInterrupting) {
+      setInterruption(false);
+      throw new Error("USER_INTERRUPT");
+    }
     var result = null;
     if (ctx.funzione.type === CellType.SFUN) {
       // console.log('eseguo FUNZIONE', ctx.funzione);

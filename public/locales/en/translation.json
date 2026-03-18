@@ -24,6 +24,7 @@
     "export": "Export",
     "commands": "Commands",
     "help": "Help",
+    "break": "Break",
     "no_change": "No change",
     "language": "Language",
     "edit": "Edit",

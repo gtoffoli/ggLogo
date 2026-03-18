@@ -1,6 +1,5 @@
-// InterpreterCore.tsx
+// TurtleGraphics.tsx (was InterpreterCore.tsx)
 // 251025 first version as proposed by Gemini on 251024
-// 251101 readded, after erroneous removal
 
 import { CellType, Cell, CommandDef } from './CoreDefinitions';
 import { GraphicWindowState, TurtleState, DrawingCommand } from './LogoState';
@@ -456,12 +455,14 @@ export function calculateRight(state: TurtleState, angle: number): TurtleState {
   return newState;
 }
 
+export function resetActivePath() {
+  activePath = [];
+}
 export function _FILLSTART(values: any[], state: TurtleState): TurtleState {
   if (screenMode === 'CLOSED')
     activePath = [{ x: state.x, y: state.y }]
   return state;
 }
-
 export function _FILL(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
   const color = values[0].val;
   var drawingCommand: DrawingCommand;
@@ -470,7 +471,7 @@ export function _FILL(values: any[], state: TurtleState): [ newState: TurtleStat
     drawingCommand = { type: 'POLYGON', fillColor: color, path: activePath };
     drawingCommands = [drawingCommand];
   }
-  activePath = [];
+  resetActivePath();
   return [ state, drawingCommands ];
 }
 

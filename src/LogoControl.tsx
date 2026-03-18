@@ -1,10 +1,10 @@
 // LogoControl.tsx
 // 251116 - 1st version: inspired to Ilcontro.cpp of IperLogo
-// 251129 - of resolveCommand also to functions calling valuta_token
-// 251230 - converted TAB to spaces
 
 import { contextType, Context, CellType, Cell, CommandDef, ModParola, ProcedureDef } from './CoreDefinitions';
 import { throwError, globalVariables, userProcedures } from './Interpreter';
+import { resetActivePath } from './TurtleGraphics';
+import { resetMidiChannels } from './TimeMusic';
 
 // codifica dei tipi di contesto (id_contesto)
 const CT_TOP = 0;      // contesto iniziale (top_level)
@@ -14,7 +14,6 @@ const CT_EVENT = 3;
 
 const ID_RUN = 1;
 const ID_RUNRESULT = 2;
-
 
 export var contesti: Context[] = [];
 export var liv_contesto: number = 0; /* livello di nidificazione dei contesti */
@@ -38,10 +37,27 @@ export var v_stack: any[] = [];
 var stk_funzioni: any[] = [];   // stack di nest procedure attive dur. esecuzione
 var stk_livelli: any[] = [];    // stack di camm. att. dur.esecuz. (blocchi) ?? */
 
+// primitiva Logo dummy
 export function _NOP(values: any[]): void {
 }
 
+// primitiva Logo ERROR
 export function _ERROR(values: any[]):void {
+}
+
+export async function stopAsynchronousActivities(): Promise<void> {
+  // Grafica: se c'è un INIZIARIEMPIMENTO attivo, resettare il path temporaneo
+  resetActivePath();
+  // Audio: Fermare immediatamente tutti i suoni attivi
+  // Es. Tone.Transport.stop(), polySynth.releaseAll() e il corrispettivo per i Sampler
+  await resetMidiChannels();
+}
+
+// interrupt di utente da console Logo
+export async function _BYE(values: any[]): Promise<void> {
+  await stopAsynchronousActivities();
+  // reload the current page
+  window.location.reload();
 }
 
 function track(s: string) {
@@ -62,6 +78,7 @@ function untrack(s: string) {
     return false;
 }
 
+// tracciamento a livello Logo
 export function _TRACK(args: any[]): void {
   is_traccia = true;
   for (var i=0; i<args.length; i++)

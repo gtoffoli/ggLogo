@@ -24,6 +24,7 @@
     "export": "Esporta",
     "commands": "Comandi",
     "help": "Aiuto",
+    "break": "Interrompi",
     "no_change": "Nessuna modifica",
     "language": "Lingua",
     "edit": "Edita",

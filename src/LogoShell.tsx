@@ -1,17 +1,14 @@
 // LogoShell.tsx
 // 251016 - 1st version with Gemini and DeepSeek
-// 251024 - moved logoInterpreter to module Interpreter
-// 251104 - call to useLocalization; executeCommand passes activeLang and resolveCommand to logoInterpreter
-// 251116 - shared and exported some const retrieved through React-specific functions
-// 251129 - new Language menu
 
 import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import './i18n';
 import { useTranslation } from 'react-i18next';
 import PanelContainer from './PanelContainer';
 import { useLocalization, LanguageCode } from './UseLocalization';
-// import { ShellLine } from './LogoState';
 import { useLogoState } from './LogoStateContext';
+import { setInterruption } from './Interpreter';
+import { stopAsynchronousActivities } from './LogoControl';
 import { ShellSource , BufferSource } from './Streams';
 import { localizeTruthValues } from './Logic';
 
@@ -116,9 +113,15 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
         // dispatch({ type: 'SYSTEM_MESSAGE', text: `Lingua impostata su: ${lang.toUpperCase()}` }); 
     };
 
+  const handleUserInterrupt = async () => {
+    setInterruption(true);
+    await stopAsynchronousActivities();
+  };
+
   const handleDummyChange = () => {
      dispatch({ type: 'DUMMY_STATE_CHANGE' });
   };
+
 
   // Menu per l'Area B (Interprete/Console)
   const menuB = [
@@ -135,6 +138,7 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
     { label: t('menu.commands'), submenu: [
       { label: t('menu.help'), action: () => alert('Mostra la guida comandi LOGO.') },
       { label: t('menu.no_change'), action: handleDummyChange },
+      { label: t('menu.break'), action: handleUserInterrupt },
     ]},
         // Menu Lingua (Dynamic)
 	{ label: t('menu.language'), submenu: [

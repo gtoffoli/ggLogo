@@ -43,13 +43,20 @@ export const _MIDIOPEN = async (values: any[]) => {
   // return "Tone.js WebAudio Engine Ready - Internal Synth";
 }
 // closes the basic Synthetizer and releases possibly loaded instruments
-export const _MIDICLOSE = async (values: any[]) => {
-  if (synth)
+export async function resetMidiChannels() {
+  if (synth) {
+    synth.instrument.releaseAll();
     synth.instrument.dispose();
+  }
   synth = null;
-  for (var i = 0; i < samplers.length; i++)
+  for (var i = 0; i < samplers.length; i++) {
+    samplers[i].instrument.releaseAll();
     samplers[i].instrument.dispose();
+  }
   samplers = [];
+}
+export const _MIDICLOSE = async (values: any[]) => {
+  await resetMidiChannels();
 }
 
 // ouputs list of instruments associated to MIDI "channels"
@@ -71,9 +78,14 @@ export const _MIDILOADINSTRUMENT = async (values: any[]) => {
   // Il fetch avviene solo qui, ovvero "On Demand"
   let sampler = new Tone.Sampler({
     urls: {
+      "G3": `G3.mp3`,
       "C4": `C4.mp3`,
+      "E4": `E4.mp3`,
       "G4": `G4.mp3`,
       "C5": `C5.mp3`,
+      "E5": `E5.mp3`,
+      "G5": `G5.mp3`,
+      "C6": `C6.mp3`,
     },
     baseUrl: `/sounds/${instrumentName}-mp3/`,
     onload: () => {

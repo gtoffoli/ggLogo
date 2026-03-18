@@ -1,21 +1,21 @@
 import { 
-    LogoGlobalState, 
-    GraphicWindowState, 
-    TurtleState, 
-    DrawingCommand,
-    // InputWaiter
+  LogoGlobalState, 
+  GraphicWindowState, 
+  TurtleState, 
+  DrawingCommand,
+  // InputWaiter
 } from './LogoState'; // Presumiamo che i tipi siano qui
 
 // Stato Iniziale Minimale
 export const initialTurtleState: TurtleState = {
-    x: 0, 
-    y: 0,
-    heading: 0, 
-    penDown: true, 
-    penColor: '#000000',
-    penSize: 1,
-    penMode: 'PAINT',
-    visible: true,
+  x: 0, 
+  y: 0,
+  heading: 0, 
+  penDown: true, 
+  penColor: '#000000',
+  penSize: 1,
+  penMode: 'PAINT',
+  visible: true,
 };
 
 const initialWindowState: GraphicWindowState = {
@@ -34,29 +34,29 @@ const initialWindowState: GraphicWindowState = {
 };
 
 export const initialLogoState: LogoGlobalState = {
-    windows: { "TARTA": initialWindowState },
-    activeWindowId: "TARTA",
-    // shellHistory: [{ id: crypto.randomUUID(), lineType: 'output', text: "Wellcome in the LOGO Interpreter!\n" }],
-    shellHistory: [],
-    echoInput: true,
-    keyboardTarget: 'commands',
-    editorContent: '',
+  windows: { "TARTA": initialWindowState },
+  activeWindowId: "TARTA",
+  // shellHistory: [{ id: crypto.randomUUID(), lineType: 'output', text: "Wellcome in the LOGO Interpreter!\n" }],
+  shellHistory: [],
+  echoInput: true,
+  keyboardTarget: 'commands',
+  editorContent: '',
 };
 
 // Tipi di Azione
 type LogoAction = 
-    | { type: 'DUMMY_STATE_CHANGE' }
-    | { type: 'REGISTER_CANVAS', windowId: string, context: CanvasRenderingContext2D, background: HTMLCanvasElement, foreground: HTMLCanvasElement  }
-    | { type: 'UPDATE_WINDOW_STATE', windowId: string, newState: GraphicWindowState }
-    | { type: 'UPDATE_TURTLE_STATE', windowId: string, newState: Partial<TurtleState> }
-    | { type: 'ADD_DRAWING_COMMANDS', windowId: string, commands: DrawingCommand[] }
-    | { type: 'CLEAR_SHELL_HISTORY' }
-    | { type: 'TOGGLE_INPUT_ECHO' }
-    | { type: 'UPDATE_CURRENT_OUTPUT_LINE', text: string }
-    | { type: 'APPEND_SHELL_LINE', lineType: 'input' | 'output' | 'error' | 'system', text: string }
-    | { type: 'SET_KEYBOARD_TARGET', target: 'commands' | 'data' }
-    | { type: 'CLEAR_EDITOR_CONTENT' }
-    | { type: 'APPEND_TO_EDITOR_CONTENT', text: string };
+  | { type: 'DUMMY_STATE_CHANGE' }
+  | { type: 'REGISTER_CANVAS', windowId: string, context: CanvasRenderingContext2D, background: HTMLCanvasElement, foreground: HTMLCanvasElement  }
+  | { type: 'UPDATE_WINDOW_STATE', windowId: string, newState: GraphicWindowState }
+  | { type: 'UPDATE_TURTLE_STATE', windowId: string, newState: Partial<TurtleState> }
+  | { type: 'ADD_DRAWING_COMMANDS', windowId: string, commands: DrawingCommand[] }
+  | { type: 'CLEAR_SHELL_HISTORY' }
+  | { type: 'TOGGLE_INPUT_ECHO' }
+  | { type: 'UPDATE_CURRENT_OUTPUT_LINE', text: string }
+  | { type: 'APPEND_SHELL_LINE', lineType: 'input' | 'output' | 'error' | 'system', text: string }
+  | { type: 'SET_KEYBOARD_TARGET', target: 'commands' | 'data' }
+  | { type: 'CLEAR_EDITOR_CONTENT' }
+  | { type: 'APPEND_TO_EDITOR_CONTENT', text: string };
 
 
 export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlobalState {
