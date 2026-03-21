@@ -56,8 +56,8 @@ const PanelContainer: React.FC<PanelContainerProps> = ({ id, title, borderColor,
   const headerStyle: React.CSSProperties = {
     backgroundColor: borderColor,
     color: '#fff',
-    padding: '4px 10px',
-    fontWeight: 'bold',
+    padding: '2px 5px' /*'4px 10px'*/,
+    fontWeight: '500' /* bold */,
     fontSize: '1.1em',
     flexShrink: 0, // Impedisce che l'header si restringa
   };
@@ -97,10 +97,10 @@ const PanelContainer: React.FC<PanelContainerProps> = ({ id, title, borderColor,
               style={{
                 background: activeSubmenu === item.label ? '#ddd' : 'transparent',
                 border: 'none',
-                padding: '4px 8px',
+                padding: '2px 4px' /*'4px 8px'*/,
                 margin: '0 2px',
                 cursor: 'pointer',
-                fontWeight: item.action ? 'normal' : 'bold',
+                fontWeight: item.action ? 'normal' : 'bolder' /*'bold'*/,
               }}
             >
               {item.label}

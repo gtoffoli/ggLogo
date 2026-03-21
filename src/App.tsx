@@ -11,6 +11,7 @@ import PanelContainer from './PanelContainer';
 import LogoShell from './LogoShell'; // Il tuo componente B (da Gemini)
 import Canvas from './TurtleCanvas'; // Il tuo componente A (da DeepSeek)
 import Editor from './LogoEditor'; // Il tuo componente C (da DeepSeek)
+import Browser from './Browser'; // Il tuo componente E
 import { LogoStateProvider } from './LogoStateContext';
 import { useLocalization } from './UseLocalization';
 import "./style.css"; // (da Gemini)
@@ -26,7 +27,10 @@ const App: React.FC = () => {
        <>
         <div id="area-destra">
           <LogoShell activeLang={ activeLang } setLanguage={ setLanguage } />
-          <Editor /> 
+          <div id="container-editor-browser">
+            <Editor /> 
+            <Browser />
+          </div>
         </div>
         <Canvas windowId="TARTA" />
        </>

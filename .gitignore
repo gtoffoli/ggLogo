@@ -3,6 +3,7 @@ node_modules
 
 # large user assets
 public/sounds
+public/locales/??/doc
 
 # eclipse
 .project

@@ -23,6 +23,7 @@ function insertAtCursor(myField, myValue) {
 
 // const Editor: React.FC = ({ interpreter }) => {
 const Editor: React.FC = () => {
+  const [zIndex, setzIndex] = useState(2);
 	const [code, setCode] = useState('');
 	/*
   const state = useLogoState();
@@ -115,12 +116,19 @@ const Editor: React.FC = () => {
     interpreter.run();
   };
 
+  const handleHide = () => {
+    const element = document.getElementById('editor-overlay');
+    setzIndex(zIndex - 2);
+    element.style["z-index"] = zIndex;
+  };
+
   // Menu per l'Area C (Editor LOGO)
   const menuC = [
   { label: 'File', submenu: [
     { label: t('menu.clear'), action: handleClear },
     { label: t('menu.load'), action: handleFileLoad },
     { label: t('menu.save'), action: handleFileSave },
+    { label: t('menu.hide'), action: handleHide },
   ]},
   { label: t('menu.edit'), submenu: [
     { label: t('menu.undo'), action: () => alert("Annulla effetto di ultima azione in Editor...") },
@@ -137,7 +145,7 @@ const Editor: React.FC = () => {
   return (
 
   <PanelContainer
-	  id="area-c"
+	  id="editor-overlay"
 	  title={t('header.editor')}
 	  borderColor="#ff8c00" // Arancione
 	  menuItems={menuC}

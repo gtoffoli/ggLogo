@@ -1,8 +1,9 @@
 {
-   "header": {
-	"canvas": "Grafica della Tartaruga",
-	"shell": "Console dei Comandi",
-	"editor": "Editor di Codice"
+  "header": {
+  	"canvas": "Grafica della Tartaruga",
+  	"shell": "Console dei Comandi",
+  	"editor": "Editor di Codice",
+    "browser": "Browser"
   },
   "menu": {
     "turtle": "Tarta",
@@ -34,8 +35,14 @@
     "run": "Esegui",
     "test": "Prova",
     "run_selection": "Esegui Selezione",
-    "run_all": "Esegui Tutto"
-
+    "run_all": "Esegui Tutto",
+    "navigate": "Navigazione",
+    "open": "Apri..",
+    "hide": "Nascondi",
+    "back": "Indietro",
+    "homepage": "Home",
+    "forward": "Avanti",
+    "reload": "Ricarica"
   },
   "msg": {
     "startup_message": "Interprete caricato. Digita '{{helpCmd}}' per aiuto.",

@@ -1,8 +1,9 @@
 {
-   "header": {
-	"canvas": "Turtle Graphics",
-	"shell": "Command Console",
-	"editor": "Code Editor"
+  "header": {
+  	"canvas": "Turtle Graphics",
+  	"shell": "Command Console",
+  	"editor": "Code Editor",
+    "browser": "Browser"
   },
  "menu": {
     "turtle": "Turtle",
@@ -34,7 +35,14 @@
     "run": "Run",
     "test": "Test",
     "run_selection": "Run Selection",
-    "run_all": "Run All"
+    "run_all": "Run All",
+    "navigate": "Navigate",
+    "open": "Open..",
+    "hide": "Hide",
+    "back": "Back",
+    "forward": "Forward",
+    "homepage": "Home",
+    "reload": "Reload"
   },
   "msg": {
     "startup_message": "Interprete caricato. Digita '{{helpCmd}}' per aiuto.",
