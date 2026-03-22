@@ -50,7 +50,8 @@
     "interpreter_result": "Interpreter result:",
     "command_placeholder": "enter a LOGO command..",
     "data_placeholder": "enter LOGO object..",
-    "code_placeholder": "enter LOGO code here.."
+    "code_placeholder": "enter LOGO code here..",
+    "url_placeholder": "insert name or URL"
   },
   "err": {
     "e00": "1-9 errori in uso primitiva o in valore argomenti",

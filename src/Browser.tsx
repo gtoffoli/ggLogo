@@ -2,8 +2,8 @@
 // 60319 - 1st version
 
 import React, { useState } from 'react';
-import './i18n';
 import { useLogoDispatch, useLogoState } from './LogoStateContext';
+import './i18n';
 import { useTranslation } from 'react-i18next';
 import { marked } from 'marked';
 import PanelContainer from './PanelContainer';
@@ -13,6 +13,7 @@ import { shared_langCode } from './LogoShell';
 const Browser: React.FC = () => {
   const [zIndex, setzIndex] = useState(1);
   const [htmlContent, setHtmlContent] = useState('');
+  const [webUrl, setWebUrl] = useState('');
 
   const { state, dispatch, interpreter } = useLogoState();
 	// 't' è la funzione di traduzione
@@ -51,13 +52,32 @@ const Browser: React.FC = () => {
         </body>
       </html>
     `;
-    
-    setHtmlContent(htmlFinale);
+    // setHtmlContent(htmlFinale);
+    return htmlFinale;
   };
 
-  const handleOpen = async () => {
-    var url = `/locales/${shared_langCode}/doc/README.md`;
-    await caricaMarkdown(url);
+  const handleOpen = async (name: string | null) => {
+    // var path = `/locales/${shared_langCode}/doc/README.md`;
+    var html: string;
+    // default document
+    var path = `README.md`;
+    if (name)
+      path = name;
+    if (path.endsWith('.md')) {
+      // default directory in public section
+      path = `/locales/${shared_langCode}/doc/` + path;
+      html = await caricaMarkdown(path);
+      setHtmlContent(html);
+    }
+    // look for a web resource
+    else {
+      // add a protocol if missing
+      if (! path.startsWith('http'))
+        path =  `https://` + path;
+      const iframe = document.getElementById('browser-area');
+      iframe.removeAttribute('srcDoc');
+      setWebUrl(path);
+    }
   };
 
   const handlePrint = () => { console.log('Print...'); };
@@ -75,7 +95,7 @@ const Browser: React.FC = () => {
   // Menu per l'Area E (Browser LOGO)
   const menuE = [
   { label: 'File', submenu: [
-    { label: t('menu.open'), action: handleOpen },
+    { label: t('menu.open'), action: handleOpen, requiresInput: true },
     { label: t('menu.print'), action: handlePrint },
     { label: t('menu.hide'), action: handleHide },
   ]},
@@ -101,6 +121,7 @@ const Browser: React.FC = () => {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', zIndex: zIndex }}>
       <iframe
         id="browser-area"
+        src={webUrl}
         srcDoc={htmlContent} 
         style={{ flex: 1, color: '#1e1e1e', background: 'white', width: '100%', height: '100%', border: 'none' }}
       />

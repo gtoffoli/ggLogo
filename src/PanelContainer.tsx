@@ -3,12 +3,15 @@
 
 
 import React, { useState, ReactNode } from 'react';
+import './i18n';
+import { useTranslation } from 'react-i18next';
 
 // Struttura dati per un elemento di menu a cascata
 interface MenuItem {
   label: string;
   action?: () => void; // Funzione da eseguire quando cliccato (per voci senza sottomenu)
   submenu?: MenuItem[]; // Array di sottomenu (per voci con sottomenu)
+  requiresInput?: boolean;
 }
 
 interface PanelContainerProps {
@@ -20,8 +23,16 @@ interface PanelContainerProps {
 }
 
 const PanelContainer: React.FC<PanelContainerProps> = ({ id, title, borderColor, menuItems, children }) => {
+  // Stato di apertura di un sottomenu a cascata
+  const [isOpen, setIsOpen] = useState(false);
   // Stato per tenere traccia del sottomenu attualmente aperto
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
+  // Stato per tenere traccia della voce di menu in modalità scrittura
+  const [activeInput, setActiveInput] = useState(null);
+  // Valore del campo di input della voce di menu in modalità scrittura
+  const [tempValue, setTempValue] = useState("");
+
+  const { t, i18n } = useTranslation();
 
   // Gestisce il click sul bottone del menu
   const handleMenuClick = (label: string, action?: () => void) => {
@@ -31,6 +42,16 @@ const PanelContainer: React.FC<PanelContainerProps> = ({ id, title, borderColor,
     } else {
       // Se non ha azione, apre/chiude il sottomenu
       setActiveSubmenu(activeSubmenu === label ? null : label);
+    }
+  };
+
+  const handleKeyDown = (e, action) => {
+    if (e.key === 'Enter') {
+      action(tempValue); // Esegue il comando di menu con il valore inserito
+      setActiveInput(null);
+      setTempValue("");
+    } else if (e.key === 'Escape') {
+      setActiveInput(null);
     }
   };
 
@@ -90,7 +111,11 @@ const PanelContainer: React.FC<PanelContainerProps> = ({ id, title, borderColor,
       {/* 2. BARRA DEI MENU */}
       <div style={menuBarStyle}>
         {menuItems.map((item) => (
-          <div key={item.label} style={{ position: 'relative' }}>
+          <div key={item.label}
+            style={{ position: 'relative', display: 'inline-block' }}
+            onMouseEnter={() => setIsOpen(true)} // Opzionale: apre al passaggio
+            onMouseLeave={() => { setIsOpen(false); setActiveSubmenu(null) }} // CHIUDE quando il cursore esce
+          >
             {/* Bottone del Menu */}
             <button
               onClick={() => handleMenuClick(item.label, item.action)}
@@ -107,7 +132,7 @@ const PanelContainer: React.FC<PanelContainerProps> = ({ id, title, borderColor,
             </button>
 
             {/* Sottomenu a Cascata */}
-            {item.submenu && activeSubmenu === item.label && (
+            {isOpen && item.submenu && activeSubmenu === item.label && (
               <ul
                 style={{
                   position: 'absolute',
@@ -126,19 +151,32 @@ const PanelContainer: React.FC<PanelContainerProps> = ({ id, title, borderColor,
                 }}
               >
                 {item.submenu.map((subItem) => (
-                  <li
-                    key={subItem.label}
-                    onClick={() => executeAction(subItem.action || (() => console.log(`${subItem.label} action missing`)))}
-                    style={{
-                      padding: '5px 10px',
-                      cursor: 'pointer',
-                      borderBottom: '1px solid #eee',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f0f0f0')}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'white')}
-                  >
-                    {subItem.label}
-                  </li>
+                  activeInput === subItem.label ? (
+                    <li key={subItem.label}>
+                      <input 
+                        autoFocus
+                        value={tempValue}
+                        onChange={(e) => setTempValue(e.target.value)}
+                        onKeyDown={(e) => handleKeyDown(e, subItem.action)}
+                        placeholder={t('msg.url_placeholder')}
+                      />
+                    </li>
+                    ) : (
+                    <li
+                      key={subItem.label}
+                      // onClick={() => executeAction(subItem.action || (() => console.log(`${subItem.label} action missing`)))}
+                      onClick={() =>  subItem.requiresInput ? setActiveInput(subItem.label) : executeAction(subItem.action || (() => console.log(`${subItem.label} action missing`)))}
+                      style={{
+                        padding: '5px 10px',
+                        cursor: 'pointer',
+                        borderBottom: '1px solid #eee',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f0f0f0')}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'white')}
+                    >
+                      {subItem.label}
+                    </li>
+                    )
                 ))}
               </ul>
             )}
