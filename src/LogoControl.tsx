@@ -6,12 +6,6 @@ import { throwError, globalVariables, userProcedures } from './Interpreter';
 import { resetActivePath } from './TurtleGraphics';
 import { resetMidiChannels } from './TimeMusic';
 
-// codifica dei tipi di contesto (id_contesto)
-const CT_TOP = 0;      // contesto iniziale (top_level)
-const CT_PAUSA = 1;    // contesto attivato da PAUSA
-const CT_RECUPERA = 2;  // contesto attivato da RECUPERA
-const CT_EVENT = 3;
-
 const ID_RUN = 1;
 const ID_RUNRESULT = 2;
 
@@ -92,12 +86,45 @@ export function _UNTRACK(args: any[]): void {
        throwError('e06', null, args[i].val);
 }
 
+export function _PAUSE(ctx: Context, values: any[]): void {
+  sf_out(ctx); // anticipo, per non confliggere con blk_in
+  push_contesto(ctx, contextType.CT_PAUSA);
+  ini_valuta();
+}
+export function _CONTINUE(ctx: Context, values: any[]): void {
+  sf_out(ctx); // anticipo, per non confliggere con blk_in
+  var pause_level: number = 0;
+  for (var i = liv_contesto; i > 0; --i)
+    if ((contesti[i]).id_contesto === contextType.CT_PAUSA) {  // contesto 0 è riservato
+      pause_level = i;
+      break;
+    };
+  if (pause_level == undefined)
+    throwError('e15', null);
+  for (var j = liv_contesto-1; j > pause_level; --j) {
+      pop_contesto(ctx);
+  };
+}
+
+export function _CATCH(ctx: Context, values: any[]): void {
+  const label = (values[0].val);
+  const block = [values[1].val];
+  sf_out(ctx); // anticipo, per non confliggere con blk_in
+  push_contesto(ctx, label);
+  ctx = contesti[liv_contesto];
+  ctx.conto_esegui = 1;
+  block_exec(ctx, block);
+}
+export function _THROW(ctx: Context, values: any[]): void {
+  const label = (values[0].val);
+  sf_out(ctx); // anticipo, per non confliggere con blk_in
+}
+
 export function _STOP(ctx: Context, values: any[]): void {
   console.log('function _STOP', values);
   is_stop = true;
   sf_out(ctx); // anticipo, per non confliggere con uf_ret
 }
-
 export function _OUTPUT(ctx: Context, values: any[]): void {
   console.log('function _OUTPUT', values);
   risultato = values[0];

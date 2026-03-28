@@ -2,7 +2,8 @@
 // 251019 - 1st version
 
 
-import { _NOP, _ERROR, _BYE, _TRACK, _UNTRACK, _STOP, _OUTPUT, _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
+import { _NOP, _ERROR, _BYE, _TRACK, _UNTRACK, _PAUSE, _CONTINUE, _CATCH, _THROW, _STOP, _OUTPUT } from './LogoControl';
+import { _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
 import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _FIRSTS, _LASTS, _BUTFIRST, _BUTLAST, _BUTFIRSTS, _BUTLASTS, _COUNT, _ITEM } from './Structures';
 import { _LOWERCASE, _UPPERCASE, _ASCII, _CHAR, _WORDP, _LISTP, _EMPTYP, _MEMBERP } from './Structures';
 import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
@@ -649,6 +650,11 @@ export const CORE_DEFINITIONS = {
     args: [{ name: "arg", type: null }],
     ref: _NUMBERP,
   } as CommandDef,
+  'SIGN': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg", type: A_N }],
+    ref: _SIGN,
+  } as CommandDef,
   'ABS': {
     signature: [FunSignature.FUNCTION],
     args: [{ name: "arg", type: A_N }],
@@ -914,11 +920,6 @@ export const CORE_DEFINITIONS = {
     args: [],
     ref: _BYE,
   } as CommandDef,
-  ERROR: {
-    signature: [FunSignature.FUNCTION],
-    args: [],
-    ref: _ERROR,
-  } as CommandDef,
   TRACK: {
     signature: [FunSignature.ZEROORMORE],
     args: [{ name: "time", type: A_W_LW_S_L }],
@@ -928,6 +929,28 @@ export const CORE_DEFINITIONS = {
     signature: [FunSignature.ZEROORMORE],
     args: [{ name: "time", type: A_W_LW_S_L }],
     ref: _UNTRACK,
+  } as CommandDef,
+  PAUSE: {
+    classes: [FunClass.EXEC],
+    ref: _PAUSE,
+  } as CommandDef,
+  CONTINUE: {
+    classes: [FunClass.EXEC],
+    ref: _CONTINUE,
+  } as CommandDef,
+  CATCH: {
+    classes: [FunClass.EXEC],
+    args: [{ name: "label", type: A_W_S }, { name: "block", type: A_L}],
+    ref: _CATCH,
+  } as CommandDef,
+  THROW: {
+    classes: [FunClass.EXEC],
+    args: [{ name: "label", type: A_W_S }],
+    ref: _THROW,
+  } as CommandDef,
+  ERROR: {
+    signature: [FunSignature.FUNCTION],
+    ref: _ERROR,
   } as CommandDef,
   NOP: {
     args: [],
