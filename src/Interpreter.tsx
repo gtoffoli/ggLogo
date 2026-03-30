@@ -533,6 +533,10 @@ export class AsynchronousLogoInterpreter {
             blk_out(ctx);
             continue; // potrebbe esserci qualche altro blocco da cui uscire
           }
+          else if ((liv_contesto > 0) && (typeof contesti[liv_contesto-1].id_contesto === 'string')) { // contesto creato con CATCH?
+            pop_contesto();
+            continue;
+          }
           else {
             return; // non c'è altro da fare; è richiesto un nuovo input
           }
@@ -686,6 +690,7 @@ export class AsynchronousLogoInterpreter {
       // avanza nella scansione dell'input solo come eventuale risultato di look-ahead
       do {
         result = null;
+        ctx = contesti[liv_contesto]; // aggiunto 260329
         this.get_token(ctx); // => next_type, next_val
         // console.log('funzione?', ctx.funzione, ctx.liv_funzione, ctx.parentesi, ctx.n_arg_trovati, ctx.n_arg_attesi, next_val);
         var precedence = ((ctx.funzione) && (ctx.funzione.type === CellType.SFUN) && (isSeparator(ctx.funzione.coreKey))) ?

@@ -1,7 +1,7 @@
 // LogoControl.tsx
 // 251116 - 1st version: inspired to Ilcontro.cpp of IperLogo
 
-import { contextType, Context, CellType, Cell, CommandDef, ModParola, ProcedureDef } from './CoreDefinitions';
+import { contextType, Context, initialContext, CellType, Cell, CommandDef, ModParola, ProcedureDef } from './CoreDefinitions';
 import { throwError, globalVariables, userProcedures } from './Interpreter';
 import { resetActivePath } from './TurtleGraphics';
 import { resetMidiChannels } from './TimeMusic';
@@ -88,21 +88,25 @@ export function _UNTRACK(args: any[]): void {
 
 export function _PAUSE(ctx: Context, values: any[]): void {
   sf_out(ctx); // anticipo, per non confliggere con blk_in
-  push_contesto(ctx, contextType.CT_PAUSA);
-  ini_valuta();
+  push_contesto(ctx); // conviene fare il push del contesto iniziale?
+  ctx = contesti[liv_contesto];
+  ctx.id_contesto = contextType.CT_PAUSA;
+  ini_valuta(ctx);
+  ctx.liv_procedura = 0;
 }
+// CONTINUE ripristina il contesto subito al di sotto di quello creato con PAUSE
 export function _CONTINUE(ctx: Context, values: any[]): void {
   sf_out(ctx); // anticipo, per non confliggere con blk_in
-  var pause_level: number = 0;
-  for (var i = liv_contesto; i > 0; --i)
+  var pause_level;
+  for (var i = liv_contesto; i > 0; i--)
     if ((contesti[i]).id_contesto === contextType.CT_PAUSA) {  // contesto 0 è riservato
       pause_level = i;
       break;
     };
   if (pause_level == undefined)
     throwError('e15', null);
-  for (var j = liv_contesto-1; j > pause_level; --j) {
-      pop_contesto(ctx);
+  for (var j = liv_contesto; j >= pause_level; j--) {
+      pop_contesto();
   };
 }
 
@@ -110,70 +114,77 @@ export function _CATCH(ctx: Context, values: any[]): void {
   const label = (values[0].val);
   const block = [values[1].val];
   sf_out(ctx); // anticipo, per non confliggere con blk_in
-  push_contesto(ctx, label);
-  ctx = contesti[liv_contesto];
-  ctx.conto_esegui = 1;
+  push_contesto(ctx);
+  var ctx = contesti[liv_contesto];
+  ctx.id_contesto = label;
   block_exec(ctx, block);
 }
+// THROW ripristina il contesto subito al di sotto di quello creato con CATCH di stesso label
 export function _THROW(ctx: Context, values: any[]): void {
   const label = (values[0].val);
   sf_out(ctx); // anticipo, per non confliggere con blk_in
+  var catch_level;
+  for (var i = liv_contesto; i > 0; i--)
+    if ((contesti[i]).id_contesto === label) {
+      catch_level = i;
+      break;
+    };
+  if (catch_level == undefined)
+    throwError('e15', null);
+  for (var j = liv_contesto; j >= catch_level; j--) {
+      pop_contesto();
+  };
 }
 
 export function _STOP(ctx: Context, values: any[]): void {
-  console.log('function _STOP', values);
   is_stop = true;
   sf_out(ctx); // anticipo, per non confliggere con uf_ret
 }
 export function _OUTPUT(ctx: Context, values: any[]): void {
-  console.log('function _OUTPUT', values);
   risultato = values[0];
   is_stop = true;
   is_riporta = true;
   sf_out(ctx); // anticipo, per non confliggere con uf_ret
 }
 
-export function _REPEAT(ctx: Context, values: any[]): void {
-  console.log('function _REPEAT', values[0], values[1]);
-  ctx.conto_esegui = values[0].val;
-  is_ripeti = true;
-  var block = [values[1].val];
-  // console.log('function _REPEAT', ctx.conto_esegui, block);
+export function _RUN(ctx: Context, values: any[]): void {
+  const block = [values[0].val];
   sf_out(ctx); // anticipo, per non confliggere con blk_in
+  block_exec(ctx, block);
+}
+export function _REPEAT(ctx: Context, values: any[]): void {
+  ctx.conto_esegui = values[0].val;
+  var block = [values[1].val];
+  sf_out(ctx); // anticipo, per non confliggere con blk_in
+  is_ripeti = true;
   blk_in(ctx, block, 0);
 }
-
 export function _REPCOUNT(ctx: Context, values: any[]): Cell {
   sf_out(ctx); // anticipo, perché ha classe EXEC, dato che richiede Context
   return { type: CellType.NUMBER, val: ctx.RepCount };
 }
 
 export function _TEST(ctx: Context, values: any[]): void {
-  console.log('function _TEST', values);
   ctx.val_verifica = values[0].val;
 }
 
 export function _IFTRUE(ctx: Context, values: any[]): void {
-  console.log('function _IFTRUE', values);
   sf_out(ctx); // anticipo, per non confliggere con blk_in
   if (ctx.val_verifica)
     block_exec(ctx, [values[0].val]);
 }
 export function _IFFALSE(ctx: Context, values: any[]): void {
-  console.log('function _IFFALSE', values);
   sf_out(ctx); // anticipo, per non confliggere con blk_in
   if (! ctx.val_verifica)
     block_exec(ctx, [values[0].val]);
 }
 
 export function _IF(ctx: Context, values: any[]): void {
-  console.log('function _IF', values);
   sf_out(ctx); // anticipo, per non confliggere con blk_in
   if (values[0].val)
     block_exec(ctx, [values[1].val]);
 }
 export function _IFELSE(ctx: Context, values: any[]): void {
-  console.log('function _IFELSE', values);
   sf_out(ctx); // anticipo, per non confliggere con blk_in
   if (values[0].val)
     block_exec(ctx, [values[1].val]);
@@ -187,19 +198,16 @@ function block_exec(ctx: Context, block: Cell[][]): void {
 }
 
 function _esegui(ctx: Context, block: Cell[][]): void {
-  console.log('_esegui', liv_contesto, ctx.liv_esecuzione, block);
   push_sc(ctx.i_token);
   push_sc(ctx.block);
   blk_in(ctx, block, 0);
 }
 
 export function AssertContesto(ctx: Context): void {
-  // console.log('AssertContesto', c_stack, v_stack);
   if (! ((ctx.liv_procedura >= 0) && (ctx.liv_funzione >= 0) && (ctx.liv_esecuzione >= 0)
       && (ctx.conto_esegui >= 0) && (ctx.n_arg_attesi >= 0) && (ctx.n_arg_trovati >= 0)
       // && (ctx.liv_procedura < 2) && (ctx.liv_funzione < 3) // solo per test
       )) {
-    // console.log(ctx);
     throw new Error("INVALID CONTEXT");
   }
 }
@@ -233,50 +241,12 @@ function get_sv(i: number): any {
 }
 
 export function push_arg(ctx: Context, arg: any): void {
-  console.log('PUSH_ARG');
   ctx.n_arg_trovati += 1;
   v_stack.push(arg);
-  // for (var i=0; i<v_stack.length; ++i)
-  //  console.log('push_arg', i, v_stack[i]);
-}
-
-function push_contesto(ctx: Context, id: number): void {
-  AssertContesto(ctx);
-  ctx.id_contesto = id;
-  // contesti[liv_contesto+1] = contesti[0];
-  contesti.push(ctx)
-  ++liv_contesto;
-  ctx = contesti[liv_contesto];
-  ctx.funzione = null;
-  AssertContesto(ctx);
-}
-
-function pop_contesto(ctx: Context) {
-  AssertContesto(ctx);
-/*
-  var locale: number;
-  locale = ctx.dev_recupera;
-  trap(liv_contesto > 0);
-*/
-  --liv_contesto;
-  ctx = contesti.pop();
-  ctx.id_contesto = (liv_contesto == 0) ?
-    0 : (contesti [liv_contesto]).id_contesto;  // contesto 0 e' riservato
-/*
-  if (locale != devType.NULL_DEV) {
-      // ctx.linea_com = [];
-      ctx.block = [];
-    if (   (locale != ctx.dev_recupera)
-        && (! (_fstato [locale] & devType.O_FINESTRA))
-       ) f_chiudi (locale);
-  }
-*/
-  AssertContesto(ctx);
 }
 
 // salvataggio di parte del contesto sullo stack di controllo
 function pushco(ctx: Context): void {
-  console.log('pushco', ctx);
   AssertContesto(ctx);
   push_sc(ctx.conto_parentesi);
   push_sc(ctx.n_arg_trovati);
@@ -288,7 +258,6 @@ function pushco(ctx: Context): void {
  
 // ripristino di parte del contesto dallo stack di controllo
 function popco(ctx: Context): void {
-  console.log('popco');
   AssertContesto(ctx);
   // err_token = pop_sc ();
   ctx.parentesi = pop_sc();
@@ -296,12 +265,10 @@ function popco(ctx: Context): void {
   ctx.n_arg_trovati = pop_sc();
   ctx.conto_parentesi = pop_sc();
   AssertContesto(ctx);
-  // console.log('popco', ctx);
 }
 
 // azioni comuni al riconoscimento di un token funzione (sfun o ufun)
 function f_in(ctx: Context, funzione): void {
-  console.log('f_in', ctx);
   AssertContesto(ctx);
   push_sc(ctx.funzione);
   pushco (ctx);
@@ -313,51 +280,28 @@ function f_in(ctx: Context, funzione): void {
 
 // azioni comuni al termine della valutazione di sfun e ufun
 function f_out (ctx: Context): void {
-  console.log('f_out');
   AssertContesto(ctx);
   --ctx.liv_funzione;
   popco(ctx);
   ctx.funzione = pop_sc();
-  // if (is_funzione)
-  //    push_arg(pop_sv());
-  //if (ctx.conto_esegui > 0)
-  //_esegui ((node) idRun);
-  // _esegui (ctx, blocco);
-  // idRun = 0;
   AssertContesto(ctx);
-  // console.log('f_out', ctx);
 }
 
 // ingresso nella valutazione di una System Function
 export function sf_in(ctx: Context, funzione: SystemFunction): void {
   console.log('sf_in', funzione.coreKey);
   f_in(ctx, funzione);
-/*
-  get_sf (funzione);
-  if (IS_PR_MM)
-    _letterale ();
-  else if (   (liv_funzione != stk_livelli [liv_procedura] + 1)
-    && (! IS_PR_ESEGUI) 
-    && ((! IS_PR_FUNZIONE) || IS_PR_PROC)
-  ) errore (19, funzione, NULLP);  // primitiva non riporta !
-  n_arg_attesi = N_NOMINALE;
-*/
-  // ctx.n_arg_attesi = funzione.definition.args.length;
-    const args = funzione.definition.args;
-    ctx.n_arg_attesi = (args) ? args.length : 0;
-  // console.log('sf_in', ctx.n_arg_attesi);
+  const args = funzione.definition.args;
+  ctx.n_arg_attesi = (args) ? args.length : 0;
 }
 
 // uscita della valutazione di una System Function
 export function sf_out(ctx: Context): void {
-  console.log('sf_out', ctx.funzione.coreKey);
-  // console.log('sf_out', ctx);
   f_out(ctx);
 }
 
 // ingresso nella valutazione di una User Function
 export function uf_in(ctx: Context, funzione: UserFunction): void {
-  console.log('UF_IN', funzione.definition);
   f_in(ctx, funzione);
   ctx.n_arg_attesi = funzione.definition.parameters.length;
 }
@@ -367,8 +311,6 @@ export function uf_call(ctx: Context): void {
   const parameters = ctx.funzione.definition.parameters;
   const body = ctx.funzione.definition.body;
   const n_parameters = parameters.length;
-  // console.log('uf_call 1', parameters, body, ctx.block, ctx.block.length, ctx.i_line, ctx.i_token);
-  console.log('uf_call', ctx.funzione.name, parameters);
   AssertContesto(ctx);
   var argomenti: any[] = [];
   // riconosce eventuale ricorsione di coda: 
@@ -382,11 +324,6 @@ export function uf_call(ctx: Context): void {
   // binding temporaneo degli argomenti con salvataggio vecchio binding
   for (var i=0; i < n_parameters; ++i)
     pushloc(parameters[i], argomenti[n_parameters-i-1]);
-  /* this was replaced by push_procedure_context
-  ++ctx.liv_procedura;
-  stk_funzioni.push(ctx.funzione);
-  stk_livelli.push(ctx.funzione);
-  */
   is_stop = false;
   risultato = null;
   ctx.n_arg_attesi = ctx.n_arg_trovati = 0;
@@ -406,16 +343,9 @@ export function uf_call(ctx: Context): void {
 
 // finalizza l' esecuzione di una procedura LOGO con pop di uno stack-frame
 export function uf_ret(ctx: Context): void {
-  console.log('uf_ret in', ctx.block.length, ctx);
   AssertContesto(ctx);
   is_funzione = is_riporta;
   is_riporta = false;
-  /*  this was replaced by pop_procedure_context
-  var procedura; // valore attualmente non usato
-  procedura = stk_funzioni.pop();
-  stk_livelli.pop();
-  --ctx.liv_procedura;
-  */
   // esce da tutti i blocchi in procedura corrente
   if (is_stop)
     while (ctx.liv_esecuzione > 0) {
@@ -426,11 +356,9 @@ export function uf_ret(ctx: Context): void {
   const n_parameters = pop_sc();  // numero delle variabili argomento
   poploc(ctx, n_parameters);      // spurgo delle variabili argomento
   is_stop = false;
-  // ctx = pop_procedure_context();
   pop_procedure_context();
   ctx = contesti[liv_contesto];
   f_out(ctx);
-  console.log('uf_ret out', ctx.block.length, ctx);
 }
 
 /*-----------------------------------------------------------------------------
@@ -612,36 +540,11 @@ export function ini_main(): void {
 
 // inizializzazione quasi totale di Commander
 export function ini_exec(): void {
-  console.log('ini_exec - 1');
-  var ctx: Context = {
-    'id_contesto': contextType.CT_TOP,
-    // 'dev_recupera': devCode.CONSOLE,
-    'liv_procedura': 0,
-    'in_liv_proc': 0,
-    'liv_funzione': 0,
-    'in_liv_funzione': 0,
-    'funzione': null,
-    'liv_esecuzione': 0,
-    'val_verifica': null,
-    'conto_esegui': 0,
-    'RepCount': 0,
-    'RepTotal': 0,
-    'i_token': 0,
-    'ini_token': 0,
-    'n_arg_attesi': 0,
-    'n_arg_trovati': 0,
-    'parentesi': -1,
-    'conto_parentesi': 0,
-    'block': [],
-    'i_line': 0,
-    'localVariables': {},
-  };
-  ini_valuta(ctx);
-  console.log('ini_exec - 2', ctx);
-  contesti.push(ctx);
-  liv_contesto += 1;
+  push_contesto(initialContext);
   liv_analisi = 0;
   is_nestedExec = false;
+  is_stop = false;    /* se vero e' terminata esecuz. procedura corrente */
+  v_stack = [];
 }
 
 // inizializzazione parziale di Commander (NestedExec)
@@ -658,6 +561,21 @@ export function ini_valuta(ctx: Context): void {
   v_stack = [];
 }
 
+// crea nuovo contesto, che eredita dal precedente e lo mette sullo stack
+function push_contesto(ctx: Context): void {
+  console.log('push_contesto');
+  AssertContesto(ctx);
+  contesti.push({ ...ctx }); // aggiungo una copia in cima
+  liv_contesto += 1;
+}
+
+// recuperare da Iperlogo l'eventuale gestione del canale di lettura dei comandi
+export function pop_contesto(): void {
+  console.log('pop_contesto');
+  var ctx = contesti.pop();
+  liv_contesto -= 1;
+}
+
 // crea nuovo contesto, che eredita parzialmente dal precedente e lo mette sullo stack
 // delega a blk_in (richiamato da block_exec) l'inizializzazione di parecchi elementi
 function push_procedure_context(ctx: Context): void {
@@ -665,18 +583,15 @@ function push_procedure_context(ctx: Context): void {
   // contesti.push(Object.assign({}, ctx)); // aggiungo una copia in cima
   contesti.push({ ...ctx }); // aggiungo una copia in cima
   liv_contesto += 1;
-  var ctx: Context = contesti[liv_contesto]; // prendo riferimento alla copia e lo aggiorno
+  ctx = contesti[liv_contesto]; // prendo riferimento alla copia e lo aggiorno
   ctx.id_contesto = contextType.CT_PROCEDURE;
   ctx.liv_procedura += 1;
   ctx.liv_esecuzione = 0;
   is_nestedExec = false;
-
   ctx.funzione = null;
 }
 
 function pop_procedure_context(): void {
-  console.log('pop_procedure_context');
   var ctx = contesti.pop();
   liv_contesto -= 1;
-  // return contesti[liv_contesto];  
 }

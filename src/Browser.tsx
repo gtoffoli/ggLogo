@@ -13,7 +13,7 @@ import { shared_langCode } from './LogoShell';
 const Browser: React.FC = () => {
   const [zIndex, setzIndex] = useState(1);
   const [htmlContent, setHtmlContent] = useState('');
-  const [webUrl, setWebUrl] = useState('');
+  const [webUrl, setWebUrl] = useState(null);
 
   const { state, dispatch, interpreter } = useLogoState();
 	// 't' è la funzione di traduzione

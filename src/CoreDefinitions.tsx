@@ -3,7 +3,7 @@
 
 
 import { _NOP, _ERROR, _BYE, _TRACK, _UNTRACK, _PAUSE, _CONTINUE, _CATCH, _THROW, _STOP, _OUTPUT } from './LogoControl';
-import { _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
+import { _RUN, _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
 import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _FIRSTS, _LASTS, _BUTFIRST, _BUTLAST, _BUTFIRSTS, _BUTLASTS, _COUNT, _ITEM } from './Structures';
 import { _LOWERCASE, _UPPERCASE, _ASCII, _CHAR, _WORDP, _LISTP, _EMPTYP, _MEMBERP } from './Structures';
 import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
@@ -109,6 +109,31 @@ export type Context = {
 	ini_token:  number | null;
   localVariables: Record<string, any>;
 };
+
+export const initialContext: Context = {
+  id_contesto: contextType.CT_TOP,
+  dev_recupera: 0,
+  liv_procedura: 0,
+  in_liv_proc: 0,
+  liv_funzione: 0,
+  in_liv_funzione: 0,
+  funzione: null,
+  liv_esecuzione: 0,
+  val_verifica: null,
+  conto_esegui: 0,
+  RepCount: 0,
+  RepTotal: 0,
+  i_token: 0,
+  ini_token: 0,
+  n_arg_attesi: 0,
+  n_arg_trovati: 0,
+  parentesi: -1,
+  conto_parentesi: 0,
+  block: [],
+  i_line: 0,
+  localVariables: {},
+};
+
 
 // Tipi per i comandi
 export type SystemFunction = {
@@ -1000,6 +1025,11 @@ export const CORE_DEFINITIONS = {
     classes: [FunClass.EXEC],
     args: [{ name: "result", type: null }],
     ref: _OUTPUT,
+  } as CommandDef,
+  RUN: {
+    classes: [FunClass.EXEC],
+    args: [{ name: "block", type: A_L}],
+    ref: _RUN,
   } as CommandDef,
   REPEAT: {
     classes: [FunClass.EXEC],
