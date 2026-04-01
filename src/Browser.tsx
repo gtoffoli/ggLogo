@@ -56,22 +56,10 @@ const Browser: React.FC = () => {
     return htmlFinale;
   };
 
-  const handleOpen = async (name: string | null) => {
-    // var path = `/locales/${shared_langCode}/doc/README.md`;
-    var html: string;
-    // default document
-    var path = `README.md`;
-    if (name)
+  const handleOpenWeb = async (name: string | null) => {
+    var path;
+    if (name) {
       path = name;
-    if (path.endsWith('.md')) {
-      // default directory in public section
-      path = `/locales/${shared_langCode}/doc/` + path;
-      html = await caricaMarkdown(path);
-      setHtmlContent(html);
-    }
-    // look for a web resource
-    else {
-      // add a protocol if missing
       if (! path.startsWith('http'))
         path =  `https://` + path;
       const iframe = document.getElementById('browser-area');
@@ -80,7 +68,24 @@ const Browser: React.FC = () => {
     }
   };
 
-  const handlePrint = () => { console.log('Print...'); };
+  const handleOpenLocal = async (name: string | null) => {
+    var path = `README.md`;
+    if (name) path = name;
+    path = `/locales/${shared_langCode}/doc/` + path;
+    if (path.endsWith('.txt')) {
+      const iframe = document.getElementById('browser-area');
+      iframe.removeAttribute('srcDoc');
+      setWebUrl(path);
+    }
+    else if (path.endsWith('.md')) {
+      const html = await caricaMarkdown(path);
+      setHtmlContent(html);
+    }
+  };
+
+  const handlePrint = () => {
+     window.print();
+   };
   const handleHide = () => {
     const element = document.getElementById('browser-overlay');
     element.style["z-index"] = zIndex;
@@ -95,9 +100,10 @@ const Browser: React.FC = () => {
   // Menu per l'Area E (Browser LOGO)
   const menuE = [
   { label: 'File', submenu: [
-    { label: t('menu.open'), action: handleOpen, requiresInput: true },
+    { label: t('menu.open_web'), action: handleOpenWeb, requiresInput: true },
+    { label: t('menu.open_doc'), action: handleOpenLocal, requiresInput: true },
     { label: t('menu.print'), action: handlePrint },
-    { label: t('menu.hide'), action: handleHide },
+    // { label: t('menu.hide'), action: handleHide },
   ]},
   { label: t('menu.navigate'), submenu: [
     { label: t('menu.back'), action: handleBack },
@@ -116,9 +122,10 @@ const Browser: React.FC = () => {
 	  id="browser-overlay"
 	  title={t('header.browser')}
 	  borderColor="#8c208c" // Viola
+    zIndex={state.browsers['BROWSER'].zIndex}
 	  menuItems={menuE}
   >
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', zIndex: zIndex }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <iframe
         id="browser-area"
         src={webUrl}

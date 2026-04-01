@@ -12,6 +12,7 @@ public/locales/??/doc
 out
 dist
 *.tgz
+*.zip
 
 # code coverage
 coverage

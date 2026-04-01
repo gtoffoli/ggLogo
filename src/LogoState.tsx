@@ -50,6 +50,16 @@ export interface GraphicWindowState {
   foregroundRef: any;
 }
 
+export interface EditorWindowState {
+  windowId: string; // ID univoco, es. "FOGLIO" o "editor2"
+  zIndex: number;
+}
+
+export interface BrowserWindowState {
+  windowId: string; // ID univoco, es. "BROWSER" o "browser2"
+  zIndex: number;
+}
+
 // 2. Definisce lo Stato Globale dell'Interprete
 export interface LogoGlobalState {
   // Mappa di tutte le finestre grafiche
@@ -64,4 +74,12 @@ export interface LogoGlobalState {
   keyboardTarget: string,
   // Testo contenuto nell'Editor panel
   editorContent: string;
+  // Mappa di tutte le finestre di editor
+  editors: Record<string, EditorWindowState>; 
+  // ID della finestra di Editor attualmente selezionata/in uso
+  activeEditorId: string; 
+  // Mappa di tutte le finestre di browser
+  browsers: Record<string, BrowserWindowState>; 
+  // ID della finestra di Browser attualmente selezionata/in uso
+  activeBrowserId: string; 
 }

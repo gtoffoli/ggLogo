@@ -1,9 +1,10 @@
 import { 
-  LogoGlobalState, 
+  LogoGlobalState,
   GraphicWindowState, 
-  TurtleState, 
+  TurtleState,
+  EditorWindowState,
+  BrowserWindowState,
   DrawingCommand,
-  // InputWaiter
 } from './LogoState'; // Presumiamo che i tipi siano qui
 
 // Stato Iniziale Minimale
@@ -33,6 +34,16 @@ const initialWindowState: GraphicWindowState = {
   foregroundRef: null      // Aggiunto per l'associazione al DOM (vedi punto 3)
 };
 
+const initialEditorState: EditorWindowState = {
+  windowId: "FOGLIO",
+  zIndex: 2
+};
+
+const initialBrowserState: BrowserWindowState = {
+  windowId: "BROWSER",
+  zIndex: 1
+};
+
 export const initialLogoState: LogoGlobalState = {
   windows: { "TARTA": initialWindowState },
   activeWindowId: "TARTA",
@@ -41,6 +52,10 @@ export const initialLogoState: LogoGlobalState = {
   echoInput: true,
   keyboardTarget: 'commands',
   editorContent: '',
+  editors: { "FOGLIO": initialEditorState },
+  activeEditorId: "FOGLIO",
+  browsers: { "BROWSER": initialBrowserState },
+  activeBrowserId: "BROWSER"
 };
 
 // Tipi di Azione
@@ -55,9 +70,9 @@ type LogoAction =
   | { type: 'UPDATE_CURRENT_OUTPUT_LINE', text: string }
   | { type: 'APPEND_SHELL_LINE', lineType: 'input' | 'output' | 'error' | 'system', text: string }
   | { type: 'SET_KEYBOARD_TARGET', target: 'commands' | 'data' }
+  | { type: 'SHOW_WINDOW', windowId: 'TARTA' | 'FOGLIO' | 'BROWSER' }
   | { type: 'CLEAR_EDITOR_CONTENT' }
   | { type: 'APPEND_TO_EDITOR_CONTENT', text: string };
-
 
 export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlobalState {
     var nOutputLines: number;
@@ -169,6 +184,31 @@ export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlo
             ...state,
             keyboardTarget: action.target
           };
+        case 'SHOW_WINDOW':
+          console.log('SHOW_WINDOW', action.windowId);
+          if (action.windowId === 'BROWSER')
+            return {
+                ...state,
+                browsers: {
+                    ...state.browsers,
+                    [action.windowId]: {
+                        ...state.browsers[action.windowId],
+                        zIndex: state.editors[state.activeEditorId].zIndex + 1
+                    }
+                }
+            }
+          else if (action.windowId === 'FOGLIO')
+            return {
+                ...state,
+                editors: {
+                    ...state.editors,
+                    [action.windowId]: {
+                        ...state.editors[action.windowId],
+                        zIndex: state.browsers[state.activeBrowserId].zIndex + 1
+                    }
+                }
+            }
+          else return state;
         case 'CLEAR_EDITOR_CONTENT':
           return {
             ...state,

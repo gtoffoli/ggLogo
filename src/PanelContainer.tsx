@@ -18,11 +18,12 @@ interface PanelContainerProps {
   id: string; // ID HTML (es. 'area-a', 'area-b') per applicare gli stili CSS specifici
   title: string;
   borderColor: string;
+  zIndex: number;
   menuItems: MenuItem[];
   children: ReactNode; // Il contenuto specifico del pannello (Canvas, Console, Editor)
 }
 
-const PanelContainer: React.FC<PanelContainerProps> = ({ id, title, borderColor, menuItems, children }) => {
+const PanelContainer: React.FC<PanelContainerProps> = ({ id, title, borderColor, menuItems, zIndex, children }) => {
   // Stato di apertura di un sottomenu a cascata
   const [isOpen, setIsOpen] = useState(false);
   // Stato per tenere traccia del sottomenu attualmente aperto
@@ -71,6 +72,7 @@ const PanelContainer: React.FC<PanelContainerProps> = ({ id, title, borderColor,
     boxSizing: 'border-box',
     borderRadius: '4px',
     overflow: 'hidden', // Importante per contenere il contenuto figlio
+    zIndex: zIndex,
   };
 
   // Stili della barra di intestazione

@@ -178,6 +178,35 @@ export function _MEMBERP(args: any[]): Cell {
   console.log('_MEMBERP', item, sequence);
   return { type: CellType.BOOLEAN, val: memberp };
 }
+export function _SPLIT(args: any[]): Cell {
+  const separator: any = args[0].val;
+  const sequence: string | any[] = args[1].val;
+  var split = [];
+  var item: any;
+  if (args[1].type === CellType.LIST) {
+    var sublist: any[] = [];
+    for (var i=0; i < sequence.length; i++) {
+      item = sequence[i];
+      if (item.val === separator) {
+        if (sublist.length) { split.push({ type: CellType.LIST, val:sublist }); sublist = []; }
+      }
+      else sublist.push(item);
+    }
+    if (sublist.length) split.push({ type: CellType.LIST, val:sublist })
+  }
+  else {
+    var substring = "";
+    for (var j=0; j < sequence.length; j++) {
+      item = sequence[j];
+      if (item === separator) {
+        if (substring.length) { split.push({ type: CellType.WORD, val:substring }); substring = ""; }
+      }
+      else substring = substring + item;
+    } 
+    if (substring.length) split.push({ type: CellType.WORD, val:substring });
+  }
+  return { type: CellType.LIST, val:split };
+}
 
 export function _LOWERCASE(args: any[]): Cell {
    return { type: CellType.WORD, val: args[0].val.toLowerCase() };

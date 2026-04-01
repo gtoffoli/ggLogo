@@ -4,7 +4,7 @@
 
 import { _NOP, _ERROR, _BYE, _TRACK, _UNTRACK, _PAUSE, _CONTINUE, _CATCH, _THROW, _STOP, _OUTPUT } from './LogoControl';
 import { _RUN, _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
-import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _FIRSTS, _LASTS, _BUTFIRST, _BUTLAST, _BUTFIRSTS, _BUTLASTS, _COUNT, _ITEM } from './Structures';
+import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _FIRSTS, _LASTS, _BUTFIRST, _BUTLAST, _BUTFIRSTS, _BUTLASTS, _COUNT, _ITEM, _SPLIT } from './Structures';
 import { _LOWERCASE, _UPPERCASE, _ASCII, _CHAR, _WORDP, _LISTP, _EMPTYP, _MEMBERP } from './Structures';
 import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
 import { _NOT, _OR, _AND, _XOR, _EQUALP, _NOTEQUALP, _BITOR, _BITAND, _BITXOR, _BITNOT, _ASHIFT, _LSHIFT } from './Logic';
@@ -544,6 +544,11 @@ export const CORE_DEFINITIONS = {
     signature: [FunSignature.FUNCTION],
     args: [{ name: "index", type:  A_N }, { name: "sequence", type: A_S_L_A}],
     ref: _ITEM,
+  } as CommandDef,
+  SPLIT: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "index", type:  null }, { name: "sequence", type: A_W_S_L}],
+    ref: _SPLIT,
   } as CommandDef,
   LOWERCASE: {
     signature: [FunSignature.FUNCTION],

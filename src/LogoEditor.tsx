@@ -25,10 +25,6 @@ function insertAtCursor(myField, myValue) {
 const Editor: React.FC = () => {
   const [zIndex, setzIndex] = useState(2);
 	const [code, setCode] = useState('');
-	/*
-  const state = useLogoState();
-  const dispatch = useLogoDispatch();
-  */
   const { state, dispatch, interpreter } = useLogoState();
 	// 't' è la funzione di traduzione
 	const { t, i18n } = useTranslation();
@@ -128,7 +124,7 @@ const Editor: React.FC = () => {
     { label: t('menu.clear'), action: handleClear },
     { label: t('menu.load'), action: handleFileLoad },
     { label: t('menu.save'), action: handleFileSave },
-    { label: t('menu.hide'), action: handleHide },
+    // { label: t('menu.hide'), action: handleHide },
   ]},
   { label: t('menu.edit'), submenu: [
     { label: t('menu.undo'), action: () => alert("Annulla effetto di ultima azione in Editor...") },
@@ -148,6 +144,7 @@ const Editor: React.FC = () => {
 	  id="editor-overlay"
 	  title={t('header.editor')}
 	  borderColor="#ff8c00" // Arancione
+    zIndex={state.editors['FOGLIO'].zIndex}
 	  menuItems={menuC}
   >
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>

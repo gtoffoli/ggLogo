@@ -296,6 +296,10 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
     });
   };
 
+  const handlePrint = () => {
+     window.print();
+  };
+
   const exportPNG = () => {
     const canvas = backgroundRef.current;
     if (!canvas) return;
@@ -345,7 +349,7 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
     { label: t('menu.export_png'), action: exportPNG },
     // { label: t('menu.export_svg'), action: exportSVG(800, 800, windowState.drawingCommands) },
     { label: t('menu.export_svg'), action: exportSVG },
-    { label: t('menu.print'), action: () => alert('Stampa Canvas...') },
+    { label: t('menu.print'), action: handlePrint },
   ]},
   ];
 
@@ -354,6 +358,7 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
       id="area-a"
       title={t('header.canvas')}
       borderColor="#007bff" // Blu
+      zIndex={1}
       menuItems={menuA}
     >
       <div className="canvas-container" ref={containerRef}>

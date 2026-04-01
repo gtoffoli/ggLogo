@@ -122,6 +122,13 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
      dispatch({ type: 'DUMMY_STATE_CHANGE' });
   };
 
+  const handleShowEditor = () => {
+     dispatch({ type: 'SHOW_WINDOW', windowId: 'FOGLIO' });
+  };
+
+  const handleShowBrowser = () => {
+     dispatch({ type: 'SHOW_WINDOW', windowId: 'BROWSER' });
+  };
 
   // Menu per l'Area B (Interprete/Console)
   const menuB = [
@@ -130,22 +137,24 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
 	  { label: t('menu.load'), action: handleFileLoad },
 	  { label: t('menu.save'), action: () => alert('Salva...') },
 	]},
-    { label: t('menu.history'), submenu: [
-      { label: (state.echoInput) ? t('menu.echo_off') :  t('menu.echo_on'), action: handleToggleEcho },
-      { label: t('menu.delete'), action: handleConsoleClear },
-      { label: t('menu.export'), action: () => console.log('Esporta log della console') },
-    ]},
-    { label: t('menu.commands'), submenu: [
-      { label: t('menu.help'), action: () => alert('Mostra la guida comandi LOGO.') },
-      { label: t('menu.no_change'), action: handleDummyChange },
-      { label: t('menu.break'), action: handleUserInterrupt },
-    ]},
-        // Menu Lingua (Dynamic)
+  { label: t('menu.history'), submenu: [
+    { label: (state.echoInput) ? t('menu.echo_off') :  t('menu.echo_on'), action: handleToggleEcho },
+    { label: t('menu.delete'), action: handleConsoleClear },
+    { label: t('menu.export'), action: () => console.log('Esporta log della console') },
+  ]},
+  { label: t('menu.commands'), submenu: [
+    { label: t('menu.help'), action: () => alert('Mostra la guida comandi LOGO.') },
+    { label: t('menu.break'), action: handleUserInterrupt },
+  ]},
+  { label: t('menu.windows'), submenu: [
+    { label: t('menu.turtle'), action: handleDummyChange },
+    { label: t('menu.editor'), action: handleShowEditor },
+    { label: t('menu.browser'), action: handleShowBrowser },
+  ]},
 	{ label: t('menu.language'), submenu: [
 	  { label: 'Italiano', action: () => handleSetLanguage('it'), active: activeLang === 'it' },
 	  { label: 'English', action: () => handleSetLanguage('en'), active: activeLang === 'en' },
-      // Aggiungi altre lingue qui
-	]},
+ 	]},
   ];
 
   return (
@@ -153,6 +162,7 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
       id="area-b"
       title={t('header.shell')}
       borderColor="#28a745" // Verde
+      zIndex={1}
       menuItems={menuB}
     >
     <div style={{

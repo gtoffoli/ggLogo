@@ -7,7 +7,6 @@ import { createRoot } from 'react-dom/client';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
 import "./index.css"; // (da installazione bundle Bum-React)
-import PanelContainer from './PanelContainer';
 import LogoShell from './LogoShell'; // Il tuo componente B (da Gemini)
 import Canvas from './TurtleCanvas'; // Il tuo componente A (da DeepSeek)
 import Editor from './LogoEditor'; // Il tuo componente C (da DeepSeek)
