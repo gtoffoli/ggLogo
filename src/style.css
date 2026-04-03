@@ -102,3 +102,35 @@ html, body, #root {
   z-index: 99; /* Sotto l'editor */
   background: white;
 }
+
+/* -------------- */
+/* AREE DI STAMPA */
+/* -------------- */
+
+/* Di base, quando si stampa, nascondiamo tutto il layout */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Definiamo delle classi specifiche per "isolare" il contenuto */
+  body.print-tarta #background-canvas,
+  body.print-tarta #background-canvas * {
+    visibility: visible;
+  }
+
+  body.print-browser #browser-area,
+  body.print-browser #browser-area * {
+    visibility: visible;
+  }
+
+  /* Posizionamento: facciamo sì che l'elemento scelto occupi tutta la pagina */
+  body.print-tarta #background-canvas,
+  body.print-browser #browser-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
+

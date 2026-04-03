@@ -297,7 +297,12 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
   };
 
   const handlePrint = () => {
-     window.print();
+    // Aggiungiamo la classe specifica
+    document.body.classList.add(`print-tarta`);
+    // Lanciamo la stampa
+    window.print();
+    // Rimuoviamo la classe appena aggiunta
+    document.body.classList.remove(`print-tarta`);
   };
 
   const exportPNG = () => {

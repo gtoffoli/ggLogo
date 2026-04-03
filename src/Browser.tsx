@@ -84,8 +84,14 @@ const Browser: React.FC = () => {
   };
 
   const handlePrint = () => {
-     window.print();
-   };
+    // Aggiungiamo la classe specifica
+    document.body.classList.add(`print-browser`);
+    // Lanciamo la stampa
+    window.print();
+    // Rimuoviamo la classe appena aggiunta
+    document.body.classList.remove(`print-browser`);
+  };
+
   const handleHide = () => {
     const element = document.getElementById('browser-overlay');
     element.style["z-index"] = zIndex;
