@@ -4,7 +4,7 @@
 
 import { _NOP, _ERROR, _BYE, _TRACK, _UNTRACK, _PAUSE, _CONTINUE, _CATCH, _THROW, _STOP, _OUTPUT } from './LogoControl';
 import { _RUN, _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
-import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _FIRSTS, _LASTS, _BUTFIRST, _BUTLAST, _BUTFIRSTS, _BUTLASTS, _COUNT, _ITEM, _SPLIT } from './Structures';
+import { _WORD, _SENTENCE, _LIST, _ARRAY, _FPUT, _LPUT, _FIRST, _LAST, _FIRSTS, _LASTS, _BUTFIRST, _BUTLAST, _BUTFIRSTS, _BUTLASTS, _COUNT, _ITEM, _SPLIT } from './Structures';
 import { _LOWERCASE, _UPPERCASE, _ASCII, _CHAR, _WORDP, _LISTP, _EMPTYP, _MEMBERP } from './Structures';
 import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
 import { _NOT, _OR, _AND, _XOR, _EQUALP, _NOTEQUALP, _BITOR, _BITAND, _BITXOR, _BITNOT, _ASHIFT, _LSHIFT } from './Logic';
@@ -53,23 +53,27 @@ export enum ModParola {
 	VARIABLE = 3,	// parola preceduta da COLON
 }
 export enum CellType {
-  LIST = 0,
+  BLANK = 0,
   QUOTE = 1,
   OPERATOR = 2,// operatore
-  NUMBER = 3,  // numero
+  STRING = 3,  // numero
   WORD = 4,    // parola Logo
-  BOOLEAN = 5, // valore logico
-  VAR = 6,     // variabile Logo
-  SFUN = 7,    // funzione primitiva
-  UFUN = 8,    // funzione di utente (procedura)
-  BLANK = 9,
+  NUMBER = 5,  // numero
+  BOOLEAN = 6, // valore logico
+  LIST = 7,    // lista
+  ARRAY = 8,   // array sparso
+  VAR = 9,     // variabile Logo
+  SFUN = 10,   // funzione primitiva
+  UFUN = 11,   // funzione di utente (procedura)
 }
 
 // typed token in the Parser output
 export type Cell = {
   type: CellType;
   val: any;
-} // | null;
+  size?: number;
+  origin?: number;
+}
 
 export enum Delimiter {
   DEL_PARSINISTRA = '(',
@@ -151,11 +155,10 @@ export type UserFunction = {
 // Tipi per i comandi
 export type CommandDef = {
   classes: number[];
-  signature?: number;
+  signature?: number[];
   description?: string;
-  // syntax?: string;
-  args: { name: string; type: 'number' | 'string' | 'boolean' }[];
-  semantics?: (args: any[]) => any; // La funzione che esegue il comando
+  // args: { name: string; type: 'number' | 'string' | 'boolean' }[];
+  args: { name?: string; type: number | null; optional?: boolean }[];
   ref: (args: any) => any; // La funzione che esegue il comando
 };
 
@@ -471,19 +474,24 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
 
   WORD: {
-    signature: [FunSignature.FUNCTION, FunSignature.ONEORMORE],
+    signature: [FunSignature.FUNCTION, FunSignature.ZEROORMORE],
     args: [{ name: "arg1", type: A_S_L }, { name: "arg2", type: null}],
     ref: _WORD,
   } as CommandDef,
   LIST: {
-    signature: [FunSignature.FUNCTION, FunSignature.ONEORMORE],
+    signature: [FunSignature.FUNCTION, FunSignature.ZEROORMORE],
     args: [{ name: "arg1", type: null }, { name: "arg2", type: null}],
     ref: _LIST,
   } as CommandDef,
   SENTENCE: {
-    signature: [FunSignature.FUNCTION, FunSignature.ONEORMORE],
+    signature: [FunSignature.FUNCTION, FunSignature.ZEROORMORE],
     args: [{ name: "arg1", type: null }, { name: "arg2", type: null}],
     ref: _SENTENCE,
+  } as CommandDef,
+  ARRAY: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "size", type: A_N }, { name: "origin", type: A_N, optional: true}],
+    ref: _ARRAY,
   } as CommandDef,
   COUNT: {
     signature: [FunSignature.FUNCTION],
@@ -612,7 +620,6 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
   TO: {
     classes: [FunClass.DEF],
-    // description: "Inizializza la definizione di una procedura.",
     args: [{ name: "nome", type: A_W_S }],
     ref: _TO,
   } as CommandDef,

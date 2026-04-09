@@ -6,7 +6,6 @@ import { throwError } from './Interpreter';
 
 
 export function _WORD(args: any[]): Cell {
-	console.log('function _WORD', args);
 	var word = '';
 	for (var i=0; i<args.length; i++)
 		word += args[i].val.toString();
@@ -14,7 +13,6 @@ export function _WORD(args: any[]): Cell {
 }
 
 export function _LIST(args: any[]): Cell {
-	console.log('function _LIST', args);
 	var list = [];
 	for (var i=0; i<args.length; i++)
 		list.push(args[i]);
@@ -22,7 +20,6 @@ export function _LIST(args: any[]): Cell {
 }
 
 export function _SENTENCE(args: any[]): Cell {
-	console.log('function _SENTENCE', args);
 	var sentence = [];
 	var value;
 	for (var i=0; i<args.length; i++) {
@@ -33,6 +30,15 @@ export function _SENTENCE(args: any[]): Cell {
 			sentence.push(value);
 	}
 	return { type: CellType.LIST, val: sentence };
+}
+
+export function _ARRAY(args: any[]): Cell {
+  const size: number = args[0].val;
+  if (size < 1) throwError('e05', null, args[0]);
+  const origin: number = (args.length > 1) ? args[1].val : 1;
+  if (origin < 0) throwError('e05', null, args[1]);
+  var array: any[] = [];
+  return { type: CellType.ARRAY, val: array, size: size, origin: origin };
 }
 
 export function _COUNT(args: any[]): Cell {
@@ -79,18 +85,13 @@ function lastItem(arg: any[]): Cell {
 }
 
 export function _FIRST(args: any[]): Cell {
-	console.log('function _FIRST', args);
-	var arg = args[0];
   return firstItem(args[0]);
 }
 export function _LAST(args: any[]): Cell {
-	console.log('function _LAST', args);
   return lastItem(args[0]);
-	// err_arg1();
 }
 
 export function _FIRSTS(args: any[]): Cell {
-  console.log('function _FIRSTS', args);
   var sequence = args[0].val;
   var firsts = [];
   for (var i=0; i < sequence.length; i++)
@@ -98,7 +99,6 @@ export function _FIRSTS(args: any[]): Cell {
   return { type: CellType.LIST, val: firsts };
 }
 export function _LASTS(args: any[]): Cell {
-  console.log('function _LASTS', args);
   var sequence = args[0].val;
   var lasts = [];
   for (var i=0; i < sequence.length; i++)
@@ -107,7 +107,6 @@ export function _LASTS(args: any[]): Cell {
 }
 
 export function _BUTFIRST(args: any[]): Cell {
-	console.log('function _BUTFIRST', args);
 	var arg = args[0];
 	var value = arg.val;
 	if (value.length) {
@@ -116,10 +115,8 @@ export function _BUTFIRST(args: any[]): Cell {
 		else
 			return { type: CellType.WORD, val: value.toString().slice(1) };
 	}
-	// err_arg1(); 
 }
 export function _BUTLAST(args: any[]): Cell {
-	console.log('function _BUTLAST', args);
 	var arg = args[0];
 	var value = arg.val;
 	if (value.length) {
@@ -128,11 +125,9 @@ export function _BUTLAST(args: any[]): Cell {
 		else
 			return { type: CellType.WORD, val: value.toString().slice(0, -1) };
 	}
-	// err_arg1(); 
 }
 
 export function _BUTFIRSTS(args: any[]): Cell {
-  console.log('function _BUTFIRSTS', args);
   var sequence = args[0].val;
   var butfirsts = [];
   for (var i=0; i < sequence.length; i++) {
@@ -145,7 +140,6 @@ export function _BUTFIRSTS(args: any[]): Cell {
   return { type: CellType.LIST, val: butfirsts };
 }
 export function _BUTLASTS(args: any[]): Cell {
-  console.log('function _BUTLASTS', args);
   var sequence = args[0].val;
   var butlasts = [];
   for (var i=0; i < sequence.length; i++) {

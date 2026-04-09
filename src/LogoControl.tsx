@@ -287,12 +287,23 @@ function f_out (ctx: Context): void {
   AssertContesto(ctx);
 }
 
+export function minArgsNumber(definition: CommandDef): number {
+  const arg_definitions = definition.args;
+  var min_args = 0;
+  if (arg_definitions) {
+    const max_args = arg_definitions.length;
+    min_args = max_args;
+    for (let i = 0; i < max_args; i++)
+      if (arg_definitions[i].optional === true) min_args -= 1;
+  }
+  return min_args;
+}
+
 // ingresso nella valutazione di una System Function
 export function sf_in(ctx: Context, funzione: SystemFunction): void {
   console.log('sf_in', funzione.coreKey);
   f_in(ctx, funzione);
-  const args = funzione.definition.args;
-  ctx.n_arg_attesi = (args) ? args.length : 0;
+  ctx.n_arg_attesi = minArgsNumber(funzione.definition);
 }
 
 // uscita della valutazione di una System Function
@@ -422,12 +433,10 @@ export function parenin(ctx: Context): void {
   -------------------------*/
 export function parenout(ctx: Context, par_count: number): void {
   var locale: number;
-  // console.log('parenout, n=', par_count);
   for (var i=0; i<par_count; ++i) {
     if (ctx.n_arg_trovati > 1)
       throw new Error("INVALID CONTEXT", get_sv (1));
     locale = ctx.n_arg_trovati;
-    // console.log('parenout -> popco');
     popco(ctx);
     ctx.funzione = pop_sc();
     ctx.n_arg_trovati = ctx.n_arg_trovati + locale;

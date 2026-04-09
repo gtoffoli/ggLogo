@@ -9,7 +9,7 @@ import { getByValue } from './UseLocalization';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
 import { Parse, infix_operators, BLANK, unParse, nodeToString } from './Parser';
 import { contesti, liv_contesto, liv_analisi, v_stack, is_stop, is_traccia, risultato, stopAsynchronousActivities } from './LogoControl';
-import { push_sv, pop_sv,  push_arg, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_out, parenin, parenout } from './LogoControl';
+import { push_sv, pop_sv,  push_arg, minArgsNumber, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_out, parenin, parenout } from './LogoControl';
 import { ini_main,ini_exec, ini_valuta, AssertContesto } from './LogoControl';
 import { isProcedureDefinition, iniDefine, pushProcedureLine } from './LogoDefine';
 import { localizedTruthValues, normalizeBoolean } from './Logic';
@@ -30,6 +30,8 @@ var classes = [];    // info related to primitive classificaztion
 var signature = [];    // info  related to arguments and result of primitive
 var oneormore = false;  // true if primitive accepts an indefinite number of arguments
 var zeroormore = false;  // true if primitive accepts an indefinite number of arguments, even zero
+var min_args = 0;   // to be computed based on the 'args' slot of a definition 
+var max_args = 0;   // to be computed based on the 'args' slot of a definition
 var is_function = false;// true if primitive returns a result
 
 const N_MINIMO = 1; // minimo numero di argomenti per la funzione corrente
@@ -254,6 +256,8 @@ export class AsynchronousLogoInterpreter {
         zeroormore =  (signature.includes(FunSignature.ZEROORMORE));
         oneormore =  (signature.includes(FunSignature.ONEORMORE));
       }
+      max_args = (arg_definitions) ? arg_definitions.length : 0;
+      min_args = minArgsNumber(definition);
     }
     else { // UFUN
       function_key = ctx.funzione.name;
@@ -632,11 +636,12 @@ export class AsynchronousLogoInterpreter {
               }
               else if (ctx.parentesi === ctx.liv_funzione) {
                 this.get_function(ctx);
-                // if (ctx.n_arg_trovati < N_MINIMO) {
-                if ((!zeroormore) && (ctx.n_arg_trovati < N_MINIMO)) {
+                // if ((!zeroormore) && (ctx.n_arg_trovati < N_MINIMO)) {
+                if ((!zeroormore) && (ctx.n_arg_trovati < min_args)) {
                   throwError('e11', function_key);
                 }
-                else if ((!oneormore) && (ctx.n_arg_trovati > /*N_MASSIMO*/ ctx.n_arg_attesi)) {
+                // else if ((!oneormore) && (ctx.n_arg_trovati > /*N_MASSIMO*/ ctx.n_arg_attesi)) {
+                else if ((!zeroormore) && (!oneormore) && (ctx.n_arg_trovati > /*N_MASSIMO*/ ctx.n_arg_attesi)) {
                   throwError('e11', function_key);
                 }
                 else {
@@ -709,13 +714,12 @@ export class AsynchronousLogoInterpreter {
           // if (ctx.parentesi == ctx.liv_funzione) ctx.parentesi = -1;  // coordinato con ...
           ctx.i_token += 1;
         }
-        if (ctx.funzione) {
-          this.get_function(ctx);
-          // console.log('CTX.FUNZIONE', oneormore, ctx.parentesi, ctx.liv_funzione);
-        }
+        if (ctx.funzione) this.get_function(ctx);
         if (   (ctx.funzione)
-              && (   (ctx.n_arg_trovati === ctx.n_arg_attesi)
-                  && ((!oneormore) || (ctx.parentesi != ctx.liv_funzione))
+              && (   (ctx.n_arg_trovati === ctx.n_arg_attesi) // trovato numero minimo di argomenti e ..
+                  && (   (ctx.parentesi != ctx.liv_funzione)  // gli argomenti non sono chiusi da parentesi oppure ..
+                      || ((!zeroormore) && (!oneormore))      // si deve attendere la parentesi chiusa
+                     ) 
                  )
              ) {
           result = await this.executeFunction(ctx);
