@@ -4,6 +4,8 @@
 import { CellType, Cell } from './CoreDefinitions';
 import { throwError } from './Interpreter';
 
+// riporta una parola Logo a partire da una stringa Javascript
+function wordCell(s: string): Cell { return { type: CellType.WORD, val: s } }
 
 export function _WORD(args: any[]): Cell {
 	var word = '';
@@ -234,4 +236,63 @@ export function _LISTP(args: any[]): Cell {
 export function _EMPTYP(args: any[]): Cell {
   var emptyp: boolean = (args[0].val.length === 0) ? true : false;
   return { type: CellType.BOOLEAN, val: emptyp };
+}
+
+function set_union(listA: string[], listB: string[]) :string[] {
+  const merge: string[] = [...listA, ...listB]; // concatena le liste
+  const union: string[] = [...new Set(merge)]; // converte a Set per eliminare i doppioni e poi ri-converte a lista
+  return union;
+}
+function set_intersection(listA: string[], listB: string[]) :string[] {
+  const setB = new Set(listB); // rimuove i duplicati e accelera la ricerca
+  const intersection: string[] = listA.filter(item => setB.has(item)); // filtra item in A presenti anche in B
+  return intersection;
+}
+function set_difference(listA: string[], listB: string[]) :string[] {
+  const setB = new Set(listB); // rimuove i duplicati e accelera la ricerca
+  const difference: string[] = listA.filter(item => !setB.has(item)); // filtra item in A ma non in B
+  return difference;
+}
+
+export function _UNION(args: any[]): Cell {
+  const listA = args[0].val.map((c: Cell) => c.val);
+  const listB = args[1].val.map((c: Cell) => c.val);
+  const union = set_union(listA, listB);
+  return { type: CellType.LIST, val: union.map((s: string) => wordCell(s)) };
+}
+export function _INTERSECTION(args: any[]): Cell {
+  const listA = args[0].val.map((c: Cell) => c.val);
+  const listB = args[1].val.map((c: Cell) => c.val);
+  const intersection = set_intersection(listA, listB);
+  return { type: CellType.LIST, val: intersection.map((s: string) => wordCell(s)) };
+}
+export function _REMDUP(args: any[]): Cell {
+  const arg = args[0];
+  if (arg.type === CellType.LIST) {
+    var list = arg.val.map((c: Cell) => c.val);
+    const set = new Set(list); // rimuove i duplicati
+    list = [...set];
+    return { type: CellType.LIST, val: list.map((s: string) => wordCell(s)) };
+  }
+  else {
+    var string = arg.val.toString();
+    var list = string.split('');
+    const set = new Set(list); // rimuove i duplicati
+    list = [...set];
+    string = list.join('');
+    return { type: CellType.WORD, val: string };
+  }
+}
+export function _REVERSE(args: any[]): Cell {
+  const arg = args[0];
+  if (arg.type === CellType.LIST) {
+    var list = [...arg.val];
+    list.reverse();
+    return { type: CellType.LIST, val: list };
+  }
+  else {
+    var string = arg.val.toString();
+    string = string.split('').reverse().join('');
+    return { type: CellType.WORD, val: string };
+  }
 }

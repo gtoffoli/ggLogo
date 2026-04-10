@@ -5,7 +5,7 @@
 import { _NOP, _ERROR, _BYE, _TRACK, _UNTRACK, _PAUSE, _CONTINUE, _CATCH, _THROW, _STOP, _OUTPUT } from './LogoControl';
 import { _RUN, _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
 import { _WORD, _SENTENCE, _LIST, _ARRAY, _FPUT, _LPUT, _FIRST, _LAST, _FIRSTS, _LASTS, _BUTFIRST, _BUTLAST, _BUTFIRSTS, _BUTLASTS, _COUNT, _ITEM, _SPLIT } from './Structures';
-import { _LOWERCASE, _UPPERCASE, _ASCII, _CHAR, _WORDP, _LISTP, _EMPTYP, _MEMBERP } from './Structures';
+import { _LOWERCASE, _UPPERCASE, _ASCII, _CHAR, _WORDP, _LISTP, _EMPTYP, _MEMBERP, _UNION, _INTERSECTION, _REVERSE, _REMDUP } from './Structures';
 import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
 import { _NOT, _OR, _AND, _XOR, _EQUALP, _NOTEQUALP, _BITOR, _BITAND, _BITXOR, _BITNOT, _ASHIFT, _LSHIFT } from './Logic';
 import { _ABS, _INT, _ROUND, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _POWER, _EXP, _SQRT, _LOG10, _LN, _RANDOM, _RERANDOM } from './Math';
@@ -497,6 +497,26 @@ export const CORE_DEFINITIONS = {
     signature: [FunSignature.FUNCTION],
     args: [{ name: "sequence", type: A_S_L }],
     ref: _COUNT,
+  } as CommandDef,
+  REVERSE: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "sequence", type: A_S_L }],
+    ref: _REVERSE,
+  } as CommandDef,
+  REMDUP: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "sequence", type: A_S_L }],
+    ref: _REMDUP,
+  } as CommandDef,
+  UNION: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg1", type: A_L }, { name: "arg2", type: A_L}],
+    ref: _UNION,
+  } as CommandDef,
+  INTERSECTION: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "arg1", type: A_L }, { name: "arg2", type: A_L}],
+    ref: _INTERSECTION,
   } as CommandDef,
   FPUT: {
     signature: [FunSignature.FUNCTION],
