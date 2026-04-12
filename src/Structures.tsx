@@ -39,10 +39,10 @@ export function _ARRAY(args: any[]): Cell {
   if (size < 1) throwError('e05', null, args[0]);
   const origin: number = (args.length > 1) ? args[1].val : 1;
   if (origin < 0) throwError('e05', null, args[1]);
-  var array: any[] = [];
+  // var array: any[] = [];
+  var array: any[] = new Array(size);
   return { type: CellType.ARRAY, val: array, size: size, origin: origin };
 }
-
 export function _COUNT(args: any[]): Cell {
 	var sequence = args[0].val;
 	if (!(args[0].type === CellType.LIST))
@@ -154,16 +154,43 @@ export function _BUTLASTS(args: any[]): Cell {
   return { type: CellType.LIST, val: butlasts };
 }
 
+export function _SETITEM(args: any[]): void {
+  var array: any[] = args[1].val;
+  const size = args[1].size;
+  const index = args[0].val - args[1].origin;
+  if ((index < 0) || (index > (args[1].size-1))) throwError('e07', null, args[1]);
+  array[index] = args[2];
+}
 export function _ITEM(args: any[]): Cell {
 	var index = args[0].val;
+	if (args[1].type === CellType.ARRAY) {
+    var array: any[] = args[1].val;
+    const size = args[1].size;
+    index = index - args[1].origin;
+    if ((index < 0) || (index > (args[1].size-1))) throwError('e07', null, args[1]);
+    return array[index];
+  }
 	var sequence = args[1].val;
-	if (index < 1 || index > sequence.length)
-		throw new Error("Index out of bounds");
+	if (index < 1 || index > sequence.length) throwError('e07', null, args[1]);
 	if (args[1].type === CellType.LIST)
 		return sequence[index-1];
 	else
 		return { type: CellType.WORD, val: sequence.toString().charAt(index-1) };
 }
+
+export function _LISTTOARRAY(args: any[]): Cell {
+  const array: any[] = args[0].val; // in this case, the resulting array is not sparse
+  const size: number = array.length;
+  const origin: number = (args.length > 1) ? args[1].val : 1;
+  if (origin < 0) throwError('e05', null, args[1]);
+  return { type: CellType.ARRAY, val: array, size: size, origin: origin };
+}
+export function _ARRAYTOLIST(args: any[]): Cell {
+  const array: any[] = args[0].val;
+  const list: any[] = array.filter(Boolean);
+  return { type: CellType.LIST, val: list };
+}
+
 export function _MEMBERP(args: any[]): Cell {
   var item: any = args[0].val;
   var sequence: string | any[] = args[1].val;
@@ -232,6 +259,9 @@ export function _WORDP(args: any[]): Cell {
 }
 export function _LISTP(args: any[]): Cell {
   return { type: CellType.BOOLEAN, val: (args[0].type === CellType.LIST) };
+}
+export function _ARRAYP(args: any[]): Cell {
+  return { type: CellType.BOOLEAN, val: (args[0].type === CellType.ARRAY) };
 }
 export function _EMPTYP(args: any[]): Cell {
   var emptyp: boolean = (args[0].val.length === 0) ? true : false;

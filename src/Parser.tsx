@@ -326,8 +326,12 @@ export function nodeToString(node: Cell | Cell[], showBrackets: boolean): string
   var output = "";
   var value;
   if (Array.isArray(node))
-    for (var i=0; i<node.length; i++)
-      output += nodeToString(node[i], showBrackets);
+    for (var i=0; i<node.length; i++) {
+      if (node[i])
+        output += nodeToString(node[i], showBrackets);
+      else
+        output += ' . ';
+    }
   else if (node.type !== undefined) {
     if (node.type === CellType.BOOLEAN)
       output += localizeBoolean(node.val);
@@ -338,6 +342,11 @@ export function nodeToString(node: Cell | Cell[], showBrackets: boolean): string
       output += nodeToString(node.val, true);
       if (showBrackets)
         output += '] ';
+    }
+    else if (node.type === CellType.ARRAY) {
+      output += ' {';
+      output += nodeToString(node.val, true);
+      output += '} ';
     }
     else {
       value = node.val.toString();

@@ -4,7 +4,8 @@
 
 import { _NOP, _ERROR, _BYE, _TRACK, _UNTRACK, _PAUSE, _CONTINUE, _CATCH, _THROW, _STOP, _OUTPUT } from './LogoControl';
 import { _RUN, _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
-import { _WORD, _SENTENCE, _LIST, _ARRAY, _FPUT, _LPUT, _FIRST, _LAST, _FIRSTS, _LASTS, _BUTFIRST, _BUTLAST, _BUTFIRSTS, _BUTLASTS, _COUNT, _ITEM, _SPLIT } from './Structures';
+import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _FIRSTS, _LASTS, _BUTFIRST, _BUTLAST, _BUTFIRSTS, _BUTLASTS, _COUNT, _SPLIT } from './Structures';
+import { _ARRAY, _SETITEM, _ITEM, _LISTTOARRAY, _ARRAYTOLIST } from './Structures';
 import { _LOWERCASE, _UPPERCASE, _ASCII, _CHAR, _WORDP, _LISTP, _EMPTYP, _MEMBERP, _UNION, _INTERSECTION, _REVERSE, _REMDUP } from './Structures';
 import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
 import { _NOT, _OR, _AND, _XOR, _EQUALP, _NOTEQUALP, _BITOR, _BITAND, _BITXOR, _BITNOT, _ASHIFT, _LSHIFT } from './Logic';
@@ -227,7 +228,7 @@ export enum Arg {
   STRINGA = 128, // string of chars
   NONEMPTY_LIST = 256,
   NONEMPTY_WORD = 512,
-  ARRAY  = 1024 , // array
+  ARRAY  = 1024, // array
   NOMEARC = 2048, // file name
 }
 
@@ -258,7 +259,6 @@ const A_F_S = Arg.NOMEARC + Arg.STRINGA;
 const A_F_S_L = Arg.NOMEARC + Arg.STRINGA + Arg.LISTA;
 const A_F_LW_S_L = Arg.NOMEARC + Arg.LISTAPAR + Arg.STRINGA + Arg.LISTA;
 
-// export const turtleStrokes = ['CS', 'CLEAR', 'SETSCALE', 'FD', 'BK',];
 export const turtleStrokes = ['CS', 'CLEAR', 'SETPOS', 'SETXY', 'SETX', 'SETY', 'FD', 'BK', 'FILL', 'ARC', 'CIRCLE'];
 
 // Mappa che contiene tutte le definizioni (la LOGICA del tuo interprete)
@@ -572,6 +572,20 @@ export const CORE_DEFINITIONS = {
     signature: [FunSignature.FUNCTION],
     args: [{ name: "index", type:  A_N }, { name: "sequence", type: A_S_L_A}],
     ref: _ITEM,
+  } as CommandDef,
+  SETITEM: {
+    args: [{ name: "index", type: A_N }, { name: "array", type: Arg.ARRAY}, { name: "thing", type: null}],
+    ref: _SETITEM,
+  } as CommandDef,
+  LISTTOARRAY: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "list", type: A_L }, { name: "origin", type: A_N, optional: true}],
+    ref: _LISTTOARRAY,
+  } as CommandDef,
+  ARRAYTOLIST: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "array", type: Arg.ARRAY }],
+    ref: _ARRAYTOLIST,
   } as CommandDef,
   SPLIT: {
     signature: [FunSignature.FUNCTION],

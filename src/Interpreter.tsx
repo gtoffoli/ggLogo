@@ -292,7 +292,6 @@ export class AsynchronousLogoInterpreter {
         case Arg.NOMEARC:
           if (arg_type === CellType.WORD)
             return arg;
-          return false;
           break;
         case Arg.LISTANUM:
           if (arg_type === CellType.LIST) {
@@ -304,15 +303,18 @@ export class AsynchronousLogoInterpreter {
                 numList.push(cell);
               else if ((cell.type === CellType.WORD) && (! isNaN(cell.val)))
                 numList.push({ type: CellType.NUMBER, val: Number(cell.val)});
-              else return false;
             }
-            return { type: CellType.LIST, val: numList };
+            if (numList.length === arg.val.length)
+              return { type: CellType.LIST, val: numList };
           }
-          return false;
           break;
         case Arg.LISTAPAR:
         case Arg.LISTA:
           if (arg_type === CellType.LIST)
+            return arg;
+          break;
+        case Arg.ARRAY:
+          if (arg_type === CellType.ARRAY)
             return arg;
           break;
         case Arg.NONEMPTY_WORD:
