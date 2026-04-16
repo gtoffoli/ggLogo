@@ -7,7 +7,7 @@ import { _RUN, _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from
 import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _FIRSTS, _LASTS, _BUTFIRST, _BUTLAST, _BUTFIRSTS, _BUTLASTS, _COUNT, _SPLIT } from './Structures';
 import { _ARRAY, _SETITEM, _ITEM, _LISTTOARRAY, _ARRAYTOLIST } from './Structures';
 import { _LOWERCASE, _UPPERCASE, _ASCII, _CHAR, _WORDP, _LISTP, _EMPTYP, _MEMBERP, _UNION, _INTERSECTION, _REVERSE, _REMDUP } from './Structures';
-import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL } from './LogoDefine';
+import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL, _PROCEDURES, _GLOBALS } from './LogoDefine';
 import { _NOT, _OR, _AND, _XOR, _EQUALP, _NOTEQUALP, _BITOR, _BITAND, _BITXOR, _BITNOT, _ASHIFT, _LSHIFT } from './Logic';
 import { _ABS, _INT, _ROUND, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _POWER, _EXP, _SQRT, _LOG10, _LN, _RANDOM, _RERANDOM } from './Math';
 import { _NUMBERP, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
@@ -677,6 +677,14 @@ export const CORE_DEFINITIONS = {
     signature: [FunSignature.FUNCTION],
     args: [{ name: "nome", type: A_W_S }],
     ref: _PRIMITIVEP,
+  } as CommandDef,
+  PROCEDURES: {
+    signature: [FunSignature.FUNCTION],
+    ref: _PROCEDURES,
+  } as CommandDef,
+  GLOBALS: {
+    signature: [FunSignature.FUNCTION],
+    ref: _GLOBALS,
   } as CommandDef,
   LOCAL: {
     classes: [FunSignature.ONEORMORE],

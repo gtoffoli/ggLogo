@@ -5,7 +5,7 @@ import { CellType, Cell } from './CoreDefinitions';
 import { throwError } from './Interpreter';
 
 // riporta una parola Logo a partire da una stringa Javascript
-function wordCell(s: string): Cell { return { type: CellType.WORD, val: s } }
+export function wordCell(s: string): Cell { return { type: CellType.WORD, val: s } }
 
 export function _WORD(args: any[]): Cell {
 	var word = '';

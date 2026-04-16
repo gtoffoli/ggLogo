@@ -151,7 +151,8 @@ export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlo
               ...state,
               shellHistory: [
                 ...state.shellHistory, 
-                { id: crypto.randomUUID(), text: action.text, lineType: 'output' }
+                // { id: crypto.randomUUID(), text: action.text, lineType: 'output' }
+                { id: idGenerator(), text: action.text, lineType: 'output' }
               ]
             };
           else { // last line is open
@@ -169,7 +170,8 @@ export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlo
               ...state,
               shellHistory: [
                 ...state.shellHistory, 
-                { id: crypto.randomUUID(), ...action.payload }
+                // { id: crypto.randomUUID(), ...action.payload }
+                { id: idGenerator(), ...action.payload }
               ]
             };
           else { // last line is open
@@ -225,3 +227,9 @@ export function logoReducer(state: LogoGlobalState, action: LogoAction): LogoGlo
             return state;
     }
 }
+
+var idCounter: number = 0;
+function idGenerator(): string {
+  idCounter += 1;
+  return toString(idCounter);
+} 

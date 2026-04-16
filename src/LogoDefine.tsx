@@ -7,7 +7,7 @@ import { userProcedures, globalVariables, throwError } from './Interpreter';
 import { getConsoleLine } from './Streams';
 import { contesti, liv_contesto, sf_out } from './LogoControl';
 import { commandResolver } from './UseLocalization';
-
+import { wordCell } from './Structures';
 
 export var isProcedureDefinition: boolean = false;
 export var procedureName: string | null;
@@ -131,4 +131,13 @@ export function _LOCAL(args: any[]): Cell {
   else {
     console.log('non siamo dentro una procedura')
   }
+}
+
+export function _PROCEDURES(args: any[]): Cell {
+  var list: string[] = Object.keys(userProcedures);
+  return { type: CellType.LIST, val: list.map((s: string) => wordCell(s)) }; 
+}
+export function _GLOBALS(args: any[]): Cell {
+  var list: string[] = Object.keys(globalVariables);
+  return { type: CellType.LIST, val: list.map((s: string) => wordCell(s)) }; 
 }
