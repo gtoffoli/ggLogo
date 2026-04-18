@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import './i18n';
+import JSZip from "jszip";
 import { useLogoDispatch, useLogoState } from './LogoStateContext';
 import { useTranslation } from 'react-i18next';
 import PanelContainer from './PanelContainer';
@@ -20,6 +21,27 @@ function insertAtCursor(myField, myValue) {
         myField.value += myValue;
     }
 }
+
+const loadZipLibrary = async (file, element) => {
+  const zip = new JSZip();
+  try {
+    // 1. Carica il contenuto del file ZIP
+    const zipContent = await zip.loadAsync(file);
+    // 2. Iteriamo sui file presenti nell'archivio
+    zipContent.forEach(async (relativePath, zipEntry) => {
+      // Filtriamo per estensione (solo file .il o .lgo o .logo o .txt)
+      if (!zipEntry.dir && (zipEntry.name.endsWith('.il') || zipEntry.name.endsWith('.lgo') || zipEntry.name.endsWith('.logo') || zipEntry.name.endsWith('.txt'))) {
+        // 3. Estraiamo il testo del file
+        const text = await zipEntry.async("string");
+        // 4. Inseriamo il codice nella textarea dell'Editor
+        insertAtCursor(element, text); 
+      }
+    });
+  } catch (errore) {
+    console.error("Errore durante la decompressione:", errore);
+    alert("Errore nel caricamento dello ZIP.");
+  }
+};
 
 // const Editor: React.FC = ({ interpreter }) => {
 const Editor: React.FC = () => {
@@ -66,7 +88,6 @@ const Editor: React.FC = () => {
     element.value = '';
   };
 
-
   const handleFileLoad = () => {
       // Logica per aprire un input file nascosto
       const fileInput = document.getElementById('editor-file-input') as HTMLInputElement;
@@ -75,22 +96,21 @@ const Editor: React.FC = () => {
 
 	const handleFileChange = (event) => {
 		const file = event.target.files[0];
+    const element = document.getElementById('editor-area');
 		if (file) {
-			const reader = new FileReader();
-			reader.onload = (e) => {
-  			const text = e.target.result;
-  			/*
-        dispatch({ type: 'CLEAR_EDITOR_CONTENT' });
-        dispatch({ 
-            type: 'APPEND_TO_EDITOR_CONTENT', 
-            text: text
-        });
-        */
-        const element = document.getElementById('editor-area');
-        // setCurrentData(text);
-        insertAtCursor(element, text)
-  		};
-  		reader.readAsText(file);
+      const fileName = file.name;
+      const fileType = file.type;
+			if ((fileType.startsWith("text/")) || (['.il', 'lgo', 'logo'].includes(fileName.slice(fileName.lastIndexOf("."))))) { // possible Logo code
+        const reader = new FileReader();
+  			reader.onload = (e) => {
+    			const text = e.target.result;
+          insertAtCursor(element, text)
+    		};
+  		  reader.readAsText(file);
+  		}
+      else if (fileType.includes("zip")) { // zipped library of text files
+        loadZipLibrary(file, element);
+      }
   	}
   };
 
@@ -157,7 +177,7 @@ const Editor: React.FC = () => {
         style={{ flex: 1, background: '#1e1e1e', color: 'white', border: 'none', padding: '10px' }}
         placeholder={t('msg.code_placeholder')}
       />
-      <input type="file" id='editor-file-input'  accept=".txt" onChange={handleFileChange} style={{ display: 'none' }} />
+      <input type="file" id='editor-file-input' accept=".il,.lgo,.logo,.txt,.zip" onChange={handleFileChange} style={{ display: 'none' }} />
     </div>
   </PanelContainer>
   );

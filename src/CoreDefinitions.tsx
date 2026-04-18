@@ -5,9 +5,9 @@
 import { _NOP, _ERROR, _BYE, _TRACK, _UNTRACK, _PAUSE, _CONTINUE, _CATCH, _THROW, _STOP, _OUTPUT } from './LogoControl';
 import { _RUN, _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
 import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _FIRSTS, _LASTS, _BUTFIRST, _BUTLAST, _BUTFIRSTS, _BUTLASTS, _COUNT, _SPLIT } from './Structures';
-import { _ARRAY, _SETITEM, _ITEM, _LISTTOARRAY, _ARRAYTOLIST } from './Structures';
+import { _ARRAY, _SETITEM, _ITEM, _SLICE, _LISTTOARRAY, _ARRAYTOLIST } from './Structures';
 import { _LOWERCASE, _UPPERCASE, _ASCII, _CHAR, _WORDP, _LISTP, _EMPTYP, _MEMBERP, _UNION, _INTERSECTION, _REVERSE, _REMDUP } from './Structures';
-import { _PRIMITIVEP, _DEFINE, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL, _PROCEDURES, _GLOBALS } from './LogoDefine';
+import { _PRIMITIVEP, _DEFINE, _COPYDEF, _RENAME, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL, _PROCEDURES, _GLOBALS } from './LogoDefine';
 import { _NOT, _OR, _AND, _XOR, _EQUALP, _NOTEQUALP, _BITOR, _BITAND, _BITXOR, _BITNOT, _ASHIFT, _LSHIFT } from './Logic';
 import { _ABS, _INT, _ROUND, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _POWER, _EXP, _SQRT, _LOG10, _LN, _RANDOM, _RERANDOM } from './Math';
 import { _NUMBERP, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
@@ -211,7 +211,7 @@ export enum FunClass {
   TXIN = 4, // IS_PR_SCRIVI: writes on screen or ..
   TXOU = 5,	// IS_PR_SCRIVI: reads from keyboard or ..
   EXEC = 6,	// IS_PR_ESEGUI: execution control
-  DEF = 7,	// IS_PR_DEF: Variable or procedure definition
+  // DEF = 7,	// IS_PR_DEF: Variable or procedure definition
   // PROC = 8, // IS_PR_PROC: can be executed only inside a procedure
   // OPER = 9, // infix operator
 }
@@ -568,6 +568,11 @@ export const CORE_DEFINITIONS = {
     args: [{ name: "list_of_words_or_lists", type: A_L }],
     ref: _BUTLASTS,
   } as CommandDef,
+  SLICE: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "start", type:  A_N }, { name: "end", type:  A_N }, { name: "sequence", type: A_S_L_A}],
+    ref: _SLICE,
+  } as CommandDef,
   ITEM: {
     signature: [FunSignature.FUNCTION],
     args: [{ name: "index", type:  A_N }, { name: "sequence", type: A_S_L_A}],
@@ -648,27 +653,30 @@ export const CORE_DEFINITIONS = {
     ref: _THING,
   } as CommandDef,
   DEFINE: {
-    classes: [FunClass.DEF],
     args: [{ name: "nome", type: A_W_S }, { name: "valore", type: A_L}],
     ref: _DEFINE,
   } as CommandDef,
+  COPYDEF: {
+    args: [{ name: "nome", type: A_W_S }, { name: "valore", type: A_W_S}],
+    ref: _COPYDEF,
+  } as CommandDef,
+  RENAME: {
+    args: [{ name: "nome", type: A_W_S }, { name: "valore", type: A_W_S}],
+    ref: _RENAME,
+  } as CommandDef,
   TO: {
-    classes: [FunClass.DEF],
     args: [{ name: "nome", type: A_W_S }],
     ref: _TO,
   } as CommandDef,
   END: {
-    classes: [FunClass.DEF],
     ref: _END,
   } as CommandDef,
   TEXT: {
-    classes: [FunClass.DEF],
     signature: [FunSignature.FUNCTION],
     args: [{ name: "nome", type: A_W_S }],
     ref: _TEXT,
   } as CommandDef,
   PROCEDUREP: {
-    classes: [FunClass.DEF],
     signature: [FunSignature.FUNCTION],
     args: [{ name: "nome", type: A_W_S }],
     ref: _PROCEDUREP,

@@ -9,8 +9,8 @@
     "start": "NODE_ENV=production bun src/index.tsx"
   },
   "dependencies": {
-    "fabric": "^6.7.1",
     "i18next": "^25.7.1",
+    "jszip": "^3.10.1",
     "marked": "^17.0.5",
     "react": "^19",
     "react-dom": "^19",

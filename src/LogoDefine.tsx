@@ -6,7 +6,7 @@ import { Parse, unParse } from './Parser';
 import { userProcedures, globalVariables, throwError } from './Interpreter';
 import { getConsoleLine } from './Streams';
 import { contesti, liv_contesto, sf_out } from './LogoControl';
-import { commandResolver } from './UseLocalization';
+import { commandResolver, copyActiveMapItem } from './UseLocalization';
 import { wordCell } from './Structures';
 
 export var isProcedureDefinition: boolean = false;
@@ -20,10 +20,33 @@ export function _PRIMITIVEP(values: any[]): Cell {
 }
 
 export function _DEFINE(values: any[]): void {
-	console.log('function _DEFINE', values[0],values[1]);
 	var name = values[0].val;
 	var value = values[1].val;
 	userProcedures[name] = value;
+}
+export function _COPYDEF(values: any[]): void {
+  const oldName = values[1].val;
+  const newName = values[0].val;
+  if (userProcedures.hasOwnProperty(oldName))
+    userProcedures[newName] = userProcedures[oldName];
+  else {
+    const coreKey = commandResolver(oldName);
+    if (coreKey) copyActiveMapItem(newName, oldName, false);
+    else throwError('e02', '', oldName);
+  }
+}
+export function _RENAME(values: any[]): void {
+  const oldName = values[1].val;
+  const newName = values[0].val;
+  if (userProcedures.hasOwnProperty(oldName)) {
+    userProcedures[newName] = userProcedures[oldName];
+    delete userProcedures[oldName];
+  }
+  else {
+    const coreKey = commandResolver(oldName);
+    if (coreKey) copyActiveMapItem(newName, oldName, true);
+    else throwError('e02', '', oldName);
+  }
 }
 
 export function iniDefine() {

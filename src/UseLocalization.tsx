@@ -5,7 +5,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { isSeparator, CORE_DEFINITIONS, CommandDef, ParamDef } from './CoreDefinitions';
-import { LANGUAGE_MAPS, LanguageMap, CoreDefinitionKeys, COLOR_MAPS } from './LocalizationMaps';
+import { LANGUAGE_MAPS, LanguageMap, CoreDefinitionKeys, COLOR_MAPS, copyActiveMapItem } from './LocalizationMaps';
 
 export type LanguageCode = keyof typeof LANGUAGE_MAPS;
 
@@ -84,3 +84,9 @@ export function getByValue(searchValue:string): string {
   return foundKey;
 }
 
+export function copyActiveMapItem(newName: string, oldName: string, deleteOld: boolean): void {
+  const activeMap = LANGUAGE_MAPS[shared_langCode];
+  const coreKey: CoreDefinitionKeys = activeMap[oldName.toUpperCase()];
+  activeMap[newName.toUpperCase()] = coreKey;
+  if (deleteOld) delete activeMap[oldName.toUpperCase()];
+}

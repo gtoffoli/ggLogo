@@ -3,6 +3,7 @@
 
 import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import './i18n';
+import JSZip from "jszip";
 import { useTranslation } from 'react-i18next';
 import PanelContainer from './PanelContainer';
 import { useLocalization, LanguageCode } from './UseLocalization';
@@ -85,18 +86,44 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
 
   const [text, setText] = useState('');
 
+  // same structure as the loadZipLibrary function in the LogoEditor module
+  const loadZipLibrary = async (file) => {
+    const zip = new JSZip();
+    try {
+       const zipContent = await zip.loadAsync(file);
+      zipContent.forEach(async (relativePath, zipEntry) => {
+        if (!zipEntry.dir && (zipEntry.name.endsWith('.il') || zipEntry.name.endsWith('.lgo') || zipEntry.name.endsWith('.logo') || zipEntry.name.endsWith('.txt'))) {
+          const text = await zipEntry.async("string");
+          var fileSource = new BufferSource(text, zipEntry.name);
+          interpreter.pushSource(fileSource);
+          interpreter.run();
+        }
+      });
+    } catch (errore) {
+      console.error("Errore durante la decompressione:", errore);
+      alert("Errore nel caricamento dello ZIP.");
+    }
+  };
+
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const text = e.target.result;
-        const filename =  file.name;
-        var fileSource = new BufferSource(text, filename);
-        interpreter.pushSource(fileSource);
-        interpreter.run();
-      };
-      reader.readAsText(file);
+      const fileName = file.name;
+      const fileType = file.type;
+      if ((fileType.startsWith("text/")) || (['.il', 'lgo', 'logo'].includes(fileName.slice(fileName.lastIndexOf("."))))) { // possible Logo code
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const text = e.target.result;
+          const filename =  file.name;
+          var fileSource = new BufferSource(text, filename);
+          interpreter.pushSource(fileSource);
+          interpreter.run();
+        };
+        reader.readAsText(file);
+      }
+      else if (fileType.includes("zip")) { // zipped library of text files
+        loadZipLibrary(file);
+      }
     }
   };
 
@@ -219,7 +246,7 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
           placeholder={t('msg.data_placeholder')}
         />
       </div>
-      <input type="file" id='logo-file-input'  accept=".txt" onChange={handleFileChange} style={{ display: 'none' }} />
+      <input type="file" id='logo-file-input'  accept=".il,.lgo,.logo,.txt,.zip" onChange={handleFileChange} style={{ display: 'none' }} />
     </div>
     </PanelContainer>
   );

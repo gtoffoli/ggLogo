@@ -177,6 +177,19 @@ export function _ITEM(args: any[]): Cell {
 	else
 		return { type: CellType.WORD, val: sequence.toString().charAt(index-1) };
 }
+export function _SLICE(args: any[]): Cell {
+  const start = args[0].val;
+  const end = args[1].val;
+  const sequence = args[2].val;
+  const length = sequence.length;
+  if (end < start) throwError('e05', null, args[1]);
+  if (end > length+1) throwError('e07', null, args[2]);
+  const slice = sequence.slice(start-1, end);
+  if (args[2].type === CellType.LIST)
+    return { type: CellType.LIST, val: slice };
+  else
+    return { type: CellType.WORD, val: slice };
+}
 
 export function _LISTTOARRAY(args: any[]): Cell {
   const array: any[] = args[0].val; // in this case, the resulting array is not sparse
