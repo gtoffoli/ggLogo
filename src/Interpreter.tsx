@@ -18,8 +18,9 @@ import { ShellSource, ShellOutput, InteractiveData } from './Streams';
 import { keywordResolver, commandResolver } from './UseLocalization';
 import { checkFormatColor } from './TurtleGraphics';
 
-export var globalVariables: Record<string, any> = {};
 export var userProcedures: Record<string, ProcedureDef> = {};
+export var globalVariables: Record<string, any> = {};
+export var propLists: Record<string, Record<string, any>> = {};
 export var mod_parola: ModParola;// modalita' di esecuzione di una parola LOGO
 var next_type: CellType | null;
 var next_val: any;

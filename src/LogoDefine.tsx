@@ -3,8 +3,7 @@
 
 import { CellType, Cell, contextType, Context, ProcedureDef } from './CoreDefinitions';
 import { Parse, unParse } from './Parser';
-import { userProcedures, globalVariables, throwError } from './Interpreter';
-import { getConsoleLine } from './Streams';
+import { userProcedures, globalVariables, propLists, throwError } from './Interpreter';
 import { contesti, liv_contesto, sf_out } from './LogoControl';
 import { commandResolver, copyActiveMapItem } from './UseLocalization';
 import { wordCell } from './Structures';
@@ -92,7 +91,6 @@ export function _TO(values: any[]): void {
 }
 
 export function _END(values: any[]): void {
-	console.log('function _END');
 	if (!isProcedureDefinition)
 		console.log('procedure declaration error');
   userProcedures[procedureName] = {parameters: procedureParameters, body: procedureBody};
@@ -123,7 +121,6 @@ function getProcedureCtx(): Context | null {
 }
 
 export function _MAKE(args: any[]): void {
-  console.log('function _SET', args[0],args[1]);
   const name = args[0].val;
   const value = args[1];
   const localCtx = getProcedureCtx();
@@ -134,7 +131,6 @@ export function _MAKE(args: any[]): void {
 }
 
 export function _THING(args: any[]): Cell {
-  console.log('function _THING', args[0]);
   const name = args[0].val;
   const localCtx = getProcedureCtx();
   if (localCtx && typeof localCtx.localVariables[name] !== "undefined")
@@ -154,6 +150,40 @@ export function _LOCAL(args: any[]): Cell {
   else {
     console.log('non siamo dentro una procedura')
   }
+}
+
+export function _PPROP(args: any[]): void {
+  const name = args[0].val;
+  const prop = args[1].val;
+  const value = args[2];
+  var plist = propLists[name];
+  if (plist === undefined) propLists[name] = {};
+  propLists[name][prop] = value;
+}
+export function _GPROP(args: any[]): Cell {
+  const name = args[0].val;
+  const prop = args[1].val;
+  const plist = propLists[name] || {};
+  var value = plist[prop];
+  if (value !== undefined)
+    return value
+  else return { type: CellType.LIST, val: [] };
+}
+export function _REMPROP(args: any[]): void {
+  const name = args[0].val;
+  const prop = args[1].val;
+  var plist = propLists[name];
+  if (plist !== undefined) {
+    delete (propLists[name])[prop];
+  }
+}
+export function _PLIST(args: any[]): Cell {
+  const name = args[0].val;
+  const plist = propLists[name] || {};
+  const keys = Object.keys(plist);
+  var list = [];
+  keys.forEach((key) => { list.push({ type: CellType.WORD, val: key }); list.push(plist[key]); });
+  return { type: CellType.LIST, val: list }; 
 }
 
 export function _PROCEDURES(args: any[]): Cell {

@@ -8,6 +8,7 @@ import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _FIRSTS, _LASTS, 
 import { _ARRAY, _SETITEM, _ITEM, _SLICE, _LISTTOARRAY, _ARRAYTOLIST } from './Structures';
 import { _LOWERCASE, _UPPERCASE, _ASCII, _CHAR, _WORDP, _LISTP, _EMPTYP, _MEMBERP, _UNION, _INTERSECTION, _REVERSE, _REMDUP } from './Structures';
 import { _PRIMITIVEP, _DEFINE, _COPYDEF, _RENAME, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL, _PROCEDURES, _GLOBALS } from './LogoDefine';
+import { _PPROP, _GPROP, _REMPROP, _PLIST } from './LogoDefine';
 import { _NOT, _OR, _AND, _XOR, _EQUALP, _NOTEQUALP, _BITOR, _BITAND, _BITXOR, _BITNOT, _ASHIFT, _LSHIFT } from './Logic';
 import { _ABS, _INT, _ROUND, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _POWER, _EXP, _SQRT, _LOG10, _LN, _RANDOM, _RERANDOM } from './Math';
 import { _NUMBERP, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
@@ -698,6 +699,24 @@ export const CORE_DEFINITIONS = {
     classes: [FunSignature.ONEORMORE],
     args: [{ name: "valore", type: A_W_LW_S_L }],
     ref: _LOCAL,
+  } as CommandDef,
+  PPROP: {
+    args: [{ name: "name", type: A_W_S }, { name: "prop", type: A_W_S }, { name: "value", type: null}],
+    ref: _PPROP,
+  } as CommandDef,
+  GPROP: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "name", type: A_W_S }, { name: "prop", type: A_W_S }],
+    ref: _GPROP,
+  } as CommandDef,
+  REMPROP: {
+    args: [{ name: "name", type: A_W_S }, { name: "prop", type: A_W_S }],
+    ref: _REMPROP,
+  } as CommandDef,
+  PLIST: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "name", type: A_W_S }],
+    ref: _PLIST,
   } as CommandDef,
   PRINT: {
     classes: [FunClass.TXOU, FunSignature.ONEORMORE],
