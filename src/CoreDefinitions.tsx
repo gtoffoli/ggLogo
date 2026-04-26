@@ -17,7 +17,7 @@ import { _SCREENSIZE, _CANVASSIZE, _SETCANVASSIZE, _BOUNDS, _HOME, _CLEAR, _CS, 
 import { _SETPOS, _SETX, _SETY, _SETXY, _TOWARDS, _FD, _BK, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING, _FILL, _FILLSTART, _ARC, _CIRCLE } from './TurtleGraphics';
 import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _PENSIZE, _SETPENSIZE, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './TurtleGraphics';
 import { _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR } from './Communication';
-import { _TIME, _SETTIME, _WAIT, _MIDIOPEN, _MIDICLOSE, _MIDILOADINSTRUMENT, _MIDICHANNELS, _MIDIMSG } from './TimeMusic';
+import { _TIME, _SETTIME, _WAIT, _MIDIOPEN, _MIDICLOSE, _MIDILOADINSTRUMENT, _MIDI, _MIDICHANNELS, _MIDIMSG, _MIDIPLAY, _BLUEDEVICES } from './TimeMusic';
 
 export const SEPARATORS = {
 	// "\t\r\":()+-*/^<=> "
@@ -1077,6 +1077,7 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
   MIDIOPEN: {
     classes: [FunClass.ASYNC],
+    args: [{ name: "channel", type: A_N, optional: true}],
     ref: _MIDIOPEN,
   } as CommandDef,
   MIDICLOSE: {
@@ -1086,15 +1087,29 @@ export const CORE_DEFINITIONS = {
     signature: [FunSignature.FUNCTION],
     ref: _MIDICHANNELS,
   } as CommandDef,
+  MIDI: {
+    signature: [FunSignature.FUNCTION],
+    ref: _MIDI,
+  } as CommandDef,
   MIDILOADINSTRUMENT: {
     classes: [FunClass.ASYNC],
-    args: [{ name: "nome", type: A_W_S }],
+    // args: [{ name: "nome", type: A_W_S }],
+    args: [{ name: "numero", type: A_N }],
     ref: _MIDILOADINSTRUMENT,
   } as CommandDef,
   MIDIMSG: {
     classes: [FunClass.ASYNC],
     args: [{ name: "time", type: A_LN }],
     ref: _MIDIMSG,
+  } as CommandDef,
+  MIDIPLAY: {
+    classes: [FunClass.ASYNC],
+    args: [{ name: "note", type: A_L }],
+    ref: _MIDIPLAY,
+  } as CommandDef,
+  BLUEDEVICES: {
+    classes: [FunClass.ASYNC],
+    ref: _BLUEDEVICES,
   } as CommandDef,
 
   STOP: {
