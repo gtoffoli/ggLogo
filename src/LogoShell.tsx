@@ -3,7 +3,8 @@
 
 import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import './i18n';
-import JSZip from "jszip";
+// import JSZip from "jszip";
+import * as fflate from 'fflate';
 import { useTranslation } from 'react-i18next';
 import PanelContainer from './PanelContainer';
 import { useLocalization, LanguageCode } from './UseLocalization';
@@ -88,42 +89,66 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
 
   // same structure as the loadZipLibrary function in the LogoEditor module
   const loadZipLibrary = async (file) => {
-    const zip = new JSZip();
     try {
-       const zipContent = await zip.loadAsync(file);
-      zipContent.forEach(async (relativePath, zipEntry) => {
-        if (!zipEntry.dir && (zipEntry.name.endsWith('.il') || zipEntry.name.endsWith('.lgo') || zipEntry.name.endsWith('.logo') || zipEntry.name.endsWith('.txt'))) {
-          const text = await zipEntry.async("string");
-          var fileSource = new BufferSource(text, zipEntry.name);
-          interpreter.pushSource(fileSource);
-          interpreter.run();
+      // 1. Convertiamo il file (Blob/File) in Uint8Array per fflate
+      const arrayBuffer = await file.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+  
+      // 2. Decomprimiamo lo ZIP
+      // unzipSync è molto veloce; per file enormi esiste la versione asincrona unzip()
+      const unzipped = fflate.unzipSync(uint8Array);
+      var text = '';
+  
+      // 3. Iteriamo sui file estratti
+      for (const relativePath in unzipped) {
+        const fileData = unzipped[relativePath];
+        
+        // Verifichiamo se è un file valido (non una cartella e con estensione corretta)
+        const isFile = fileData.length > 0; // fflate restituisce Uint8Array vuoti per le cartelle
+        const hasValidExt = /\.(il|lgo|logo|txt)$/i.test(relativePath);
+  
+        if (isFile && hasValidExt) {
+          // 4. Convertiamo i dati binari in stringa
+          // const text = fflate.strFromU8(fileData);
+          text += fflate.strFromU8(fileData);
+          
+          // 5. Integrazione con il tuo interprete
+          // const fileSource = new BufferSource(text, relativePath);
+          // interpreter.pushSource(fileSource);
+          // interpreter.run();
         }
-      });
+      }
+      // 5. Integrazione con il tuo interprete
+      const fileSource = new BufferSource(text, file.name);
+      interpreter.pushSource(fileSource);
+      interpreter.run();
     } catch (errore) {
       console.error("Errore durante la decompressione:", errore);
       alert("Errore nel caricamento dello ZIP.");
     }
   };
-
   const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const fileName = file.name;
-      const fileType = file.type;
-      if ((fileType.startsWith("text/")) || (['.il', 'lgo', 'logo'].includes(fileName.slice(fileName.lastIndexOf("."))))) { // possible Logo code
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const text = e.target.result;
-          const filename =  file.name;
-          var fileSource = new BufferSource(text, filename);
-          interpreter.pushSource(fileSource);
-          interpreter.run();
-        };
-        reader.readAsText(file);
-      }
-      else if (fileType.includes("zip")) { // zipped library of text files
-        loadZipLibrary(file);
-      }
+    const file = event.target.files?.[0];
+    if (!file) return;
+  
+    const fileName = file.name;
+    const fileType = file.type;
+    const extension = fileName.slice(fileName.lastIndexOf(".")).toLowerCase();
+  
+    // Controllo file di testo/logo
+    if (fileType.startsWith("text/") || ['.il', '.lgo', '.logo'].includes(extension)) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target.result;
+        const fileSource = new BufferSource(text, fileName);
+        interpreter.pushSource(fileSource);
+        interpreter.run();
+      };
+      reader.readAsText(file);
+    } 
+    // Controllo file ZIP
+    else if (fileType.includes("zip") || extension === '.zip') {
+      loadZipLibrary(file);
     }
   };
 

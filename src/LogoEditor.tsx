@@ -3,7 +3,8 @@
 
 import React, { useState } from 'react';
 import './i18n';
-import JSZip from "jszip";
+// import JSZip from "jszip";
+import * as fflate from 'fflate';
 import { useLogoDispatch, useLogoState } from './LogoStateContext';
 import { useTranslation } from 'react-i18next';
 import PanelContainer from './PanelContainer';
@@ -23,20 +24,31 @@ function insertAtCursor(myField, myValue) {
 }
 
 const loadZipLibrary = async (file, element) => {
-  const zip = new JSZip();
   try {
-    // 1. Carica il contenuto del file ZIP
-    const zipContent = await zip.loadAsync(file);
-    // 2. Iteriamo sui file presenti nell'archivio
-    zipContent.forEach(async (relativePath, zipEntry) => {
-      // Filtriamo per estensione (solo file .il o .lgo o .logo o .txt)
-      if (!zipEntry.dir && (zipEntry.name.endsWith('.il') || zipEntry.name.endsWith('.lgo') || zipEntry.name.endsWith('.logo') || zipEntry.name.endsWith('.txt'))) {
-        // 3. Estraiamo il testo del file
-        const text = await zipEntry.async("string");
-        // 4. Inseriamo il codice nella textarea dell'Editor
+    // 1. Convertiamo il file (Blob/File) in Uint8Array per fflate
+    const arrayBuffer = await file.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+
+    // 2. Decomprimiamo lo ZIP
+    // unzipSync è molto veloce; per file enormi esiste la versione asincrona unzip()
+    const unzipped = fflate.unzipSync(uint8Array);
+
+    // 3. Iteriamo sui file estratti
+    for (const relativePath in unzipped) {
+      const fileData = unzipped[relativePath];
+      
+      // Verifichiamo se è un file valido (non una cartella e con estensione corretta)
+      const isFile = fileData.length > 0; // fflate restituisce Uint8Array vuoti per le cartelle
+      const hasValidExt = /\.(il|lgo|logo|txt)$/i.test(relativePath);
+
+      if (isFile && hasValidExt) {
+        // 4. Convertiamo i dati binari in stringa
+        const text = fflate.strFromU8(fileData);
+        
+        // 5. Inseriamo il codice nella textarea dell'Editor
         insertAtCursor(element, text); 
       }
-    });
+    }
   } catch (errore) {
     console.error("Errore durante la decompressione:", errore);
     alert("Errore nel caricamento dello ZIP.");
