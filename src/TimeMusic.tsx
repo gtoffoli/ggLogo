@@ -88,11 +88,9 @@ export function _MIDICHANNELS (values: any[]): Cell {
 }
 // loads an "instrument" from an MP3 sound sample library, partially copied as local assets
 export const _MIDILOADINSTRUMENT = async (values: any[]) => {
-  // var instrumentName = values[0].val;
   const instrumentNumber = values[0].val;
   const instrumentName = midiInstrumentList[instrumentNumber];
   // 1. Pulizia memoria precedente
-  // if (sampler) sampler.dispose();
   if (instrumentNumber in samplers)
     samplers[instrumentNumber].instrument.dispose();
 
@@ -116,7 +114,6 @@ export const _MIDILOADINSTRUMENT = async (values: any[]) => {
       samplers[instrumentNumber] = { name: instrumentName, instrument: sampler };
     }
   }).toDestination();
-  // samplers.push({ name: instrumentName, instrument: sampler });
 };
 
 // inteprets a list of messages in MIDI notation as commands to Tone instruments
@@ -232,15 +229,16 @@ function getInstrumentId(logoString: string): number {
   // Cerca la prima occorrenza di "I" seguita da cifre
   const match = logoString.match(/I(\d+)/i);
   // return match ? parseInt(match[1]) : 1; // Default allo strumento 1
-  return match ? parseInt(match[1]) : 0; // Default allo strumento 1
+  return match ? parseInt(match[1]) : -1; // -1 is invalid id
 }
 
 async function playDynamicLogo(logoString: string, sampler: Tone.Sampler) {
   const parser = new LogoMusicParser();
   const { notes, tempoChanges } = parser.parse(logoString);
 
+  // Pulizia: fermiamo tutto e cancelliamo eventi precedenti sul Transport
   Tone.Transport.stop();
-  Tone.Transport.cancel();
+  Tone.Transport.cancel(); // <--- IMPORTANTE: rimuove i vecchi eventi programmati
 
   // 1. Programmiamo i cambi di BPM sulla timeline
   tempoChanges.forEach(change => {
@@ -248,11 +246,27 @@ async function playDynamicLogo(logoString: string, sampler: Tone.Sampler) {
     const time = Tone.Time(change.ticks + "i").toSeconds();
     Tone.Transport.bpm.setValueAtTime(change.bpm, time);
   });
-  // 2. Creiamo la parte usando i ticks come riferimento ("i")
-  new Tone.Part((time, note) => {
+
+  // 2. Creiamo la parte e calcoliamo la durata totale
+  let maxDuration = 0;
+  const part = new Tone.Part((time, note) => {
     sampler.triggerAttackRelease(note.pitch, note.duration, time, note.velocity);
   }, notes).start(0);
+  // Calcoliamo quando finirà l'ultima nota (in secondi)
+  notes.forEach(note => {
+    const endTime = Tone.Time(note.time).toSeconds() + Tone.Time(note.duration).toSeconds();
+    if (endTime > maxDuration) maxDuration = endTime;
+  });
+
+  // 3. Avviamo e creiamo una Promise che attende la fine
   Tone.Transport.start();
+  // Restituiamo una promessa che si risolve dopo 'maxDuration' secondi
+  return new Promise<void>((resolve) => {
+    setTimeout(() => {
+      part.dispose(); // Pulizia della memoria
+      resolve();
+    }, maxDuration * 1000); // Conversione in millisecondi
+  });
 }
 
 async function startLogoMusic(logoString: string) {
@@ -264,13 +278,12 @@ async function startLogoMusic(logoString: string) {
   // 2. Passa il sampler selezionato alla logica di riproduzione
   // (Nota: rimuoviamo il comando I dalla stringa se necessario, 
   // o lasciamo che il parser lo ignori)
-  playDynamicLogo(logoString, selectedSampler);
+  await playDynamicLogo(logoString, selectedSampler);
 }
 
-// inteprets a simple list of notes in Terrapin music notation
+// interprets a simple list of notes in Terrapin music notation
 export const _MIDIPLAY = async (args: any[]) => {
   const noteString = nodeToString(args[0]);
-  console.log('noteString', noteString);
   await startLogoMusic(noteString);
 };
 
