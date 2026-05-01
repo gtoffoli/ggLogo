@@ -3,7 +3,7 @@
 
 
 import { _NOP, _ERROR, _BYE, _TRACK, _UNTRACK, _PAUSE, _CONTINUE, _CATCH, _THROW, _STOP, _OUTPUT } from './LogoControl';
-import { _RUN, _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE } from './LogoControl';
+import { _RUN, _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE, _FOREVER, _WHILE, _DO_WHILE, _UNTIL, _DO_UNTIL } from './LogoControl';
 import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _FIRSTS, _LASTS, _BUTFIRST, _BUTLAST, _BUTFIRSTS, _BUTLASTS, _COUNT, _SPLIT } from './Structures';
 import { _ARRAY, _SETITEM, _ITEM, _SLICE, _LISTTOARRAY, _ARRAYTOLIST } from './Structures';
 import { _LOWERCASE, _UPPERCASE, _ASCII, _CHAR, _WORDP, _LISTP, _EMPTYP, _MEMBERP, _UNION, _INTERSECTION, _REVERSE, _REMDUP } from './Structures';
@@ -84,11 +84,19 @@ export enum Delimiter {
 
 // codifica dei tipi di contesto (id_contesto)
 export enum contextType {
-  CT_TOP = 0,       // contesto iniziale (top_level)
-  CT_PAUSA = 1,     // contesto attivato da PAUSA
-  CT_RECUPERA = 2,  // contesto attivato da RECUPERA
-  CT_PROCEDURE = 3, // procedura di utente
-  CT_EVENT = 4,
+  CT_TOP = 0,         // contesto iniziale (top_level)
+  CT_PAUSA = 1,       // contesto attivato da PAUSA
+  CT_RECUPERA = 2,    // contesto attivato da RECUPERA
+  CT_PROCEDURE = 3,   // procedura di utente
+  CT_NESTED_EXEC = 4, // contesto attivato da WHILE, UNTIL, FOREVER, ..
+  CT_EVENT = 5,
+}
+
+export type NestedExecSpecs = {
+  testWhen?: string; // 'before' || 'after' (default: no test)
+  testHow: boolean; // condition to be fulfilled to continue
+  repeatCount?: number; //  
+  execResult?: boolean; // for RUNRESULT
 }
 
 // see contesti in Contesti.h of il32
@@ -109,11 +117,13 @@ export type Context = {
 	n_arg_trovati: number; // numero di oggetti sullo stack per la fun corrente
 	parentesi: number; // = liv_funzione se sfun corr. e' preceduta da "("
 	conto_parentesi: number; // conto algebrico parentesi in valutazione di espressione
-	block: Cell[][];
+	block: Cell[][]; // used also in context of type CT_NESTED_EXEC
 	i_line: number;
 	i_token: number;
 	ini_token:  number | null;
   localVariables: Record<string, any>;
+  nestedExecTest?: Cell[]; // test associato a ciclo condizionale 
+  nestedExecSpecs?: NestedExecSpecs;
 };
 
 export const initialContext: Context = {
@@ -1161,6 +1171,31 @@ export const CORE_DEFINITIONS = {
     classes: [FunClass.EXEC],
     args: [{ name: "block", type: A_L}],
     ref: _IFFALSE,
+  } as CommandDef,
+  FOREVER: {
+    classes: [FunClass.EXEC],
+    args: [{ name: "block", type: A_L}],
+    ref: _FOREVER,
+  } as CommandDef,
+  WHILE: {
+    classes: [FunClass.EXEC],
+    args: [{ name: "condition", type: A_L }, { name: "run_block", type: A_L}],
+    ref: _WHILE,
+  } as CommandDef,
+  'DO.WHILE': {
+    classes: [FunClass.EXEC],
+    args: [{ name: "run_block", type: A_L }, { name: "condition", type: A_L}],
+    ref: _DO_WHILE,
+  } as CommandDef,
+  UNTIL: {
+    classes: [FunClass.EXEC],
+    args: [{ name: "condition", type: A_L }, { name: "run_block", type: A_L}],
+    ref: _UNTIL,
+  } as CommandDef,
+  'DO.UNTIL': {
+    classes: [FunClass.EXEC],
+    args: [{ name: "run_block", type: A_L }, { name: "condition", type: A_L}],
+    ref: _DO_UNTIL,
   } as CommandDef,
 
   'FALSE': {

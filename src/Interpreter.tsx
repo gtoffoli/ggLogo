@@ -8,9 +8,9 @@ import { UserFunction, ProcedureDef, Arg } from './CoreDefinitions';
 import { getByValue } from './UseLocalization';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
 import { Parse, infix_operators, BLANK, unParse, nodeToString } from './Parser';
-import { contesti, liv_contesto, liv_analisi, v_stack, is_stop, is_traccia, risultato, stopAsynchronousActivities } from './LogoControl';
+import { contesti, liv_contesto, liv_analisi, risultato, v_stack, is_stop, is_traccia, is_nestedExec, pop_nestedExecution_context, cancelNestedExec, stopAsynchronousActivities } from './LogoControl';
 import { push_sv, pop_sv,  push_arg, minArgsNumber, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_out, parenin, parenout } from './LogoControl';
-import { ini_main,ini_exec, ini_valuta, AssertContesto } from './LogoControl';
+import { ini_main, ini_exec, ini_valuta, AssertContesto } from './LogoControl';
 import { isProcedureDefinition, iniDefine, pushProcedureLine } from './LogoDefine';
 import { localizedTruthValues, normalizeBoolean } from './Logic';
 import { InputSource, OutputChannel } from './Streams';
@@ -386,6 +386,7 @@ export class AsynchronousLogoInterpreter {
     }
     var result = null;
     if (ctx.funzione.type === CellType.SFUN) {
+      console.log('executeFunction - 1', is_nestedExec, ctx.funzione);
       // console.log('eseguo FUNZIONE', ctx.funzione);
       var values = this.get_values(ctx);
       // console.log('VALUES', values);
@@ -399,11 +400,13 @@ export class AsynchronousLogoInterpreter {
         ctx.i_token = 1000;
       }
       else if (classes.includes(FunClass.EXEC)) {
+        console.log('executeFunction - 2', is_nestedExec, 'FunClass.EXEC');
         if (is_function)
           result = definition.ref(ctx, values);
         else
           definition.ref(ctx, values);
         is_exec = true;
+        console.log('executeFunction - 3, is_nestedExec');
       }
       else if (classes.includes(FunClass.TXIN)) {
         this.dispatch({ type: 'SET_KEYBOARD_TARGET', target: 'data' });
@@ -503,6 +506,10 @@ export class AsynchronousLogoInterpreter {
       if (result !== null) {
         push_arg(ctx, result);
       }
+      if (is_nestedExec) {
+        console.log('await this.nestedExec()');
+        await this.nestedExec();
+      }
     }
     else if (ctx.funzione.type === CellType.UFUN) {
       // console.log('evaluateToken UFUN', ctx.n_arg_trovati, ctx.n_arg_attesi);
@@ -512,6 +519,58 @@ export class AsynchronousLogoInterpreter {
       ctx = contesti[liv_contesto];
     }
     return result;
+  }
+
+  // esegue test e cicli impostati da primitive di controllo in LogoControl
+  // all'interno di un nuovo contesto al fine di consentire la ricorsione
+  private async nestedExec() {
+    cancelNestedExec();
+    const ctx = contesti[liv_contesto];
+    console.log('nestedExec 1', ctx);
+    const nestedExecBlock = ctx.block;
+    const nestedExecSpecs = ctx.nestedExecSpecs || {};
+    const nestedExecTest = ctx.nestedExecTest || [];
+    const testWhen: string = nestedExecSpecs.testWhen || ''; // 'before' || 'after' (default: no test)
+    const testHow: boolean = nestedExecSpecs.testHow || false; // condition to be fulfilled to continue
+    const repeatCount: number = nestedExecSpecs.repeatCount || 0; //  
+    const execResult: boolean = nestedExecSpecs.execResult || false; // for RUNRESULT
+    var testResult: boolean;
+    console.log('nestedExec 2', nestedExecBlock, nestedExecSpecs, nestedExecTest, testWhen, testHow, repeatCount);
+    while (true) {
+      if ((nestedExecTest) && (testWhen === 'before')) {
+        ctx.block = nestedExecTest;
+        console.log('nestedExec 3', ctx);
+        ctx.i_line = ctx.i_token = 0;
+        this.evaluateToken();
+        console.log('nestedExec 4', v_stack);
+        ctx.block = nestedExecBlock;
+        if (!v_stack.length) throwError('e05', null, nestedExecTest);
+        testResult = v_stack.pop();
+        console.log('nestedExec 5', testResult);
+        if (testResult.type !== CellType.BOOLEAN) throwError('e05', null, nestedExecTest);
+        console.log('nestedExec 6');
+        if (!testResult.val) {
+          console.log('nestedExec 7');
+          pop_nestedExecution_context();
+          break;
+        }
+      }
+      ctx.i_line = ctx.i_token = 0;
+      this.evaluateToken();
+      if ((nestedExecTest) && (testWhen === 'after')) {
+        ctx.block = nestedExecTest;
+        ctx.i_line = ctx.i_token = 0;
+        this.evaluateToken();
+        ctx.block = nestedExecBlock;
+        if (!v_stack.length) throwError('e05', null, nestedExecTest);
+        testResult = v_stack.pop();
+        if (testResult.type !== CellType.BOOLEAN) throwError('e05', null, nestedExecTest);
+        if (testResult.val) {
+          pop_nestedExecution_context();
+          break;
+        }
+      }
+    }
   }
 
   // si entra dopo ini_valuta: ctx.i_line = 0 , ctx.i_token = 0
@@ -740,4 +799,3 @@ export class AsynchronousLogoInterpreter {
     }
   }
 }
-

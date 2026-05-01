@@ -17,7 +17,7 @@ var ha_blocco_valore: boolean = false;
 var is_ripeti: boolean = false;
 var is_funzione: boolean = false;
 export var liv_analisi: number; // parentesi non chiuse
-var is_nestedExec: boolean;
+export var is_nestedExec: boolean;
 var n_locali: number = 0;       // numero variabili locali nella procedura
 var n_argomenti: number;        // numero argomenti della procedura
 var is_vai: boolean = false;    // appena incontrato comando VAI
@@ -37,6 +37,10 @@ export function _NOP(values: any[]): void {
 
 // primitiva Logo ERROR
 export function _ERROR(values: any[]):void {
+}
+
+export function cancelNestedExec() {
+  is_nestedExec = false;
 }
 
 export async function stopAsynchronousActivities(): Promise<void> {
@@ -190,6 +194,38 @@ export function _IFELSE(ctx: Context, values: any[]): void {
     block_exec(ctx, [values[1].val]);
   else
     block_exec(ctx, [values[2].val]);
+}
+
+export function _FOREVER(ctx: Context, args: any[]): void {
+  sf_out(ctx); // anticipo, per non confliggere con blk_in
+  push_nestedExecution_context(ctx, [args[0].val])
+}
+export function _WHILE(ctx: Context, args: any[]): void {
+  sf_out(ctx); // anticipo, per non confliggere con blk_in
+  push_nestedExecution_context(ctx, [args[1].val])
+  ctx = contesti[liv_contesto];
+  ctx.nestedExecTest = [args[0].val];
+  ctx.nestedExecSpecs = { testWhen: 'before', testHow: true }
+}
+export function _DO_WHILE(ctx: Context, args: any[]): void {
+  sf_out(ctx); // anticipo, per non confliggere con blk_in
+  push_nestedExecution_context(ctx, [args[0].val])
+  ctx = contesti[liv_contesto];
+  ctx.nestedExecTest = [args[1].val];
+  ctx.nestedExecSpecs = { testWhen: 'after', testHow: true }
+}
+export function _UNTIL(ctx: Context, args: any[]): void {
+  sf_out(ctx); // anticipo, per non confliggere con blk_in
+  push_nestedExecution_context(ctx, [args[1].val])
+  ctx = contesti[liv_contesto];
+  ctx.nestedExecTest = [args[0].val];
+  ctx.nestedExecSpecs = { testWhen: 'before', testHow: false }
+}
+export function _DO_UNTIL(ctx: Context, args: any[]): void {
+  sf_out(ctx); // anticipo, per non confliggere con blk_in
+  push_nestedExecution_context(ctx, [args[0].val])
+  ctx.nestedExecTest = [args[1].val];
+  ctx.nestedExecSpecs = { testWhen: 'after', testHow: false }
 }
 
 function block_exec(ctx: Context, block: Cell[][]): void {
@@ -601,6 +637,25 @@ function push_procedure_context(ctx: Context): void {
 }
 
 function pop_procedure_context(): void {
+  var ctx = contesti.pop();
+  liv_contesto -= 1;
+}
+
+// crea nuovo contesto, che eredita parzialmente dal precedente e lo mette sullo stack
+// delega a ...
+function push_nestedExecution_context(ctx: Context, block: Cell[][]): void {
+  console.log('push_nestedExecution_context');
+  contesti.push({ ...ctx }); // aggiungo una copia in cima
+  liv_contesto += 1;
+  ctx = contesti[liv_contesto]; // prendo riferimento alla copia e lo aggiorno
+  ctx.id_contesto = contextType.CT_NESTED_EXEC;
+  ctx.block = block
+  is_nestedExec = true;
+  ctx.funzione = null;
+}
+
+export function pop_nestedExecution_context(): void {
+  console.log('pop_nestedExecution_context');
   var ctx = contesti.pop();
   liv_contesto -= 1;
 }
