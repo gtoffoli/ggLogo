@@ -122,8 +122,10 @@ export type Context = {
 	i_token: number;
 	ini_token:  number | null;
   localVariables: Record<string, any>;
+  nestedExecSpecs?: NestedExecSpecs; // parametri che specificano il tipo di ciclo
   nestedExecTest?: Cell[]; // test associato a ciclo condizionale 
-  nestedExecSpecs?: NestedExecSpecs;
+  nestedExecCount?: number; // numero delle ripetizioni richieste
+  nestedExecIndex?: number; // indice della ripetizione corrente
 };
 
 export const initialContext: Context = {

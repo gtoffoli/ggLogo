@@ -151,10 +151,16 @@ export function _OUTPUT(ctx: Context, values: any[]): void {
   sf_out(ctx); // anticipo, per non confliggere con uf_ret
 }
 
+/*
 export function _RUN(ctx: Context, values: any[]): void {
   const block = [values[0].val];
   sf_out(ctx); // anticipo, per non confliggere con blk_in
   block_exec(ctx, block);
+}
+*/
+export function _RUN(ctx: Context, args: any[]): void {
+  sf_out(ctx);
+  push_nestedExecution_context(ctx, [args[0].val]);
 }
 export function _REPEAT(ctx: Context, values: any[]): void {
   ctx.conto_esegui = values[0].val;
@@ -197,35 +203,36 @@ export function _IFELSE(ctx: Context, values: any[]): void {
 }
 
 export function _FOREVER(ctx: Context, args: any[]): void {
-  sf_out(ctx); // anticipo, per non confliggere con blk_in
+  sf_out(ctx);
   push_nestedExecution_context(ctx, [args[0].val])
 }
 export function _WHILE(ctx: Context, args: any[]): void {
-  sf_out(ctx); // anticipo, per non confliggere con blk_in
+  sf_out(ctx);
   push_nestedExecution_context(ctx, [args[1].val])
   ctx = contesti[liv_contesto];
   ctx.nestedExecTest = [args[0].val];
   ctx.nestedExecSpecs = { testWhen: 'before', testHow: true }
 }
-export function _DO_WHILE(ctx: Context, args: any[]): void {
-  sf_out(ctx); // anticipo, per non confliggere con blk_in
-  push_nestedExecution_context(ctx, [args[0].val])
-  ctx = contesti[liv_contesto];
-  ctx.nestedExecTest = [args[1].val];
-  ctx.nestedExecSpecs = { testWhen: 'after', testHow: true }
-}
 export function _UNTIL(ctx: Context, args: any[]): void {
-  sf_out(ctx); // anticipo, per non confliggere con blk_in
-  push_nestedExecution_context(ctx, [args[1].val])
+  sf_out(ctx);
+  push_nestedExecution_context(ctx, [args[1].val]);
   ctx = contesti[liv_contesto];
   ctx.nestedExecTest = [args[0].val];
-  ctx.nestedExecSpecs = { testWhen: 'before', testHow: false }
+  ctx.nestedExecSpecs = { testWhen: 'before', testHow: false };
+}
+export function _DO_WHILE(ctx: Context, args: any[]): void {
+  sf_out(ctx);
+  push_nestedExecution_context(ctx, [args[0].val]);
+  ctx = contesti[liv_contesto];
+  ctx.nestedExecTest = [args[1].val];
+  ctx.nestedExecSpecs = { testWhen: 'after', testHow: true };
 }
 export function _DO_UNTIL(ctx: Context, args: any[]): void {
-  sf_out(ctx); // anticipo, per non confliggere con blk_in
-  push_nestedExecution_context(ctx, [args[0].val])
+  sf_out(ctx);
+  push_nestedExecution_context(ctx, [args[0].val]);
+  ctx = contesti[liv_contesto];
   ctx.nestedExecTest = [args[1].val];
-  ctx.nestedExecSpecs = { testWhen: 'after', testHow: false }
+  ctx.nestedExecSpecs = { testWhen: 'after', testHow: false };
 }
 
 function block_exec(ctx: Context, block: Cell[][]): void {
@@ -479,6 +486,18 @@ export function parenout(ctx: Context, par_count: number): void {
   }
 }
 
+export function blk_ini(ctx): void {
+  ctx.funzione = null;
+  ctx.conto_parentesi = 0;
+  ctx.parentesi = -1;
+  ctx.n_arg_attesi = 0;
+  ctx.conto_esegui = 0;
+  ctx.val_verifica = false;
+  ctx.n_arg_trovati = 0;
+  ctx.i_line = 0;
+  ctx.i_token = 0;
+}
+
 // azioni comuni all' ingresso in un blocco
 function blk_in(ctx: Context, block: Cell[][], is_arg_atteso: number): void {
   console.log('blk_in', liv_contesto, ctx.liv_esecuzione, block, ctx);
@@ -651,7 +670,6 @@ function push_nestedExecution_context(ctx: Context, block: Cell[][]): void {
   ctx.id_contesto = contextType.CT_NESTED_EXEC;
   ctx.block = block
   is_nestedExec = true;
-  ctx.funzione = null;
 }
 
 export function pop_nestedExecution_context(): void {

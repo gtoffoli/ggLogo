@@ -9,7 +9,7 @@ import { getByValue } from './UseLocalization';
 import { LogoGlobalState, TurtleState, DrawingCommand } from './LogoState';
 import { Parse, infix_operators, BLANK, unParse, nodeToString } from './Parser';
 import { contesti, liv_contesto, liv_analisi, risultato, v_stack, is_stop, is_traccia, is_nestedExec, pop_nestedExecution_context, cancelNestedExec, stopAsynchronousActivities } from './LogoControl';
-import { push_sv, pop_sv,  push_arg, minArgsNumber, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_out, parenin, parenout } from './LogoControl';
+import { push_sv, pop_sv,  push_arg, minArgsNumber, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_ini, blk_out, parenin, parenout } from './LogoControl';
 import { ini_main, ini_exec, ini_valuta, AssertContesto } from './LogoControl';
 import { isProcedureDefinition, iniDefine, pushProcedureLine } from './LogoDefine';
 import { localizedTruthValues, normalizeBoolean } from './Logic';
@@ -522,11 +522,19 @@ export class AsynchronousLogoInterpreter {
   }
 
   // esegue test e cicli impostati da primitive di controllo in LogoControl
-  // all'interno di un nuovo contesto al fine di consentire la ricorsione
+  // all'interno di un nuovo contesto (già creato e inizializzato) al fine di consentire la ricorsione
   private async nestedExec() {
     cancelNestedExec();
-    const ctx = contesti[liv_contesto];
+    const ctx: Context = contesti[liv_contesto];
     console.log('nestedExec 1', ctx);
+    if ((!('nestedExecSpecs' in ctx)) && (!('nestedExecCount' in ctx))) {
+      blk_ini(ctx);
+      console.log('nestedExec - run - 1', ctx);
+      await this.evaluateToken();
+      console.log('nestedExec - run - 2', ctx);
+      pop_nestedExecution_context();
+      return;
+    }
     const nestedExecBlock = ctx.block;
     const nestedExecSpecs = ctx.nestedExecSpecs || {};
     const nestedExecTest = ctx.nestedExecTest || [];
@@ -536,36 +544,38 @@ export class AsynchronousLogoInterpreter {
     const execResult: boolean = nestedExecSpecs.execResult || false; // for RUNRESULT
     var testResult: boolean;
     console.log('nestedExec 2', nestedExecBlock, nestedExecSpecs, nestedExecTest, testWhen, testHow, repeatCount);
+    // for (var i=0; i<2; i++) {
     while (true) {
       if ((nestedExecTest) && (testWhen === 'before')) {
         ctx.block = nestedExecTest;
         console.log('nestedExec 3', ctx);
-        ctx.i_line = ctx.i_token = 0;
-        this.evaluateToken();
-        console.log('nestedExec 4', v_stack);
+        blk_ini(ctx);
+        await this.evaluateToken();
+        console.log('nestedExec 4', v_stack.length, v_stack);
         ctx.block = nestedExecBlock;
         if (!v_stack.length) throwError('e05', null, nestedExecTest);
         testResult = v_stack.pop();
         console.log('nestedExec 5', testResult);
         if (testResult.type !== CellType.BOOLEAN) throwError('e05', null, nestedExecTest);
-        console.log('nestedExec 6');
-        if (!testResult.val) {
+        console.log('nestedExec 16', testResult.val, nestedExecTest);
+        if (testResult.val != testHow) {
           console.log('nestedExec 7');
           pop_nestedExecution_context();
           break;
         }
       }
-      ctx.i_line = ctx.i_token = 0;
-      this.evaluateToken();
+      blk_ini(ctx);
+      await this.evaluateToken();
       if ((nestedExecTest) && (testWhen === 'after')) {
         ctx.block = nestedExecTest;
-        ctx.i_line = ctx.i_token = 0;
-        this.evaluateToken();
+        blk_ini(ctx);
+        await this.evaluateToken();
         ctx.block = nestedExecBlock;
         if (!v_stack.length) throwError('e05', null, nestedExecTest);
         testResult = v_stack.pop();
         if (testResult.type !== CellType.BOOLEAN) throwError('e05', null, nestedExecTest);
-        if (testResult.val) {
+        console.log('nestedExec 26', testResult.val, nestedExecTest);
+        if (testResult.val != testHow) {
           pop_nestedExecution_context();
           break;
         }
