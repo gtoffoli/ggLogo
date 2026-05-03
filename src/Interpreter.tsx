@@ -2,7 +2,7 @@
 // 251024 - 1st version: extracted logoInterpreter function from LogoShell.tsx
 
 import i18n from './i18n';
-import { ModParola, CellType, Delimiter, Cell, Context, ParamDef } from './CoreDefinitions';
+import { ModParola, CellType, Delimiter, Cell, Context, NestedExecSpecs, ParamDef } from './CoreDefinitions';
 import { SEPARATORS, isSeparator, SystemFunction, CORE_DEFINITIONS, CommandDef, CoreDefinitionKeys, FunClass, FunSignature, turtleStrokes } from './CoreDefinitions';
 import { UserFunction, ProcedureDef, Arg } from './CoreDefinitions';
 import { getByValue } from './UseLocalization';
@@ -536,15 +536,25 @@ export class AsynchronousLogoInterpreter {
       return;
     }
     const nestedExecBlock = ctx.block;
-    const nestedExecSpecs = ctx.nestedExecSpecs || {};
+    const nestedExecSpecs: NestedExecSpecs | {} = ctx.nestedExecSpecs || {};
+    const nestedExecNumber: number = nestedExecSpecs.execNumber || 0; //  
+    if (nestedExecNumber) {
+      for (ctx.nestedExecCount=1; ctx.nestedExecCount<=nestedExecNumber; ctx.nestedExecCount++) {
+        ctx.block = nestedExecBlock;
+        blk_ini(ctx);
+        console.log('nestedExec - repeat - 1', ctx);
+        await this.evaluateToken();
+        console.log('nestedExec - repeat - 2', ctx);
+      }
+      pop_nestedExecution_context();
+      return;
+    }
     const nestedExecTest = ctx.nestedExecTest || [];
     const testWhen: string = nestedExecSpecs.testWhen || ''; // 'before' || 'after' (default: no test)
     const testHow: boolean = nestedExecSpecs.testHow || false; // condition to be fulfilled to continue
-    const repeatCount: number = nestedExecSpecs.repeatCount || 0; //  
     const execResult: boolean = nestedExecSpecs.execResult || false; // for RUNRESULT
     var testResult: boolean;
-    console.log('nestedExec 2', nestedExecBlock, nestedExecSpecs, nestedExecTest, testWhen, testHow, repeatCount);
-    // for (var i=0; i<2; i++) {
+    console.log('nestedExec 2', nestedExecBlock, nestedExecSpecs, nestedExecTest, testWhen, testHow, nestedExecNumber);
     while (true) {
       if ((nestedExecTest) && (testWhen === 'before')) {
         ctx.block = nestedExecTest;

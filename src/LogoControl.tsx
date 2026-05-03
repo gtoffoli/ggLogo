@@ -14,13 +14,11 @@ export var liv_contesto: number = 0; /* livello di nidificazione dei contesti */
 
 export var is_traccia: boolean = false; // tracciare l'esecuzione di tutte le primitive e procedure
 var ha_blocco_valore: boolean = false;
-var is_ripeti: boolean = false;
 var is_funzione: boolean = false;
 export var liv_analisi: number; // parentesi non chiuse
 export var is_nestedExec: boolean;
 var n_locali: number = 0;       // numero variabili locali nella procedura
 var n_argomenti: number;        // numero argomenti della procedura
-var is_vai: boolean = false;    // appena incontrato comando VAI
 export var risultato: any;      // risultato della procedura corrente
 export var is_stop: boolean;    // incontrata fine di valutazione di procedura (UFUN)
 var is_riporta: boolean;        // procedura termina con RIPORTA
@@ -151,27 +149,19 @@ export function _OUTPUT(ctx: Context, values: any[]): void {
   sf_out(ctx); // anticipo, per non confliggere con uf_ret
 }
 
-/*
-export function _RUN(ctx: Context, values: any[]): void {
-  const block = [values[0].val];
-  sf_out(ctx); // anticipo, per non confliggere con blk_in
-  block_exec(ctx, block);
-}
-*/
 export function _RUN(ctx: Context, args: any[]): void {
   sf_out(ctx);
   push_nestedExecution_context(ctx, [args[0].val]);
 }
-export function _REPEAT(ctx: Context, values: any[]): void {
-  ctx.conto_esegui = values[0].val;
-  var block = [values[1].val];
-  sf_out(ctx); // anticipo, per non confliggere con blk_in
-  is_ripeti = true;
-  blk_in(ctx, block, 0);
+export function _REPEAT(ctx: Context, args: any[]): void {
+  sf_out(ctx);
+  push_nestedExecution_context(ctx, [args[1].val]);
+  ctx = contesti[liv_contesto];
+  ctx.nestedExecSpecs = { execNumber: args[0].val };
 }
 export function _REPCOUNT(ctx: Context, values: any[]): Cell {
-  sf_out(ctx); // anticipo, perché ha classe EXEC, dato che richiede Context
-  return { type: CellType.NUMBER, val: ctx.RepCount };
+  sf_out(ctx);
+  return { type: CellType.NUMBER, val: ctx.nestedExecCount };
 }
 
 export function _TEST(ctx: Context, values: any[]): void {
@@ -249,7 +239,6 @@ function _esegui(ctx: Context, block: Cell[][]): void {
 export function AssertContesto(ctx: Context): void {
   if (! ((ctx.liv_procedura >= 0) && (ctx.liv_funzione >= 0) && (ctx.liv_esecuzione >= 0)
       && (ctx.conto_esegui >= 0) && (ctx.n_arg_attesi >= 0) && (ctx.n_arg_trovati >= 0)
-      // && (ctx.liv_procedura < 2) && (ctx.liv_funzione < 3) // solo per test
       )) {
     throw new Error("INVALID CONTEXT");
   }
@@ -295,14 +284,12 @@ function pushco(ctx: Context): void {
   push_sc(ctx.n_arg_trovati);
   push_sc(ctx.n_arg_attesi);
   push_sc (ctx.parentesi);
-  // push_sc (err_token);
   AssertContesto(ctx);
 }
  
 // ripristino di parte del contesto dallo stack di controllo
 function popco(ctx: Context): void {
   AssertContesto(ctx);
-  // err_token = pop_sc ();
   ctx.parentesi = pop_sc();
   ctx.n_arg_attesi = pop_sc();
   ctx.n_arg_trovati = pop_sc();
@@ -385,8 +372,6 @@ export function uf_call(ctx: Context): void {
 
   ctx.val_verifica = null;
   ctx.conto_esegui = 0;
-  ctx.RepCount = 0;
-  ctx.RepTotal = 0;
   ctx.funzione = null;
   ctx.parentesi = -1;
   ctx.conto_parentesi = 0;
@@ -511,8 +496,6 @@ function blk_in(ctx: Context, block: Cell[][], is_arg_atteso: number): void {
   push_sc(ctx.i_line);
   push_sc(ctx.i_token);
   push_sc(ctx.conto_esegui);
-  push_sc(ctx.RepCount);
-  push_sc(ctx.RepTotal);
   push_sc(ctx.val_verifica);
   pushco(ctx);
   ctx.conto_parentesi = 0;
@@ -521,13 +504,6 @@ function blk_in(ctx: Context, block: Cell[][], is_arg_atteso: number): void {
   push_sc(n_locali);
   n_locali = 0;
   ++ctx.liv_esecuzione;
-  if (is_ripeti) {
-    is_ripeti = false;
-    ctx.RepTotal = ctx.conto_esegui;
-    ctx.RepCount = 1;
-  } else {
-    ctx.RepTotal = 0;
-  }
   ctx.conto_esegui = 0;
   ctx.val_verifica = false;
   ctx.n_arg_trovati = 0;
@@ -538,7 +514,6 @@ function blk_in(ctx: Context, block: Cell[][], is_arg_atteso: number): void {
 
 // azioni comuni all' uscita da un blocco
 export function blk_out(ctx: Context): void {
-  var OldTotal: number, OldCount: number;
   var locale: number;
   var id: number;
   var block: Cell[][];
@@ -551,14 +526,8 @@ export function blk_out(ctx: Context): void {
   popco(ctx);
   ctx.n_arg_trovati = ctx.n_arg_trovati + locale;
   ctx.val_verifica = pop_sc();
-  OldTotal = ctx.RepTotal;
-  OldCount = ctx.RepCount;
-  ctx.RepTotal = pop_sc();
-  ctx.RepCount = pop_sc();
   ctx.conto_esegui = pop_sc();
   // console.log('blk_out - conto_esegui', ctx.conto_esegui)
-  if (is_vai)
-    ctx.conto_esegui = 1;
   ctx.i_token = pop_sc();
   ctx.i_line = pop_sc();
   block = ctx.block;
@@ -571,28 +540,7 @@ export function blk_out(ctx: Context): void {
   --ctx.conto_esegui;
   if (ctx.conto_esegui > 0) {
     blk_in(ctx, block, 0);
-    if (OldTotal) {
-      ctx.RepTotal = OldTotal;
-      ctx.RepCount = OldCount + 1;
-    }
   }
-/*
-  else {
-    ctx.i_token = pop_sc();
-    id = pop_sc();
-    if (id === ctx.id_contesto)
-      pop_contesto(ctx);
-  else {
-    if (id === ID_RUNRESULT) {
-      if (ctx.n_arg_trovati == 0) {
-        ++ctx.n_arg_trovati;
-        push_sv([]);
-      }
-      else push_sv([pop_sv()]); 
-    }
-  } 
-  };
-*/
   console.log('blk_out', liv_contesto, ctx);
   AssertContesto(ctx);
 }
@@ -644,7 +592,6 @@ export function pop_contesto(): void {
 // delega a blk_in (richiamato da block_exec) l'inizializzazione di parecchi elementi
 function push_procedure_context(ctx: Context): void {
   console.log('push_procedure_context');
-  // contesti.push(Object.assign({}, ctx)); // aggiungo una copia in cima
   contesti.push({ ...ctx }); // aggiungo una copia in cima
   liv_contesto += 1;
   ctx = contesti[liv_contesto]; // prendo riferimento alla copia e lo aggiorno

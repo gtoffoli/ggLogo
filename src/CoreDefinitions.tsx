@@ -93,9 +93,9 @@ export enum contextType {
 }
 
 export type NestedExecSpecs = {
-  testWhen?: string; // 'before' || 'after' (default: no test)
-  testHow: boolean; // condition to be fulfilled to continue
-  repeatCount?: number; //  
+  testWhen?: string;    // test 'before' or 'after' (DO.) (default: no test)
+  testHow: boolean;     // condition to be fulfilled: continue on true (WHEN) or false (UNTIL)
+  execNumber?: number; // specifies number of executions
   execResult?: boolean; // for RUNRESULT
 }
 
@@ -111,8 +111,8 @@ export type Context = {
 	liv_esecuzione: number; // nest dei blocchi in proc. corrente
 	val_verifica: boolean | null; // valore ultima condizione verificata
 	conto_esegui: number; // contatore delle iterazioni di un blocco
-	RepCount: number;
-	RepTotal: number;
+	// RepCount: number;
+	// RepTotal: number;
 	n_arg_attesi: number; // numero di parametri atteso dalla funzione corrente
 	n_arg_trovati: number; // numero di oggetti sullo stack per la fun corrente
 	parentesi: number; // = liv_funzione se sfun corr. e' preceduta da "("
@@ -124,8 +124,7 @@ export type Context = {
   localVariables: Record<string, any>;
   nestedExecSpecs?: NestedExecSpecs; // parametri che specificano il tipo di ciclo
   nestedExecTest?: Cell[]; // test associato a ciclo condizionale 
-  nestedExecCount?: number; // numero delle ripetizioni richieste
-  nestedExecIndex?: number; // indice della ripetizione corrente
+  nestedExecCount?: number; // indice della ripetizione corrente
 };
 
 export const initialContext: Context = {
@@ -139,8 +138,8 @@ export const initialContext: Context = {
   liv_esecuzione: 0,
   val_verifica: null,
   conto_esegui: 0,
-  RepCount: 0,
-  RepTotal: 0,
+  // RepCount: 0,
+  // RepTotal: 0,
   i_token: 0,
   ini_token: 0,
   n_arg_attesi: 0,
