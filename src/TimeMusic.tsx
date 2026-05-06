@@ -173,54 +173,92 @@ class LogoMusicParser {
   // Usiamo i "Ticks" (standard 192 per quarto in Tone.js)
   // Questo permette al Transport di scalare il tempo correttamente
   private currentTicks: number = 0;
+  private currentChannel: number = 0; // Per gestire le "voci"
+
+  // 1. Espansione macro per le ripetizioni (es: (C D)3 -> C D C D C D)
+  private expandRepetitions(input: string): string {
+    // Gestione RPT (opzionale): RPT 3 [ C D ] -> (C D)3
+    const RPTRegex = /\[RPT(\d+)(.*?)\]/g;
+    input = input.replace(RPTRegex, (_, count, content) => ("(" + content.trim() + ")" + count));
+    // Nota: Terrapin usa spesso le tonde per la brevità
+    const rptRegex = /\(([^)]+)\)(\d+)/g;
+    let expanded = input;
+    while (rptRegex.test(expanded)) {
+      expanded = expanded.replace(rptRegex, (_, content, count) => 
+        (content + " ").repeat(parseInt(count)).trim()
+      );
+    }
+    return expanded.replace(/\s+/g, ' ');
+  }
 
   parse(input: string) {
-    const tokens = input.replace(/[\[\]]/g, '').toUpperCase().split(/\s+/);
-    const notes: LogoNote[] = [];
+    const expandedInput = this.expandRepetitions(input.toUpperCase());
+    
+    // Usiamo una regex per catturare note, cambi tempo, canali o parentesi quadre
+    const tokens = expandedInput.match(/\[|\]|T\d+|I\d+|[A-GP][#B]?\d?\.?|\d*(?:'\d+)?[A-GP][#B]?\d?\.?/g) || [];
+    
+    const notes: (LogoNote & { channel: number })[] = [];
     const tempoChanges: LogoTempoChange[] = [];
+    let isInChord = false;
+    let chordStartTicks = 0;
+    let maxChordDuration = 0;
 
     for (const token of tokens) {
-      // Cambio Tempo Dinamico
+      // Inizio Accordo
+      if (token === '[') {
+        isInChord = true;
+        chordStartTicks = this.currentTicks;
+        maxChordDuration = 0;
+        continue;
+      }
+      // Fine Accordo
+      if (token === ']') {
+        isInChord = false;
+        this.currentTicks = chordStartTicks + maxChordDuration;
+        continue;
+      }
+      // Cambio Strumento/Canale (es: I1, I2)
+      if (token.startsWith('I')) {
+        this.currentChannel = parseInt(token.slice(1));
+        continue;
+      }
+      // Cambio Tempo (T120)
       if (token.startsWith('T')) {
         const newBpm = parseInt(token.slice(1));
         tempoChanges.push({ bpm: newBpm, ticks: this.currentTicks });
         continue;
       }
 
-      // Parsing Nota...
+      // Parsing Nota
       const match = token.match(/^(\d*(?:'\d+)?)?([A-GP])([#B])?(\d)?(\.)?$/);
       if (match) {
         const [_, durStr, note, accidental, oct, dot] = match;
         const toneDuration = this.convertDuration(durStr || "4", !!dot);
-
-        // Convertiamo la durata in Ticks per mantenere la posizione relativa
         const durationInTicks = Tone.Time(toneDuration).toTicks();
 
         if (note !== 'P') {
           notes.push({
             pitch: `${note}${accidental || ''}${oct || 4}`,
             duration: toneDuration,
-            // Usiamo i ticks come riferimento temporale
-            time: this.currentTicks + "i", 
-            velocity: 0.8
+            time: (isInChord ? chordStartTicks : this.currentTicks) + "i",
+            velocity: 0.8,
+            channel: this.currentChannel
           });
         }
-        
-        this.currentTicks += durationInTicks;
+
+        if (isInChord) {
+          // In un accordo, teniamo traccia della nota più lunga
+          maxChordDuration = Math.max(maxChordDuration, durationInTicks);
+        } else {
+          this.currentTicks += durationInTicks;
+        }
       }
     }
     return { notes, tempoChanges };
   }
 
   private convertDuration(dur: string, isDotted: boolean): string {
-    let base: string;
-    if (dur.includes("'")) {
-      // Formato 1'8 -> 8n
-      base = dur.split("'")[1] + "n";
-    } else {
-      // Formato 4 -> 4n
-      base = dur + "n";
-    }
+    let base = dur.includes("'") ? dur.split("'")[1] + "n" : dur + "n";
     return isDotted ? `${base}.` : base;
   }
 }
@@ -326,15 +364,6 @@ export async function _BLUEDEVICES(args: any[]): void {
     }
   } catch (error) {
     console.log('Argh! ' + error);
-  }
-}
-
-
-var midiInstrumentMap: Record<number, string> = {}
-
-function buildInstrumentMap(){
-  for (var i = 0; i < midiInstrumentList.length; i++) {
-    midiInstrumentMap[i] = midiInstrumentList[i];
   }
 }
 
