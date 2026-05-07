@@ -30,7 +30,16 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
   const [currentInput, setCurrentInput] = useState('');
   // Stato per il data input corrente
   const [currentData, setCurrentData] = useState('');
-  
+ 
+   // Indice per la navigazione ( -1 significa che non stiamo navigando )
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  // Memorizza l'input corrente mentre l'utente preme "SU" per non perderlo
+  const [draftInput, setDraftInput] = useState('');
+  // Filtriamo la storia per avere solo i comandi inseriti dall'utente
+  const commandHistory = state.shellHistory
+    .filter(msg => msg.type === 'input')
+    .map(msg => msg.text);
+ 
   // Riferimento per scrollare automaticamente in basso
   const endOfHistoryRef = useRef<HTMLDivElement>(null);
 
@@ -51,8 +60,40 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
       event.preventDefault(); // Impedisce il submit standard del form
+      // Resetta l'indice di navigazione
+      setHistoryIndex(-1);
+      setDraftInput('');
       routeInput(currentInput);
-	    setCurrentInput(''); // Pulisce l'input dopo l'invio
+      // Pulisce l'input dopo l'invio
+	    setCurrentInput('');
+    }
+    else if (event.key === 'ArrowUp') {
+      event.preventDefault(); // Impedisce al cursore di andare all'inizio della riga
+      
+      if (commandHistory.length === 0) return;
+  
+      const nextIndex = historyIndex + 1;
+      if (nextIndex < commandHistory.length) {
+        if (historyIndex === -1) setDraftInput(currentInput); // Salva quello che stava scrivendo
+        
+        const selectedCommand = commandHistory[commandHistory.length - 1 - nextIndex];
+        setCurrentInput(selectedCommand);
+        setHistoryIndex(nextIndex);
+      }
+    } 
+    else if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      
+      if (historyIndex <= 0) {
+        // Siamo tornati alla riga vuota (o al draft iniziale)
+        setHistoryIndex(-1);
+        setCurrentInput(draftInput);
+      } else {
+        const nextIndex = historyIndex - 1;
+        const selectedCommand = commandHistory[commandHistory.length - 1 - nextIndex];
+        setCurrentInput(selectedCommand);
+        setHistoryIndex(nextIndex);
+      }
     }
   };
 
@@ -209,6 +250,17 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
  	]},
   ];
 
+  // Stile semplice per i pulsanti mobile
+  const mobileButtonStyle = {
+    backgroundColor: '#333',
+    color: '#fff',
+    border: '1px solid #666',
+    borderRadius: '4px',
+    padding: '2px 8px',
+    fontSize: '12px',
+    cursor: 'pointer'
+  };
+
   return (
     <PanelContainer
       id="area-b"
@@ -225,22 +277,36 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
          
         fontFamily: 'monospace' 
     }}>
-      {/* Visualizzazione dell'History dei Comandi e Risultati */}
-      <div className="history"
-		style={{ display: 'block', flexGrow: 4 }}>
+      {/* Visualizzazione dell'History */}
+      <div className="history" style={{ display: 'block', flexGrow: 4, overflowY: 'auto' }}>
         {state.shellHistory.map((msg, index) => (
-          <div key={index} style={{
-            color: msg.type === 'error' ? '#f00' :
-                   msg.type === 'system' ? '#ff0' :
-                   msg.type === 'input' ? '#aaa' : '#0f0' 
-          }}>
+          <div 
+            key={index} 
+            onClick={() => msg.type === 'input' && setCurrentInput(msg.text)} // Click per copiare
+            style={{
+              color: msg.type === 'error' ? '#f00' :
+                     msg.type === 'system' ? '#ff0' :
+                     msg.type === 'input' ? '#aaa' : '#0f0',
+              cursor: msg.type === 'input' ? 'pointer' : 'default', // Cursore a manina solo sui comandi
+              padding: '2px 5px',
+              borderBottom: msg.type === 'input' ? '1px dotted #333' : 'none' // Opzionale: aiuta a distinguere i cliccabili
+            }}
+            title={msg.type === 'input' ? t('msg.click_to_copy') : ''}
+          >
             {msg.text}
           </div>
         ))}
         <div ref={endOfHistoryRef} /> {/* Punto di scroll */}
       </div>
-      {/* Area di Input */}
-      <div style={{ marginTop: 0, display: (state.keyboardTarget === 'commands') ? 'block' : 'none', borderStyle: 'solid', borderWidth: 1, borderColor: 'white', flexGrow: 0.1 }}>
+      {/* Area di Input con supporto Mobile */}
+      <div style={{ 
+          marginTop: 0, 
+          display: (state.keyboardTarget === 'commands') ? 'flex' : 'none', 
+          alignItems: 'center',
+          border: '1px solid white', 
+          flexGrow: 0.1,
+          padding: '2px'
+      }}>
         <span style={{ color: '#fff', marginRight: '5px' }}>&gt;</span>
         <input
           type="text"
@@ -250,10 +316,18 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
           autoFocus
           style={{
             backgroundColor: 'transparent', border: 'none', color: '#fff', outline: 'none', 
-            fontFamily: 'monospace', width: '95%'
+            fontFamily: 'monospace', flexGrow: 1
           }}
           placeholder={t('msg.command_placeholder')}
         />
+        
+        {/* Pulsanti per Mobile: visibili solo se è un dispositivo touch o sempre per comodità */}
+        <div style={{ display: 'flex', gap: '5px', marginLeft: '5px' }}>
+          <button onClick={() => handleKeyDown({ key: 'ArrowUp', preventDefault: () => {} })} 
+                  style={mobileButtonStyle}>▲</button>
+          <button onClick={() => handleKeyDown({ key: 'ArrowDown', preventDefault: () => {} })} 
+                  style={mobileButtonStyle}>▼</button>
+        </div>
       </div>
       {/* Area di data Input */}
       <div style={{ marginTop: 0, display: (state.keyboardTarget === 'data') ? 'block' : 'none', borderStyle: 'solid', borderWidth: 1, borderColor: 'white', flexGrow: 0.1 }}>
