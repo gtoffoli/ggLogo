@@ -153,7 +153,8 @@ export class AsynchronousLogoInterpreter {
           this.reportError(error);
         } else {
           // Questo è un errore di sistema (bug nel TS)
-          console.error("Errore di sistema:", error.message);
+          // console.error("Errore di sistema:", error.message);
+          console.log("Errore di sistema:", error.message);
         }
         // In caso di errore critico potresti voler svuotare la pila per tornare alla Shell
         // 2. REINIZIALIZZAZIONE (Il "Reset")

@@ -1104,7 +1104,6 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
   MIDILOADINSTRUMENT: {
     classes: [FunClass.ASYNC],
-    // args: [{ name: "nome", type: A_W_S }],
     args: [{ name: "numero", type: A_N }],
     ref: _MIDILOADINSTRUMENT,
   } as CommandDef,
@@ -1115,7 +1114,7 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
   MIDIPLAY: {
     classes: [FunClass.ASYNC],
-    args: [{ name: "note", type: A_L }],
+    args: [{ name: "notes", type: A_L }],
     ref: _MIDIPLAY,
   } as CommandDef,
   BLUEDEVICES: {

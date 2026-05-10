@@ -6,6 +6,7 @@ import path from 'path';
 import { CellType, Cell } from './CoreDefinitions';
 import { throwError} from './Interpreter';
 import { toLogoCell, nodeToString } from './Parser';
+import { password } from 'bun';
 
 var referenceTime: number = 0;
 
@@ -27,98 +28,173 @@ export async function _WAIT(values: any[]) {
   console.log('_WAIT 2', ms);
 }
 
+// models a MIDI channel
+type Channel = {
+  instrument: number; // -1 (PolySynth) or reference to an item in the midiInstrumentList
+  sampler: Tone.Synth | Tone.Sampler; // the Tone object able to produce some sound
+  currentTicks: number; // used to synchronyze the MIDI channels
+}
+// map of MIDI channels
+var channelArray: Channel[] = new Array(17);
+var lastChannelNumber: number | null = null;
+
+// finds the MIDI channel associated to an instrument number; if not found, return -1
+// ma ha senso solo se supponiamo che ogni strumento sia associato a massimo un canale
+// in tal caso ci serve per riutilizzare un sampler già creato a partire da certi campioni
+function channelNumberFromInstrument(instrument: number): number {
+  console.log('channelNumberFromInstrument', instrument);
+  return channelArray.findIndex(channel => channel?.instrument === instrument);
+}
+// handles PolySynth as instrument # -1
+function instrumentName(instrument: number): string {
+  return (instrument === -1) ? 'PolySynth' : midiInstrumentList[instrument];
+}
+
 type MidiChannel = {
   name: string; // name of the instrument in the sound sample library
   instrument: Tone.Synth | Tone.Sampler; // Tone instrument object
 }
-// let synth: MidiChannel | null = null; // OmniOscillator routed through an AmplitudeEnvelope
-// let samplers: MidiChannel[] = []; // Tone Sampler instances, eache able to repitch sample sounds from a real instrument
-var samplers: Record<number, MidiChannel> = {}; // Tone Sampler instances, eache able to repitch sample sounds from a real instrument
-var currentChannelKey: number | null = null;
+
+type Sampler = Tone.Synth | Tone.Sampler;
 
 // needed only for use of the basic Synthetizer
 export const _MIDIOPEN = async (values: any[]) => {
-  samplers = {};
-  await Tone.start();
-  // Creiamo un PolySynth per gestire più note contemporaneamente (polifonia)
-  let instrument = new Tone.PolySynth(Tone.Synth).toDestination();
-  // synth = { name: 'Synth', instrument: instrument };
-  samplers[0] = { name: 'PolySynth', instrument: instrument };
-  currentChannelKey = 0;
-  // return "Tone.js WebAudio Engine Ready - Internal Synth";
+  /* test of types Channel and ChannelMap and of functions channelFromInstrument and instrumentName */
+  const sampler = new Tone.PolySynth(Tone.Synth).toDestination(); 
+  channelArray[0] = { instrument: -1, sampler: sampler, currentTicks: 0 };
+  lastChannelNumber = 0;
 }
 // closes the basic Synthetizer and releases possibly loaded instruments
 export async function resetMidiChannels() {
-  /*
-  if (synth) {
-    synth.instrument.releaseAll();
-    synth.instrument.dispose();
-  }
-  synth = null;
-  for (var i = 0; i < samplers.length; i++) {
-    samplers[i].instrument.releaseAll();
-    samplers[i].instrument.dispose();
-  }
-  samplers = [];
-  */
-  for (const [key, channel] of Object.entries(samplers)) {
-    console.log(`Chiave: ${key}, Valore: ${channel}`);
-    samplers[key].instrument.releaseAll();
-    samplers[key].instrument.dispose();
-    delete samplers[key];
-  }
+  var channel: Channel;
+  var sampler: Sampler;
+  for (var i=0; i<=16; i++)
+    if (channelArray[i] != undefined) {
+      channel = channelArray[i];
+      if (channel.sampler)
+        channel.sampler.dispose();
+      delete channelArray[i];
+    }
 }
 export const _MIDICLOSE = async (values: any[]) => {
   await resetMidiChannels();
-  currentChannelKey = null;
+  lastChannelNumber = null;
 }
 
 export function _MIDI (values: any[]): Cell {
-  var currentChannel = [currentChannelKey, samplers[currentChannelKey].name];
-  return toLogoCell(currentChannel);
+  var channel: Channel;
+  if (lastChannelNumber !== null) {
+    channel = channelArray[lastChannelNumber];
+    return toLogoCell([lastChannelNumber, channel.instrument, instrumentName(channel.instrument)]);
+  }
+  else return toLogoCell([]);
 }
 // ouputs list of instruments associated to MIDI "channels"
 export function _MIDICHANNELS (values: any[]): Cell {
-  var channels = [];
-  for (const [key, channel] of Object.entries(samplers)) {
-    console.log(`Chiave: ${key}, Valore: ${channel}`);
-    channels.push([key, channel.name]);
+  console.log('_MIDICHANNELS', channelArray);
+  var channels: any[] = [];
+  var channel: Channel;
+  for (var i=0; i<=16; i++) {
+    if (channelArray[i] != undefined) {
+      channel = channelArray[i];
+      channels.push([i, channel.instrument, instrumentName(channel.instrument)])
+    }
   }
   return toLogoCell(channels);
 }
-// loads an "instrument" from an MP3 sound sample library, partially copied as local assets
-export const _MIDILOADINSTRUMENT = async (values: any[]) => {
-  const instrumentNumber = values[0].val;
-  const instrumentName = midiInstrumentList[instrumentNumber];
-  // 1. Pulizia memoria precedente
-  if (instrumentNumber in samplers)
-    samplers[instrumentNumber].instrument.dispose();
 
-  // 2. Mappatura (Esempio: carichi solo 3 note, Tone.js calcola le altre)
-  // Il fetch avviene solo qui, ovvero "On Demand"
-  let sampler = new Tone.Sampler({
-    urls: {
-      "G3": `G3.mp3`,
-      "C4": `C4.mp3`,
-      "E4": `E4.mp3`,
-      "G4": `G4.mp3`,
-      "C5": `C5.mp3`,
-      "E5": `E5.mp3`,
-      "G5": `G5.mp3`,
-      "C6": `C6.mp3`,
-    },
-    baseUrl: `/sounds/${instrumentName}-mp3/`,
-    onload: () => {
-      console.log(`${instrumentName} caricato correttamente!`);
-      currentChannelKey = instrumentNumber;
-      samplers[instrumentNumber] = { name: instrumentName, instrument: sampler };
+// prenota un canale, qualsiasi o di indice specificato (>0), per associarvi uno strumento 
+function getChannelforInstrument(instrumentNumber: number, channelNumber: number) {
+  if (channelNumber > 0) {
+    channelArray[channelNumber] = { instrument: instrumentNumber, sampler: null, currentTicks: 0 };
+    return channelNumber;
+  }
+  for (var i=1; i<=16; i++) // find first free channel
+    // if (channelArray[i] === undefined) {
+    if (!(i in channelArray)) {
+      channelArray[i] = { instrument: instrumentNumber, sampler: null, currentTicks: 0 };
+      return i;
     }
-  }).toDestination();
+  return 0; // no free channel found
+}
+
+// se il canale è specificato (già prenotato), carica lo strumento se il sampler non esiste già
+// se il canale non è specificato (0), ne cerca uno, lo associa allo strumento e carica lo strumento
+const loadInstrument = async (instrumentNumber: number, channelNumber: number) => {
+  console.log('loadInstrument - 1', instrumentNumber, channelNumber);
+  const instrumentName = midiInstrumentList[instrumentNumber];
+
+  // Il canale è specificato?
+  if ((channelNumber > 0) && (channelNumber in channelArray)) {
+    console.log('loadInstrument - 2', instrumentNumber, channelNumber);
+    if (channelArray[channelNumber].instrument === instrumentNumber) { // .. sì, ed è il canale cercato
+      if (channelArray[channelNumber].sampler) // c'è anche il sampler?
+        return;
+    }
+    else { // .. sì, ma è associato ad altro strumento
+      channelArray[channelNumber].instrument = instrumentNumber; // cambio numero di strumento
+      if (channelArray[channelNumber].sampler) // se il canale era attivo, faccio pulizia
+        channelArray[channelNumber].sampler.dispose();
+    }
+  }
+
+  if (!channelNumber) { // canale non specificato?
+    console.log('loadInstrument - 3', instrumentNumber, channelNumber);
+    channelNumber = channelNumberFromInstrument(instrumentNumber); // ne cerca uno già associato allo strumento
+    if (channelNumber > 0) { // trovato
+      if (channelArray[channelNumber].sampler) // c'è anche il sampler?
+        return; // si
+    }
+    else // un canale con lo strumento specificato non esiste
+      channelNumber = getChannelforInstrument(instrumentNumber, 0); // ne associa uno
+  }
+  console.log('loadInstrument - 4', channelNumber, instrumentNumber, instrumentName);
+
+  if (channelArray[channelNumber].sampler) // strumento già caricato?
+    return; // sì
+  console.log('loadInstrument - 5', channelNumber, instrumentNumber, instrumentName);
+
+  return new Promise((resolve, reject) => {
+
+    // 2. Mappatura (Esempio: carichi solo 8 note, Tone.js calcola le altre)
+    // Il fetch avviene solo qui, ovvero "On Demand"
+    let sampler = new Tone.Sampler({
+      urls: {
+        "G3": `G3.mp3`,
+        "C4": `C4.mp3`,
+        "E4": `E4.mp3`,
+        "G4": `G4.mp3`,
+        "C5": `C5.mp3`,
+        "E5": `E5.mp3`,
+        "G5": `G5.mp3`,
+        "C6": `C6.mp3`,
+      },
+      baseUrl: `/sounds/${instrumentName}-mp3/`,
+      onload: () => {
+        console.log(`${instrumentName} caricato correttamente!`);
+        channelArray[channelNumber].sampler = sampler;
+        lastChannelNumber = channelNumber;
+        resolve(sampler); 
+      },
+      onerror: (error) => {
+        console.error("Errore caricamento:", error);
+        reject(error);
+      }
+    }).toDestination();
+    console.log('loadInstrument - 6', channelNumber, sampler, channelArray);
+  });
+}
+
+// loads an "instrument" from an MP3 sound sample library, partially copied as local assets
+export const _MIDILOADINSTRUMENT = async (args: any[]) => {
+  const instrumentNumber = args[0].val;
+  await loadInstrument(instrumentNumber, 0);
+  console.log('_MIDILOADINSTRUMENT', instrumentNumber, channelArray);
 };
 
 // inteprets a list of messages in MIDI notation as commands to Tone instruments
 export const _MIDIMSG = async (values: any[]) => {
-  if (currentChannelKey === null) return;
+  if (lastChannelNumber === null) return;
 
   const msg = values[0].val;
   const msgLength = msg.length;
@@ -133,11 +209,14 @@ export const _MIDIMSG = async (values: any[]) => {
     const d2 = msg[i + 2].val; // Velocity (Volume 0-127)
 
     // Logica MIDI Standard
-    var channel = status & 0x0F; // Gli ultimi 4 bit sono il canale
-    if ((channel === 0) || (!(channel in samplers)))
-      channel = currentChannelKey;
+    var channelNumber = status & 0x0F; // Gli ultimi 4 bit sono il canale
+    if ((channelNumber === 0) || (!(channelNumber in channelArray)))
+      channelNumber = lastChannelNumber;
+    if ((channelNumber === null) || (!channelArray[channelNumber].sampler))
+      throwError('e15', null, null);
+    const sampler = channelArray[channelNumber].sampler;
     const command = status & 0xF0; // I primi 4 bit sono il comando
-    console.log('_MIDIMSG', channel, command)
+    console.log('_MIDIMSG', channelNumber, command)
 
     if (command === 144) { // 0x90: Note On
       if (d2 > 0) {
@@ -145,16 +224,16 @@ export const _MIDIMSG = async (values: any[]) => {
         const freq = Tone.Frequency(d1, "midi").toNote();
         const velocity = d2 / 127; // Tone.js usa 0..1
         console.log('_MIDIMSG', freq, velocity)
-        samplers[channel].instrument.triggerAttack(freq, Tone.now(), velocity);
+        sampler.triggerAttack(freq, Tone.now(), velocity);
       } else {
         // Velocity 0 equivale a Note Off
         const freq = Tone.Frequency(d1, "midi").toNote();
-        samplers[channel].instrument.triggerRelease(freq, Tone.now());
+        sampler.triggerRelease(freq, Tone.now());
       }
     } 
     else if (command === 128) { // 0x80: Note Off
       const freq = Tone.Frequency(d1, "midi").toNote();
-      samplers[channel].instrument.triggerRelease(freq, Tone.now());
+      sampler.triggerRelease(freq, Tone.now());
     }
   }
 };
@@ -162,6 +241,7 @@ export const _MIDIMSG = async (values: any[]) => {
 interface LogoNote {
   pitch: string;      // es: "C4", "D#5"
   duration: string;   // es: "4n", "8n"
+  velocity: number;   // added 260508
   time: number;       // Offset temporale in secondi
 }
 interface LogoTempoChange {
@@ -173,7 +253,9 @@ class LogoMusicParser {
   // Usiamo i "Ticks" (standard 192 per quarto in Tone.js)
   // Questo permette al Transport di scalare il tempo correttamente
   private currentTicks: number = 0;
+  private currentOctave: number = 4; // Per gestire le ottave
   private currentChannel: number = 0; // Per gestire le "voci"
+  private currentInstrument: number; // Per gestire gli strumenti
 
   // 1. Espansione macro per le ripetizioni (es: (C D)3 -> C D C D C D)
   private expandRepetitions(input: string): string {
@@ -189,13 +271,14 @@ class LogoMusicParser {
       );
     }
     return expanded.replace(/\s+/g, ' ');
-  }
+  };
 
   parse(input: string) {
     const expandedInput = this.expandRepetitions(input.toUpperCase());
     
     // Usiamo una regex per catturare note, cambi tempo, canali o parentesi quadre
-    const tokens = expandedInput.match(/\[|\]|T\d+|I\d+|[A-GP][#B]?\d?\.?|\d*(?:'\d+)?[A-GP][#B]?\d?\.?/g) || [];
+    // const tokens = expandedInput.match(/\[|\]|T\d+|I\d+|[A-GP][#B]?\d?\.?|\d*(?:'\d+)?[A-GP][#B]?\d?\.?/g) || [];
+    const tokens = expandedInput.match(/\[|\]|T\d+|O\d+|I\d+|CHAN\d+|[A-GP][#B]?\d?\.?|\d*(?:'\d+)?[A-GP][#B]?\d?\.?/g) || [];
     
     const notes: (LogoNote & { channel: number })[] = [];
     const tempoChanges: LogoTempoChange[] = [];
@@ -217,15 +300,38 @@ class LogoMusicParser {
         this.currentTicks = chordStartTicks + maxChordDuration;
         continue;
       }
-      // Cambio Strumento/Canale (es: I1, I2)
-      if (token.startsWith('I')) {
-        this.currentChannel = parseInt(token.slice(1));
+      // Cambio Ottava default (es: O4, O5)
+      if (token.startsWith('O')) {
+        this.currentOctave = parseInt(token.slice(1));
         continue;
       }
       // Cambio Tempo (T120)
       if (token.startsWith('T')) {
         const newBpm = parseInt(token.slice(1));
         tempoChanges.push({ bpm: newBpm, ticks: this.currentTicks });
+        continue;
+      }
+      // Cambio Canale (es: CHAN1, CHAN2)
+      if (token.startsWith('CHAN')) {
+        if ((this.currentChannel) || (this.currentInstrument) || (notes))
+          throwError('e05', null, input); // CHAN può essere presente solo una volta all'inizio
+        this.currentChannel = parseInt(token.slice(1));
+        if (channelArray[this.currentChannel])
+          this.currentInstrument = channelArray[this.currentChannel].instrument; // canale in uso: lo strumento è già specificato
+        continue;
+      }
+      // Cambio Strumento (es: I1, I2)
+      if (token.startsWith('I')) {
+        const instrumentNumber = parseInt(token.slice(1));
+        if ((this.currentInstrument) && (instrumentNumber != this.currentInstrument))
+          throwError('e05', null, input); // strumento (e canale) non possono cambiare in un comando PLAY
+        var channelNumber = channelNumberFromInstrument(instrumentNumber); // lo strumento è già caricato (associato ad un canale)?
+        if (channelNumber < 0) // no
+          channelNumber = getChannelforInstrument(instrumentNumber, this.currentChannel);
+         if (channelNumber > 0) { // canale già esistente o appena assegnato
+          this.currentChannel = channelNumber;
+          this.currentInstrument = instrumentNumber;
+        }
         continue;
       }
 
@@ -238,11 +344,11 @@ class LogoMusicParser {
 
         if (note !== 'P') {
           notes.push({
-            pitch: `${note}${accidental || ''}${oct || 4}`,
+            // pitch: `${note}${accidental || ''}${oct || 4}`,
+            pitch: `${note}${accidental || ''}${oct || this.currentOctave}`,
             duration: toneDuration,
             time: (isInChord ? chordStartTicks : this.currentTicks) + "i",
             velocity: 0.8,
-            channel: this.currentChannel
           });
         }
 
@@ -254,7 +360,12 @@ class LogoMusicParser {
         }
       }
     }
-    return { notes, tempoChanges };
+    // Specificato un canale ma non uno strumento? Forzo lo strumento a 0
+    if ((this.currentChannel > 0) && (!this.currentInstrument)) {
+      this.currentInstrument = 0;
+      channelArray[this.currentChannel] = { instrument: 0, sampler: null, currentTicks: 0 };
+    }
+    return [ this.currentChannel, this.currentInstrument, notes, tempoChanges ];
   }
 
   private convertDuration(dur: string, isDotted: boolean): string {
@@ -263,16 +374,21 @@ class LogoMusicParser {
   }
 }
 
-function getInstrumentId(logoString: string): number {
-  // Cerca la prima occorrenza di "I" seguita da cifre
-  const match = logoString.match(/I(\d+)/i);
-  // return match ? parseInt(match[1]) : 1; // Default allo strumento 1
-  return match ? parseInt(match[1]) : -1; // -1 is invalid id
-}
-
-async function playDynamicLogo(logoString: string, sampler: Tone.Sampler) {
+async function midiPlay(logoString: string) {
   const parser = new LogoMusicParser();
-  const { notes, tempoChanges } = parser.parse(logoString);
+  var [ channelNumber, instrumentNumber, notes, tempoChanges ] = parser.parse(logoString);
+  console.log('play 1', channelNumber, instrumentNumber, notes, tempoChanges);
+  var sampler = channelArray[channelNumber].sampler;
+  if (!sampler)
+    if (channelNumber === 0) {
+      sampler = new Tone.PolySynth(Tone.Synth).toDestination(); 
+      channelArray[0] = { instrument: -1, sampler: sampler, currentTicks: 0 };
+    }
+    else {
+      await loadInstrument(instrumentNumber, channelNumber);
+      sampler = channelArray[channelNumber].sampler;
+    }
+  console.log('play 2', channelNumber, sampler, channelArray);
 
   // Pulizia: fermiamo tutto e cancelliamo eventi precedenti sul Transport
   Tone.Transport.stop();
@@ -290,14 +406,17 @@ async function playDynamicLogo(logoString: string, sampler: Tone.Sampler) {
   const part = new Tone.Part((time, note) => {
     sampler.triggerAttackRelease(note.pitch, note.duration, time, note.velocity);
   }, notes).start(0);
+  console.log('play 5');
   // Calcoliamo quando finirà l'ultima nota (in secondi)
   notes.forEach(note => {
     const endTime = Tone.Time(note.time).toSeconds() + Tone.Time(note.duration).toSeconds();
     if (endTime > maxDuration) maxDuration = endTime;
   });
+  console.log('play 6');
 
   // 3. Avviamo e creiamo una Promise che attende la fine
   Tone.Transport.start();
+  console.log('play 7');
   // Restituiamo una promessa che si risolve dopo 'maxDuration' secondi
   return new Promise<void>((resolve) => {
     setTimeout(() => {
@@ -305,24 +424,13 @@ async function playDynamicLogo(logoString: string, sampler: Tone.Sampler) {
       resolve();
     }, maxDuration * 1000); // Conversione in millisecondi
   });
-}
-
-async function startLogoMusic(logoString: string) {
-  await Tone.start();
-  // 1. Identifica quale sampler usare
-  var instrumentId = getInstrumentId(logoString);
-  if (!(instrumentId in samplers)) instrumentId = currentChannelKey;
-  const selectedSampler = samplers[instrumentId].instrument;
-  // 2. Passa il sampler selezionato alla logica di riproduzione
-  // (Nota: rimuoviamo il comando I dalla stringa se necessario, 
-  // o lasciamo che il parser lo ignori)
-  await playDynamicLogo(logoString, selectedSampler);
+  console.log('play 8');
 }
 
 // interprets a simple list of notes in Terrapin music notation
 export const _MIDIPLAY = async (args: any[]) => {
   const noteString = nodeToString(args[0]);
-  await startLogoMusic(noteString);
+  await midiPlay(noteString);
 };
 
 export async function _BLUEDEVICES(args: any[]): void {

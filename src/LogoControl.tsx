@@ -165,6 +165,7 @@ export function _REPCOUNT(ctx: Context, values: any[]): Cell {
 }
 
 export function _TEST(ctx: Context, values: any[]): void {
+  sf_out(ctx);
   ctx.val_verifica = values[0].val;
 }
 
