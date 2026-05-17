@@ -2,7 +2,7 @@
 // 251116 - 1st version: inspired to Ilcontro.cpp of IperLogo
 
 import { contextType, Context, initialContext, CellType, Cell, CommandDef, ModParola, ProcedureDef } from './CoreDefinitions';
-import { throwError, globalVariables, userProcedures } from './Interpreter';
+import { LogoError, throwError, globalVariables, userProcedures } from './Interpreter';
 import { resetActivePath } from './TurtleGraphics';
 import { resetMidiChannels } from './TimeMusic';
 
@@ -250,9 +250,13 @@ function push_sc (val: any): void {
   c_stack.push(val);
 }
 // pop di un valore dallo stack di controllo
-function pop_sc(): any {  
+function pop_sc(msg?: string): any {  
   if (!c_stack.length)
-    throw new Error("C STACK UNDERFLOW");  
+    // throw new Error("C STACK UNDERFLOW");
+    if (msg)
+      throw new LogoError("C STACK UNDERFLOW"+' '+msg);
+    else
+      throw new LogoError("C STACK UNDERFLOW"+' '+msg);
   return c_stack.pop();
 }
 
@@ -291,10 +295,10 @@ function pushco(ctx: Context): void {
 // ripristino di parte del contesto dallo stack di controllo
 function popco(ctx: Context): void {
   AssertContesto(ctx);
-  ctx.parentesi = pop_sc();
-  ctx.n_arg_attesi = pop_sc();
-  ctx.n_arg_trovati = pop_sc();
-  ctx.conto_parentesi = pop_sc();
+  ctx.parentesi = pop_sc('parentesi');
+  ctx.n_arg_attesi = pop_sc('n_arg_attesi');
+  ctx.n_arg_trovati = pop_sc('n_arg_trovati');
+  ctx.conto_parentesi = pop_sc('conto_parentesi');
   AssertContesto(ctx);
 }
 
@@ -314,7 +318,7 @@ function f_out (ctx: Context): void {
   AssertContesto(ctx);
   --ctx.liv_funzione;
   popco(ctx);
-  ctx.funzione = pop_sc();
+  ctx.funzione = pop_sc('funzione');
   AssertContesto(ctx);
 }
 
@@ -393,7 +397,7 @@ export function uf_ret(ctx: Context): void {
       blk_out (ctx);
     };
   // spurga le variabili argomento
-  const n_parameters = pop_sc();  // numero delle variabili argomento
+  const n_parameters = pop_sc('n_parameters');  // numero delle variabili argomento
   poploc(ctx, n_parameters);      // spurgo delle variabili argomento
   is_stop = false;
   pop_procedure_context();
@@ -467,7 +471,7 @@ export function parenout(ctx: Context, par_count: number): void {
       throw new Error("INVALID CONTEXT", get_sv (1));
     locale = ctx.n_arg_trovati;
     popco(ctx);
-    ctx.funzione = pop_sc();
+    ctx.funzione = pop_sc('funzione');
     ctx.n_arg_trovati = ctx.n_arg_trovati + locale;
   }
 }
@@ -477,6 +481,7 @@ export function blk_ini(ctx): void {
   ctx.conto_parentesi = 0;
   ctx.parentesi = -1;
   ctx.n_arg_attesi = 0;
+  ctx.liv_esecuzione = 0;
   ctx.conto_esegui = 0;
   ctx.val_verifica = false;
   ctx.n_arg_trovati = 0;
@@ -519,30 +524,28 @@ export function blk_out(ctx: Context): void {
   var id: number;
   var block: Cell[][];
   AssertContesto(ctx);
+  console.log('blk_out start', liv_contesto, ctx);
   parenout(ctx, ctx.conto_parentesi);
-  n_locali = pop_sc ();
+  n_locali = pop_sc ('n_locali');
   poploc(ctx, n_locali);
   locale = ctx.n_arg_trovati;
-  // console.log('blk_out -> popco');
   popco(ctx);
   ctx.n_arg_trovati = ctx.n_arg_trovati + locale;
-  ctx.val_verifica = pop_sc();
-  ctx.conto_esegui = pop_sc();
-  // console.log('blk_out - conto_esegui', ctx.conto_esegui)
-  ctx.i_token = pop_sc();
-  ctx.i_line = pop_sc();
+  ctx.val_verifica = pop_sc('val_verifica');
+  ctx.conto_esegui = pop_sc('conto_esegui');
+  ctx.i_token = pop_sc('i_token');
+  ctx.i_line = pop_sc('i_line');
   block = ctx.block;
-  // console.log('blk_out - block', ctx.i_token, ctx.i_line, ctx.block)
-  ctx.block = pop_sc();
-  ctx.ini_token = pop_sc();
-  ctx.funzione = pop_sc ();
+  ctx.block = pop_sc('block');
+  ctx.ini_token = pop_sc('ini_token');
+  ctx.funzione = pop_sc ('funzione');
 
   --ctx.liv_esecuzione;
   --ctx.conto_esegui;
   if (ctx.conto_esegui > 0) {
     blk_in(ctx, block, 0);
   }
-  console.log('blk_out', liv_contesto, ctx);
+  console.log('blk_out - end', liv_contesto, ctx);
   AssertContesto(ctx);
 }
 

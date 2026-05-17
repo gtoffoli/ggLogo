@@ -33,7 +33,7 @@ export enum CharClass {
 // C. AZIONI DA ESEGUIRE (Codice di Azione)
 enum Action {
   IGNORE = 0,           // Scarta il carattere corrente
-    APPEND = 1,             // Aggiungi il carattere al token corrente
+  APPEND = 1,             // Aggiungi il carattere al token corrente
   NEW_TOKEN_APPEND = 2,   // Finalizza il token precedente, inizia un nuovo token con il carattere corrente
   FINALISE_TOKEN = 3,   // Finalizza il token corrente (non aggiunge il carattere)
   ERROR = 99,       // Errore lessicale
@@ -46,9 +46,7 @@ const FSM_MATRIX: Transition[][] = [
   // [0]BLANKSPACE   [1]QUOTE   [2]SEPARATOR   [3]COMMENT [4]NEWLINE [5]OTHER  [6]EOF	[7]BACKSLASH
   [ /* [0] START */
     [State.START, Action.IGNORE],         // BLANKSPACE -> Ignora, resta in START
-    // [State.IN_LITERAL, Action.APPEND], // QUOTE -> Entra in LITERAL, Append
     [State.IN_LITERAL, Action.NEW_TOKEN_APPEND],  // QUOTE -> Entra in LITERAL e Append (QUOTE è un token)
-    // [State.IN_TOKEN, Action.NEW_TOKEN_APPEND], // SEPARATOR -> Tokenizza e Append (separatore è un token)
     [State.START, Action.NEW_TOKEN_APPEND], // SEPARATOR -> Tokenizza e Append (separatore è un token)
     [State.IN_COMMENT, Action.IGNORE],    // COMMENT -> Ignora, entra in COMMENT
     [State.START, Action.IGNORE],         // NEWLINE -> Ignora, resta in START
@@ -57,7 +55,7 @@ const FSM_MATRIX: Transition[][] = [
     [State.IN_TOKEN, Action.IGNORE]       // ma BACKSLASH ha un side-effect
   ],
   [ /* [1] IN_TOKEN (Parola/Numero) */
-    [State.START, Action.FINALISE_TOKEN], // BLANK -> Finalizza, torna in START
+    [State.START, Action.FINALISE_TOKEN], // BLANKSPACE -> Finalizza, torna in START
     [State.IN_LITERAL, Action.ERROR],     // QUOTE -> Errore (non previsto in un token normale)
     [State.START, Action.FINALISE_TOKEN], // SEPARATOR -> Finalizza il token corrente, torna in START (il SEPARATOR sarà tokenizzato al prossimo ciclo)
     [State.IN_COMMENT, Action.FINALISE_TOKEN], // COMMENT -> Finalizza, entra in COMMENT
@@ -67,16 +65,12 @@ const FSM_MATRIX: Transition[][] = [
     [State.IN_TOKEN, Action.IGNORE]       // ma BACKSLASH ha un side-effect
   ],
   [ /* [2] IN_LITERAL (Stringa preceduta da virgolette) */
-    // [State.IN_LITERAL, Action.APPEND], // BLANKSPACE -> Append (stringhe mantengono spazi)
     [State.START, Action.FINALISE_TOKEN], // BLANKSPACE -> Append (stringhe NON mantengono spazi)
-    // [State.START, Action.FINALISE_TOKEN], // QUOTE -> Finalizza (la virgoletta non viene inclusa nel token, ma l'azione andrebbe modificata)
     [State.IN_LITERAL, Action.ERROR],     // QUOTE -> Errore (In Iperlogo il QUOTE non va chiuso)
-    // [State.IN_LITERAL, Action.APPEND], // SEPARATOR -> Append
     [State.START, Action.FINALISE_TOKEN], // SEPARATOR -> Append
     [State.IN_LITERAL, Action.APPEND],    // COMMENT -> Append
     [State.IN_LITERAL, Action.APPEND],    // NEWLINE -> Append (le stringhe LOGO possono estendersi su più righe)
     [State.IN_LITERAL, Action.APPEND],    // OTHER -> Append, resta in LITERAL
-    // [State.FINAL, Action.ERROR]        // EOF -> Errore (stringa non chiusa)
     [State.FINAL, Action.FINALISE_TOKEN], // EOF -> Append (una stringa letterale può terminare insieme con l'input)
     [State.IN_LITERAL, Action.IGNORE]     // ma BACKSLASH ha un side-effect
   ],
@@ -156,11 +150,9 @@ function logoTokenizerFSM(input: string): string[] {
     switch (action) {
       case Action.IGNORE:
         // Non fa nulla con il carattere, ma se si tratta di un BACKSLASH ..
-        console.log(currentState, 'IGNORE', currentToken, fullInput, i)
         if ((charClass === CharClass.BACKSLASH) && (currentState != State.IN_COMMENT) && (i < fullInput.length)) {
   				i++;
   				currentToken += fullInput[i];
-  				console.log('IGNORE', currentToken)
   			}
         break;
       case Action.APPEND:
@@ -174,7 +166,7 @@ function logoTokenizerFSM(input: string): string[] {
         break;
       case Action.NEW_TOKEN_APPEND:
         if (currentToken.length > 0)
-            tokens.push(currentToken);  // Finalizza il precedente
+          tokens.push(currentToken);  // Finalizza il precedente
         currentToken = char;            // Inizia il nuovo token con il carattere corrente
         if ((charClass === CharClass.QUOTE) || (charClass === CharClass.SEPARATOR)){
 		      // LOOK-AHEAD per separatori multi-carattere
@@ -226,8 +218,6 @@ export function Parse(input: string): any[] {
 	for (var i = 0; i < tokens.length; i++) {
 		token = tokens[i];
 		if (token === BLANK) {
-      // console.log('Parse push BLANK');
-      // parsed.push({'type': CellType.BLANK, 'val': BLANK});
       continue;
     }
     else

@@ -3,6 +3,7 @@
 
 import { CellType, Cell } from './CoreDefinitions';
 import { throwError } from './Interpreter';
+import { toLogoCell } from './Parser';
 
 // riporta una parola Logo a partire da una stringa Javascript
 export function wordCell(s: string): Cell { return { type: CellType.WORD, val: s } }
@@ -308,6 +309,17 @@ export function _INTERSECTION(args: any[]): Cell {
   const listB = args[1].val.map((c: Cell) => c.val);
   const intersection = set_intersection(listA, listB);
   return { type: CellType.LIST, val: intersection.map((s: string) => wordCell(s)) };
+}
+export function _REMOVE(args: any[]): Cell {
+  const toRemove = args[0].val;
+  if (args[1].type === CellType.LIST) {
+    const array = args[1].val.map((c: Cell) => c.val);
+    return toLogoCell(array.filter(item => item !== toRemove));
+  }
+  else {
+    const string = args[1].val;
+    return { type: CellType.WORD, val: string.replaceAll(toRemove, '') };
+  }
 }
 export function _REMDUP(args: any[]): Cell {
   const arg = args[0];

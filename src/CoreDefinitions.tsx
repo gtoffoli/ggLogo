@@ -6,11 +6,12 @@ import { _NOP, _ERROR, _BYE, _TRACK, _UNTRACK, _PAUSE, _CONTINUE, _CATCH, _THROW
 import { _RUN, _REPEAT, _REPCOUNT, _IF, _IFELSE, _TEST, _IFTRUE, _IFFALSE, _FOREVER, _WHILE, _DO_WHILE, _UNTIL, _DO_UNTIL } from './LogoControl';
 import { _WORD, _SENTENCE, _LIST, _FPUT, _LPUT, _FIRST, _LAST, _FIRSTS, _LASTS, _BUTFIRST, _BUTLAST, _BUTFIRSTS, _BUTLASTS, _COUNT, _SPLIT } from './Structures';
 import { _ARRAY, _SETITEM, _ITEM, _SLICE, _LISTTOARRAY, _ARRAYTOLIST } from './Structures';
-import { _LOWERCASE, _UPPERCASE, _ASCII, _CHAR, _WORDP, _LISTP, _EMPTYP, _MEMBERP, _UNION, _INTERSECTION, _REVERSE, _REMDUP } from './Structures';
+import { _LOWERCASE, _UPPERCASE, _ASCII, _CHAR, _WORDP, _LISTP, _EMPTYP, _MEMBERP, _UNION, _INTERSECTION, _REVERSE, _REMDUP, _REMOVE } from './Structures';
 import { _PRIMITIVEP, _DEFINE, _COPYDEF, _RENAME, _TO, _END, _PROCEDUREP, _TEXT, _MAKE, _THING, _LOCAL, _PROCEDURES, _GLOBALS } from './LogoDefine';
 import { _PPROP, _GPROP, _REMPROP, _PLIST } from './LogoDefine';
 import { _NOT, _OR, _AND, _XOR, _EQUALP, _NOTEQUALP, _BITOR, _BITAND, _BITXOR, _BITNOT, _ASHIFT, _LSHIFT } from './Logic';
-import { _ABS, _INT, _ROUND, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _POWER, _EXP, _SQRT, _LOG10, _LN, _RANDOM, _RERANDOM } from './Math';
+import { _ABS, _INT, _ROUND, _SIGN, _MINUS, _SUM, _DIFFERENCE, _PRODUCT, _QUOTIENT, _POWER, _EXP, _SQRT, _LOG10, _LN } from './Math';
+import { _RANDOM, _RERANDOM, _ISEQ, _RSEQ } from './Math';
 import { _NUMBERP, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
 import { _RAD, _SIN, _COS, _TAN, _ARCTAN, _RADSIN, _RADCOS, _RADTAN, _RADARCTAN } from './Math';
 import { _SCREENSIZE, _CANVASSIZE, _SETCANVASSIZE, _BOUNDS, _HOME, _CLEAR, _CS, _WINDOW, _FENCE, _WRAP, _SETTURTLEMODE, _TURTLEMODE, _SETSCALE, _SCALE, _SETBACKGROUNDCOLOR, _BACKGROUNDCOLOR } from './TurtleGraphics';
@@ -520,6 +521,11 @@ export const CORE_DEFINITIONS = {
     args: [{ name: "sequence", type: A_S_L }],
     ref: _REMDUP,
   } as CommandDef,
+  REMOVE: {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "item", type: null }, { name: "sequence", type: A_S_L }],
+    ref: _REMOVE,
+  } as CommandDef,
   UNION: {
     signature: [FunSignature.FUNCTION],
     args: [{ name: "arg1", type: A_L }, { name: "arg2", type: A_L}],
@@ -917,6 +923,16 @@ export const CORE_DEFINITIONS = {
     signature: [FunSignature.ZEROORMORE],
     args: [{ name: "seed", type: A_N }],
     ref: _RERANDOM,
+  } as CommandDef,
+  'ISEQ': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "start", type: A_N }, { name: "end", type: A_N }],
+    ref: _ISEQ,
+  } as CommandDef,
+  'RSEQ': {
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "start", type: A_N }, { name: "end", type: A_N }, { name: "length", type: A_N }],
+    ref: _RSEQ,
   } as CommandDef,
 
   'NOT': {

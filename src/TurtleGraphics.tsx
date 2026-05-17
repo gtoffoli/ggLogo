@@ -378,7 +378,6 @@ function pointsEqual(p1: Point, p2: Point): boolean {
 }
 
 // ora è usata anche da calculateForward, che precedentemente era autonoma
-// function setNewPos(state: TurtleState, p: Point): [ newState: TurtleState, drawingCommand: DrawingCommand] {
 function setNewPos(state: TurtleState, p: Point): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
   var p1: Point = {x: state.x, y: state.y};
   var p2: Point = {x: p.x, y: -p.y};  // LOGO usa Y decrescente verso l'alto

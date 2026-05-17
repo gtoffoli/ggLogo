@@ -366,11 +366,8 @@ export class AsynchronousLogoInterpreter {
 
   private traceFunction(key: string, liv_procedura: number, args?: any[]): void {
     var line = getByValue(key)
-    if (args) {
-      // line = line + ' ' + nodeToString(args, false);
+    if (args)
       line = line + ' ' + nodeToString(args, true);
-    }
-    // line = line + ' ' + liv_procedura + ' ' + liv_contesto + ' ' + contesti.length; 
     this.getCurrentOutput().writeLine(line, 'system');
   }
 
@@ -393,7 +390,6 @@ export class AsynchronousLogoInterpreter {
       // console.log('VALUES', values);
       if (is_traccia)
         this.traceFunction(function_key, ctx.liv_procedura, values);
-        // this.traceFunction(function_key, values);
       var is_exec = false;
       if (ctx.funzione.coreKey === 'TO') {
         ctx.i_token -= 1;
@@ -420,12 +416,10 @@ export class AsynchronousLogoInterpreter {
       else if (classes.includes(FunClass.CANVAS)) {
         const activeWin = this.getState().windows[this.getState().activeWindowId];
         var newWindowState: GraphicWindowState;
-        // var drawingCommand: DrawingCommand;
         var drawingCommands: DrawingCommand[];
         if (is_function)
           result = definition.ref(values, activeWin);
         else
-          // [ newWindowState, drawingCommand ] = definition.ref(values, activeWin);
           [ newWindowState, drawingCommands ] = definition.ref(values, activeWin);
         // Dispatch (Aggiornamento dello Stato Globale)
         if (newWindowState !== undefined) { // è stato calcolato un nuovo windowState: va comunicato
@@ -437,13 +431,10 @@ export class AsynchronousLogoInterpreter {
           });
           this.getState().windows[this.getState().activeWindowId] = newWindowState;
         }
-        // if (drawingCommand !== undefined) { // è stato preparato un nuovo comando
         if (drawingCommands !== undefined) { // è stato preparato un nuovo comando
           this.dispatch({ 
-            // type: 'ADD_DRAWING_COMMAND', 
             type: 'ADD_DRAWING_COMMANDS', 
             windowId: this.getState().activeWindowId,
-            // command: drawingCommand 
             commands: drawingCommands
           });
         }
@@ -454,10 +445,8 @@ export class AsynchronousLogoInterpreter {
           console.log("ERRORE: Nessuna finestra grafica attiva.");
         let turtleStroke: boolean = (turtleStrokes.includes(ctx.funzione.coreKey));
         var newTurtleState: TurtleState;
-        // var drawingCommand: DrawingCommand;
         var drawingCommands: DrawingCommand[];
         if (turtleStroke) {
-          // [ newTurtleState, drawingCommand ] = definition.ref(values, activeWin.turtleState);
           [ newTurtleState, drawingCommands ] = definition.ref(values, activeWin.turtleState);
         } else {
           if (is_function) {
@@ -468,14 +457,10 @@ export class AsynchronousLogoInterpreter {
           }
         }
         // è da aggiungere un'operazione sul canvas
-        // if (turtleStroke) {  // è stato preparato un nuovo comando
-        // if (drawingCommand !== undefined) {
         if (drawingCommands !== undefined) {
           this.dispatch({ 
-            // type: 'ADD_DRAWING_COMMAND', 
             type: 'ADD_DRAWING_COMMANDS', 
             windowId: this.getState().activeWindowId,
-            // command: drawingCommand 
             commands: drawingCommands
           });
         }

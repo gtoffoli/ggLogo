@@ -3,6 +3,7 @@
 
 import { CellType, Cell } from './CoreDefinitions';
 import { throwError } from './Interpreter';
+import { toLogoCell } from './Parser';
 
 function numberp(cell: Cell): boolean {
   return ((cell.type === CellType.NUMBER) || ((cell.type === CellType.WORD) && (! isNaN(parseFloat(cell.val)))))
@@ -124,6 +125,26 @@ export function _TAN(values: any[]): Cell {
 export function _ARCTAN(values: any[]): Cell {
   const arg = values[0].val;
   return { type: CellType.NUMBER, val: Math.atan(arg * 180 / Math.PI) };
+}
+
+// come creare un array di interi in sequenza da M a N ?
+export function _ISEQ(values: any[]): Cell {
+  const start: number = values[0].val;
+  const end: number = values[1].val;
+  const sequence: number[] = Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  return toLogoCell(sequence);
+}
+// come creare un array di N numeri ugualmente distanziati comprendente 2 estremi ?
+function linspace(start: number, end: number, n: number): number[] {
+  if (n <= 0) return [];
+  if (n === 1) return [start];
+  return Array.from({ length: n }, (_, i) => start + (end - start) * (i / (n - 1)));
+}
+export function _RSEQ(values: any[]): Cell {
+  const start: number = values[0].val;
+  const end: number = values[1].val;
+  const n: number = values[2].val;
+  return toLogoCell(linspace(start, end, n));
 }
 
 /* Mulberry32 è un generatore a 32 bit molto semplice ma con ottime proprietà statistiche,
