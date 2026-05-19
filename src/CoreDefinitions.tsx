@@ -15,8 +15,8 @@ import { _RANDOM, _RERANDOM, _ISEQ, _RSEQ } from './Math';
 import { _NUMBERP, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math';
 import { _RAD, _SIN, _COS, _TAN, _ARCTAN, _RADSIN, _RADCOS, _RADTAN, _RADARCTAN } from './Math';
 import { _SCREENSIZE, _CANVASSIZE, _SETCANVASSIZE, _BOUNDS, _HOME, _CLEAR, _CS, _WINDOW, _FENCE, _WRAP, _SETTURTLEMODE, _TURTLEMODE, _SETSCALE, _SCALE, _SETBACKGROUNDCOLOR, _BACKGROUNDCOLOR } from './TurtleGraphics';
-import { _SETPOS, _SETX, _SETY, _SETXY, _TOWARDS, _FD, _BK, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING, _FILL, _FILLSTART, _ARC, _CIRCLE } from './TurtleGraphics';
-import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _PENSIZE, _SETPENSIZE, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './TurtleGraphics';
+import { _SETPOS, _SETX, _SETY, _SETXY, _TOWARDS, _FD, _BK, _LABEL, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING, _FILL, _FILLSTART, _ARC, _CIRCLE } from './TurtleGraphics';
+import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _PENSIZE, _SETPENSIZE, _FONT, _SETFONT, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './TurtleGraphics';
 import { _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR } from './Communication';
 import { _TIME, _SETTIME, _WAIT, _MIDIOPEN, _MIDICLOSE, _MIDILOADINSTRUMENT, _MIDI, _MIDICHANNELS, _MIDIMSG, _MIDIPLAY, _BLUEDEVICES } from './TimeMusic';
 
@@ -272,7 +272,7 @@ const A_F_S = Arg.NOMEARC + Arg.STRINGA;
 const A_F_S_L = Arg.NOMEARC + Arg.STRINGA + Arg.LISTA;
 const A_F_LW_S_L = Arg.NOMEARC + Arg.LISTAPAR + Arg.STRINGA + Arg.LISTA;
 
-export const turtleStrokes = ['CS', 'CLEAR', 'SETPOS', 'SETXY', 'SETX', 'SETY', 'FD', 'BK', 'FILL', 'ARC', 'CIRCLE'];
+export const turtleStrokes = ['CS', 'CLEAR', 'SETPOS', 'SETXY', 'SETX', 'SETY', 'FD', 'BK', 'FILL', 'ARC', 'CIRCLE', 'LABEL'];
 
 // Mappa che contiene tutte le definizioni (la LOGICA del tuo interprete)
 export const CORE_DEFINITIONS = {
@@ -370,6 +370,11 @@ export const CORE_DEFINITIONS = {
     args: [{ name: "distanza", type: A_N }],
     ref: _BK,
   } as CommandDef,
+  LABEL: {
+    classes: [FunClass.TURTLE],
+    args: [{ name: "text", type: A_W_S_L }],
+    ref: _LABEL,
+  } as CommandDef,
   RT: {
     classes: [FunClass.TURTLE],
     args: [{ name: "angolo", type: A_N }],
@@ -422,6 +427,16 @@ export const CORE_DEFINITIONS = {
     classes: [FunClass.TURTLE],
     args: [{ name: "colore", type: A_LN_N_L }],
     ref: _SETPENSIZE,
+  } as CommandDef,
+  FONT: {
+    classes: [FunClass.TURTLE],
+    signature: [FunSignature.FUNCTION],
+    ref: _FONT,
+  } as CommandDef,
+  SETFONT: {
+    classes: [FunClass.TURTLE],
+    args: [{ name: "font", type: A_W_S_L }, { name: "size", type: A_N, optional: true }, { name: "mode", type: A_W_S, optional: true }],
+    ref: _SETFONT,
   } as CommandDef,
   PENMODE: {
     classes: [FunClass.TURTLE],

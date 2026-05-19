@@ -20,7 +20,7 @@ export type DrawingCommand =
   | { type: 'ARC', x: number, y: number, radius: number, startAngle: number, endAngle: number, color: string, fillColor: string | null }
   | { type: 'CLEAR_CANVAS' };
 
-// 1. Definisce lo stato specifico di una Finestra Grafica (Canvas/Tartaruga)
+// Definisce lo stato specifico di una Tartaruga, all'interno di una finestra grafica
 export interface TurtleState {
   x: number;
   y: number;
@@ -28,11 +28,15 @@ export interface TurtleState {
   penDown: boolean;
   penColor: string; // Basato sul parametro PENCOLOR
   penSize: number;
+  labelFont: string;
+  labelHeight: number;
+  labelMode: 'TOP' | 'MIDDLE' | 'BOTTOM'  | 'ALPHABETIC';
   penMode: 'PAINT' | 'ERASE'  | 'REVERSE';
   visible: boolean;
   // ... altri stati grafici (es. fillcolor, turtleshape)
 }
 
+// Definisce lo stato specifico di una Finestra Grafica (Canvas)
 export interface GraphicWindowState {
   windowId: string; // ID univoco, es. "TARTA" o "finestra2"
   name: string;

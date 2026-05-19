@@ -193,7 +193,6 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
             ctx.lineTo(x + centerX, centerY + y);
             // ctx.lineWidth = 1;
             ctx.lineWidth = windowState.turtleState.penSize;
-            // ctx.strokeStyle = color;
             ctx.strokeStyle = (turtle.penMode === 'PAINT') ? color : windowState.backgroundColor;
             ctx.stroke();
           } else {
@@ -225,6 +224,23 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
           ctx.closePath(); // Chiude automaticamente la figura
           ctx.fillStyle = fillColor;
           ctx.fill();
+          break;
+
+        case 'LABEL':
+          var { text, x, y, heading, font, color } = currentCmd;
+          console.log('LABEL', text, x, y, heading, font, color, centerX, centerY);
+          ctx.save(); // Salva lo stato corrente (posizione, colore, rotazione)
+          ctx.translate(centerX, centerY); // Sposta l'origine degli assi sulla tartaruga
+          ctx.rotate(heading); // Ruota gli assi in base alla direzione della tarta
+          ctx.textAlign = 'center'; // Allinea il testo in orizzontale ('left' / 'center' / 'right' / 'start' / 'end')
+          ctx.textBaseline = 'middle'; // Allinea il testo in verticale ('top' / 'middle' / 'bottom' / 'alphabetic')
+          ctx.font = font;
+          ctx.fillStyle = color;
+          ctx.fillText(text, x, y);
+          // ctx.strokeStyle = 'green';
+          // ctx.strokeText(text, x, y);
+          console.log('LABEL', text,  x + centerX, y + centerY, ctx);
+          ctx.restore();
           break;
 
         case 'CLEAR_CANVAS':

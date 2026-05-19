@@ -6,7 +6,7 @@ import { GraphicWindowState, TurtleState, DrawingCommand } from './LogoState';
 import { initialTurtleState } from './logoReducer';
 import { keywordResolver, getByValue, colorResolver } from './UseLocalization';
 import { throwError } from './Interpreter';
-import { nodeToString } from './Parser';
+import { toLogoCell, nodeToString } from './Parser';
 
 const screenModes = ['OPEN', 'CLOSED', 'WRAP'];
 var screenMode: string = 'CLOSED'; // 'WRAP';
@@ -141,6 +141,12 @@ export function _BK(values: any[], state: TurtleState): [ newState: TurtleState,
 	const distance: number = -(values[0].val);
 	return calculateForward(state, distance);
 }
+// similar to jslogo LABEL and Terrapin Logo TURTLETEXT
+export function _LABEL(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
+  const text: string = nodeToString(values[0], false);
+  console.log('_LABEL', text);
+  return calculateLabel(state, text);
+}
 
 export function _RT(values: any[], state: TurtleState): TurtleState {
 	const angle: number = values[0].val;
@@ -238,6 +244,40 @@ export function _SETPENSIZE(values: any[], state: TurtleState): TurtleState | nu
       ...state, 
       penSize: size
     };
+}
+
+export function _SETFONT(values: any[], state: TurtleState): TurtleState | null {
+  var fontFamily: string;
+  var fontHeight: number = 20;
+  var labelMode: string = 'top';
+  if (values[0].type === CellType.LIST) {
+    const fontList = values[0].val;
+    fontFamily = fontList[0].val;
+    if (fontList.length > 1) {
+      fontHeight = parseInt(fontList[1].val);
+      if (fontList.length > 2)
+        labelMode = fontList[2].val;
+    }
+  }
+  else {
+    fontFamily = values[0].val;
+    if (values.length > 1) {
+      fontHeight = parseInt(values[1].val);
+      if (values.length > 2)
+        labelMode = values[2].val;
+    }
+  }
+  const newState: TurtleState = { 
+    ...state,
+    labelFont: fontFamily,
+    labelHeight: fontHeight,
+    labelMode: labelMode
+  };
+  return newState; 
+}
+export function _FONT(values: any[], state: TurtleState): Cell {
+  const font: any[] = [state.labelFont, state.labelHeight, state.labelMode];
+  return toLogoCell(font);
 }
 
 export function _PENMODE(values: any[], state: TurtleState): Cell {
@@ -440,6 +480,26 @@ export function calculateForward(state: TurtleState, distance: number): [ newSta
   var newY = - precision(state.y - distance * Math.cos(rad)); // LOGO usa Y decrescente verso l'alto
 
   return setNewPos(state, { x: newX, y: newY });
+}
+
+/**
+ * Calcola il comando (...) da inviare al canvas e il nuovo stato (pos) della tartaruga dopo un comando LABEL
+ */
+export function calculateLabel(state: TurtleState, text: string): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
+  const newState: TurtleState = state;
+  var drawingCommands: DrawingCommand[] = [];
+  const font: string = state.labelHeight.toString() + 'px ' + state.labelFont;
+  const drawingCommand: DrawingCommand = {
+    type: 'LABEL',
+    text: text,
+    x: state.x,
+    y: state.y,
+    heading: ((state.heading-90) % 360) * Math.PI/180,
+    font: font,
+    color: state.penColor // Segue il colore della penna
+  };
+  drawingCommands.push(drawingCommand);
+  return [ newState, drawingCommands ];
 }
 
 /**
