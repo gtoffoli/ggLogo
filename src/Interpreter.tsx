@@ -35,8 +35,6 @@ var min_args = 0;   // to be computed based on the 'args' slot of a definition
 var max_args = 0;   // to be computed based on the 'args' slot of a definition
 var is_function = false;// true if primitive returns a result
 
-const N_MINIMO = 1; // minimo numero di argomenti per la funzione corrente
-
 var isInterrupting: boolean = false;
 export function setInterruption(value: boolean) { isInterrupting = value; }
 
@@ -351,14 +349,12 @@ export class AsynchronousLogoInterpreter {
     var definition; // vincoli sul valore di un argomento, dalla definizione della funzione
     for (var i=0; i<n; i++) { // controlla la validità di ogni argomento
       arg = raw_values[i];
-      // definition = arg_definitions[Math.min(i, n-1)]; // tiene conto di argomenti in numero indefinito
       definition = arg_definitions[Math.min(i, arg_definitions.length-1)]; // tiene conto di argomenti in numero indefinito
       console.log('get_values', n, i, n-1);
       checked_arg = this.check_arg(arg, definition);
       if (checked_arg)
         values.push(checked_arg);
       else
-        // throwError('e05', function_key, arg.val);
         throwError('e05', function_key, arg);
     }
     return values;
@@ -698,35 +694,31 @@ export class AsynchronousLogoInterpreter {
                 ) ctx.parentesi = ctx.liv_funzione + 1;
               break;
             case Delimiter.DEL_PARDESTRA:
-              // parenout(ctx, 1);
               if (ctx.conto_parentesi == 0) {
                 throwError('e14', function_key);
               }
               else if (ctx.parentesi === ctx.liv_funzione) {
                 this.get_function(ctx);
-                // if ((!zeroormore) && (ctx.n_arg_trovati < N_MINIMO)) {
                 if ((!zeroormore) && (ctx.n_arg_trovati < min_args)) {
                   throwError('e11', function_key);
                 }
-                // else if ((!oneormore) && (ctx.n_arg_trovati > /*N_MASSIMO*/ ctx.n_arg_attesi)) {
-                else if ((!zeroormore) && (!oneormore) && (ctx.n_arg_trovati > /*N_MASSIMO*/ ctx.n_arg_attesi)) {
+                // else if ((!zeroormore) && (!oneormore) && (ctx.n_arg_trovati > /*N_MASSIMO*/ ctx.n_arg_attesi))
+                else if ((!zeroormore) && (!oneormore) && (ctx.n_arg_trovati > /*N_MASSIMO*/ max_args))
                   throwError('e11', function_key);
-                }
                 else {
+/*
                   var values = this.get_values(ctx);
                   var result = null;
-                  if (is_function) {
+                  if (is_function)
                     result = definition.ref(values);
-                    // console.log('+++ IS_FUNCTION', values, result);
-                  }
-                  else {
+                  else
                     definition.ref(values);
-                    // console.log('--- NOT IS_FUNCTION', values);
-                  }
                   sf_out(ctx);
                   if (result !== null) {
                     push_arg(ctx, result);
-                  }
+                  }                 
+*/
+                  result = await this.executeFunction(ctx);
                   this.currentCommand = null;
                   parenout(ctx, 1);
                 };
@@ -786,7 +778,7 @@ export class AsynchronousLogoInterpreter {
         if (   (ctx.funzione)
               && (   (ctx.n_arg_trovati === ctx.n_arg_attesi) // trovato numero minimo di argomenti e ..
                   && (   (ctx.parentesi != ctx.liv_funzione)  // gli argomenti non sono chiusi da parentesi oppure ..
-                      || ((!zeroormore) && (!oneormore))      // si deve attendere la parentesi chiusa
+//                    || ((!zeroormore) && (!oneormore))      // si deve attendere la parentesi chiusa
                      ) 
                  )
              ) {

@@ -144,8 +144,10 @@ export function _BK(values: any[], state: TurtleState): [ newState: TurtleState,
 // similar to jslogo LABEL and Terrapin Logo TURTLETEXT
 export function _LABEL(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
   const text: string = nodeToString(values[0], false);
-  console.log('_LABEL', text);
-  return calculateLabel(state, text);
+  var modes: any[] = [];
+  if (values.length > 1)
+    modes = values[1].val;
+  return calculateLabel(state, text, modes);
 }
 
 export function _RT(values: any[], state: TurtleState): TurtleState {
@@ -472,8 +474,7 @@ function setNewPos(state: TurtleState, p: Point): [ newState: TurtleState, drawi
 /**
  * Calcola il comando (LINE_TO o MOVE_TO) da inviare al canvas e il nuovo stato (pos) della tartaruga dopo un comando tipo FD o BK
  */
-// export function calculateForward(state: TurtleState, distance: number): [ newState: TurtleState, drawingCommand: DrawingCommand] {
-export function calculateForward(state: TurtleState, distance: number): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
+function calculateForward(state: TurtleState, distance: number): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
   const rad = state.heading * Math.PI / 180;
   var newX = precision(state.x + distance * Math.sin(rad));
   // var newY = precision(state.y - distance * Math.cos(rad)); // LOGO usa Y decrescente verso l'alto
@@ -483,9 +484,10 @@ export function calculateForward(state: TurtleState, distance: number): [ newSta
 }
 
 /**
- * Calcola il comando (...) da inviare al canvas e il nuovo stato (pos) della tartaruga dopo un comando LABEL
+ * Calcola il comando (...) da inviare al canvas a fronte di un comando LABEL
+ * FARE IL PARSE DELL'ARGOMENTO OPZIONALE modes CHE PUO' MODIFICARE heading E font !!!
  */
-export function calculateLabel(state: TurtleState, text: string): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
+function calculateLabel(state: TurtleState, text: string, modes: any[]): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
   const newState: TurtleState = state;
   var drawingCommands: DrawingCommand[] = [];
   const font: string = state.labelHeight.toString() + 'px ' + state.labelFont;
@@ -505,7 +507,7 @@ export function calculateLabel(state: TurtleState, text: string): [ newState: Tu
 /**
  * Calcola il nuovo stato della tartaruga dopo un comando DESTRA/RT.
  */
-export function calculateRight(state: TurtleState, angle: number): TurtleState {
+function calculateRight(state: TurtleState, angle: number): TurtleState {
   const newHeading = (state.heading + angle) % 360;
   const newState: TurtleState = { 
     ...state, 

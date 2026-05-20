@@ -90,6 +90,7 @@ export const IT_MAP: LanguageMap = {
   "ESEGUI.FINCHÉ": "DO.UNTIL",
   "ESP": "EXP",
   "ETICHETTA": "LABEL",
+  "ETI": "LABEL",
   "FINE": "END",
   "FINESTRA": "WINDOW",
   "FINCHE": "UNTIL",

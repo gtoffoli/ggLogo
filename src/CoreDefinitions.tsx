@@ -200,15 +200,6 @@ export type ParamDef = {
   max?: number;
 };
 
-/*
-#define N_NOMINALE	(descr_sf.descr & 0x0F)
-#define N_MINIMO	((descr_sf.descr >> 4) & 0x0F)
-#define N_MASSIMO	((descr_sf.descr >> 8) & 0x0F)	// 980709
-// #define N_ILLIMITATO	(descr_sf.classi & 0x40)
-// #define IS_PR_FUNZIONE	(descr_sf.classi & 0x80)
-#define N_ILLIMITATO	(descr_sf.descr & 0x1000)
-#define IS_PR_FUNZIONE	(descr_sf.descr & 0x2000)
-*/
 export enum FunSignature {
 	FUNCTION = 1,	// primitive that outputs a result
 	ZEROORMORE = 2,	// primitive with zero or more arguments (max number undefined)
@@ -372,7 +363,7 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
   LABEL: {
     classes: [FunClass.TURTLE],
-    args: [{ name: "text", type: A_W_S_L }],
+    args: [{ name: "text", type: A_W_S_L }, { name: "mode", type: A_L, optional: true }],
     ref: _LABEL,
   } as CommandDef,
   RT: {
