@@ -5,7 +5,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { isSeparator, CORE_DEFINITIONS, CommandDef, ParamDef } from './CoreDefinitions';
-import { LANGUAGE_MAPS, LanguageMap, CoreDefinitionKeys, COLOR_MAPS, copyActiveMapItem } from './LocalizationMaps';
+import { LANGUAGE_MAPS, LanguageMap, CoreDefinitionKeys, PROPERTY_MAPS, copyActiveMapItem } from './LocalizationMaps';
 
 export type LanguageCode = keyof typeof LANGUAGE_MAPS;
 
@@ -43,18 +43,35 @@ export const useLocalization = (initialLang: LanguageCode = 'it'): InterpreterCo
 
 import { shared_langCode } from './LogoShell';
 
-export function keywordResolver(keyword: string): string {
-  // Cerca la keyword all'interno della mappa linguistica attiva
+// export function keywordResolver(keyword: string): string {
+// normalizza una stringa in lingua usando la mappa dei nomi di primitiva
+export function keywordResolver(keyword: string, letterCase = 'upper'): string {
   const activeMap = LANGUAGE_MAPS[shared_langCode];
-  const coreKey: string | undefined = activeMap[keyword.toUpperCase()];
+  const coreKey: string | undefined = (letterCase === 'lower') ? activeMap[keyword.toLowerCase()] : activeMap[keyword.toUpperCase()];
   console.log('keywordResolver', keyword, coreKey);
   // Se non trovato, potrebbe essere una Keyword non tradotta o non valida
   return (coreKey) ? coreKey : undefined;
 }
+// riporta una lista di numeri e stringhe, normalizzando le stringhe in base ad una mappa quando possibile
+export function keywordsResolver(sequence: any[], letterCase = 'lower'): any[] {
+  const activeMap = PROPERTY_MAPS[shared_langCode];
+  const results: any[] = sequence.reduce<any[]>((acc, item) => {
+    var coreKey: string | undefined;
+    if (isNaN(item)) {
+      item = (letterCase === 'lower') ? item.toLowerCase() : item.toUpperCase();
+      coreKey = activeMap[item];
+      acc.push((coreKey) ? coreKey : item);
+    }
+    else
+      acc.push(item);
+    return acc;
+  }, []);
+  return results;
+}
 
 export function colorResolver(keyword: string): string {
   // Cerca la keyword all'interno della mappa linguistica attiva
-  const activeMap = COLOR_MAPS[shared_langCode];
+  const activeMap = PROPERTY_MAPS[shared_langCode];
   const coreKey: string | undefined = activeMap[keyword.toLowerCase()];
   // Se non trovato, potrebbe essere una Keyword non tradotta o non valida
   return (coreKey) ? coreKey : keyword;

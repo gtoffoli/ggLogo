@@ -4,7 +4,7 @@
 import { CellType, Cell, CommandDef } from './CoreDefinitions';
 import { GraphicWindowState, TurtleState, DrawingCommand } from './LogoState';
 import { initialTurtleState } from './logoReducer';
-import { keywordResolver, getByValue, colorResolver } from './UseLocalization';
+import { keywordResolver, keywordsResolver, getByValue, colorResolver } from './UseLocalization';
 import { throwError } from './Interpreter';
 import { toLogoCell, nodeToString } from './Parser';
 
@@ -141,13 +141,37 @@ export function _BK(values: any[], state: TurtleState): [ newState: TurtleState,
 	const distance: number = -(values[0].val);
 	return calculateForward(state, distance);
 }
-// similar to jslogo LABEL and Terrapin Logo TURTLETEXT
+/*
 export function _LABEL(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
   const text: string = nodeToString(values[0], false);
   var modes: any[] = [];
-  if (values.length > 1)
-    modes = values[1].val;
+  if (values.length > 1) {
+    modes = values[1].val.map((n: Cell) => n.val);
+    modes = keywordsResolver(modes, 'upper');
+    console.log('_LABEL modes:', modes);
+  }
   return calculateLabel(state, text, modes);
+}
+*/
+// similar to jslogo LABEL and Terrapin Logo TURTLETEXT
+// like _SETFONT (see) accepts multiple arguments both in parentheses and in square brackets
+export function _LABEL(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
+  var labelHeading: number | string;
+  var head; // at a certain time, the word or list defining the label text
+  var tail; // possibly, all args but the label text
+  var heading; // could define the heading specific to a text label on the canvas
+  var modes; // not extracted and used yet
+  var [head, ...tail] = values; // the original arguments destructured
+  if ((values.length === 1) && (head.type === CellType.LIST) && (head.val[0].type === CellType.LIST))
+    [head, heading, modes] = head.val; // only 1 arg whose value is a cell list
+  else // more args: the tail must be destructured yet
+    [heading, modes] = tail;
+  const labelText: string = nodeToString(head, false);
+  if (heading) // heading può essere undefined
+    labelHeading = heading.val;
+  if (isNaN(labelHeading)) // labelHeading può essere undefined
+    labelHeading = state.heading; // defaults to the Turtle heading
+  return calculateLabel(state, labelText, labelHeading, modes);
 }
 
 export function _RT(values: any[], state: TurtleState): TurtleState {
@@ -247,38 +271,33 @@ export function _SETPENSIZE(values: any[], state: TurtleState): TurtleState | nu
       penSize: size
     };
 }
-
+// accepts multiple arguments both in parentheses and in square brackets
 export function _SETFONT(values: any[], state: TurtleState): TurtleState | null {
-  var fontFamily: string;
-  var fontHeight: number = 20;
-  var labelMode: string = 'top';
-  if (values[0].type === CellType.LIST) {
-    const fontList = values[0].val;
-    fontFamily = fontList[0].val;
-    if (fontList.length > 1) {
-      fontHeight = parseInt(fontList[1].val);
-      if (fontList.length > 2)
-        labelMode = fontList[2].val;
-    }
-  }
-  else {
-    fontFamily = values[0].val;
-    if (values.length > 1) {
-      fontHeight = parseInt(values[1].val);
-      if (values.length > 2)
-        labelMode = values[2].val;
-    }
-  }
+  var fontHeight: number | string;
+  var head; // at a certain time, the word or list defining the font family
+  var tail; // possibly, all args but the font family
+  var size; // could define the font size
+  var modifiers; // not extracted and used yet
+  var [head, ...tail] = values; // the original arguments destructured
+  if ((values.length === 1) && (head.type === CellType.LIST) && (head.val[0].type === CellType.LIST))
+    [head, size, modifiers] = head.val; // only 1 arg whose value is a cell list
+  else // more args: the tail must be destructured yet
+    [size, modifiers] = tail;
+  const fontFamily: string = nodeToString(head, false);
+  if (size) // size può essere undefined
+    fontHeight = size.val;
+  if (isNaN(fontHeight)) // fontHeight può essere undefined
+    fontHeight = state.labelHeight;
+  console.log('_SETFONT', head, size, modifiers, fontFamily, fontHeight);
   const newState: TurtleState = { 
     ...state,
     labelFont: fontFamily,
-    labelHeight: fontHeight,
-    labelMode: labelMode
+    labelHeight: fontHeight
   };
   return newState; 
 }
 export function _FONT(values: any[], state: TurtleState): Cell {
-  const font: any[] = [state.labelFont, state.labelHeight, state.labelMode];
+  const font: any[] = [state.labelFont, state.labelHeight];
   return toLogoCell(font);
 }
 
@@ -487,7 +506,7 @@ function calculateForward(state: TurtleState, distance: number): [ newState: Tur
  * Calcola il comando (...) da inviare al canvas a fronte di un comando LABEL
  * FARE IL PARSE DELL'ARGOMENTO OPZIONALE modes CHE PUO' MODIFICARE heading E font !!!
  */
-function calculateLabel(state: TurtleState, text: string, modes: any[]): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
+function calculateLabel(state: TurtleState, text: string, heading: number, modes: any[]): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
   const newState: TurtleState = state;
   var drawingCommands: DrawingCommand[] = [];
   const font: string = state.labelHeight.toString() + 'px ' + state.labelFont;
@@ -496,7 +515,7 @@ function calculateLabel(state: TurtleState, text: string, modes: any[]): [ newSt
     text: text,
     x: state.x,
     y: state.y,
-    heading: ((state.heading-90) % 360) * Math.PI/180,
+    heading: ((heading-90) % 360) * Math.PI/180,
     font: font,
     color: state.penColor // Segue il colore della penna
   };

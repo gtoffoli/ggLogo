@@ -363,7 +363,7 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
   LABEL: {
     classes: [FunClass.TURTLE],
-    args: [{ name: "text", type: A_W_S_L }, { name: "mode", type: A_L, optional: true }],
+    args: [{ name: "text", type: A_W_S_L }, { name: "heading", type: A_N, optional: true }, { name: "mode", type: A_L, optional: true }],
     ref: _LABEL,
   } as CommandDef,
   RT: {
@@ -426,7 +426,7 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
   SETFONT: {
     classes: [FunClass.TURTLE],
-    args: [{ name: "font", type: A_W_S_L }, { name: "size", type: A_N, optional: true }, { name: "mode", type: A_W_S, optional: true }],
+    args: [{ name: "font", type: A_W_S_L }, { name: "size", type: A_N, optional: true }, { name: "modifiers", type: A_LW_L, optional: true }],
     ref: _SETFONT,
   } as CommandDef,
   PENMODE: {

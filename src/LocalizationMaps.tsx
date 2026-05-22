@@ -478,7 +478,8 @@ export const LANGUAGE_MAPS: Record<string, LanguageMap> = {
 };
 
 // Mappa per l'Inglese
-export const EN_COLORS: LanguageMap = {
+export const EN_PROPERTIES: LanguageMap = {
+  // colors
   "black": "black",
   "blue": "blue",
   "lime": "lime",
@@ -495,11 +496,21 @@ export const EN_COLORS: LanguageMap = {
   "purple": "purple",
   "orange": "orange",
   "gray": "gray",
+  // other CSS property values
+  "start": "start",
+  "left": "left",
+  "center": "center",
+  "right": "right",
+  "end": "end",
+  "top": "top",
+  "middle": "middle",
+  "bottom": "bottom",
+  "alphabetic": "alphabetic",
 }
 
-
 // Mappa per l'Italiano
-export const IT_COLORS: LanguageMap = {
+export const IT_PROPERTIES: LanguageMap = {
+  // colors
   "nero": "black",
   "blu": "blue",
   "verde": "green",
@@ -519,11 +530,21 @@ export const IT_COLORS: LanguageMap = {
   "viola": "purple",
   "arancio": "orange",
   "grigio": "gray",
+  // other CSS property values
+  "start": "start",
+  "left": "left",
+  "center": "center",
+  "right": "right",
+  "end": "end",
+  "top": "top",
+  "middle": "middle",
+  "bottom": "bottom",
+  "alphabetic": "alphabetic",
 }
 
-export const COLOR_MAPS: Record<string, string> = {
-  'it': IT_COLORS,
-  'en': EN_COLORS,
+export const PROPERTY_MAPS: Record<string, string> = {
+  'it': IT_PROPERTIES,
+  'en': EN_PROPERTIES,
   // ... altre lingue ...
 };
 

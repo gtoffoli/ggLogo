@@ -30,7 +30,6 @@ export interface TurtleState {
   penSize: number;
   labelFont: string;
   labelHeight: number;
-  labelMode: 'TOP' | 'MIDDLE' | 'BOTTOM'  | 'ALPHABETIC';
   penMode: 'PAINT' | 'ERASE'  | 'REVERSE';
   visible: boolean;
   // ... altri stati grafici (es. fillcolor, turtleshape)

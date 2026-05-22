@@ -17,7 +17,6 @@ export const initialTurtleState: TurtleState = {
   penSize: 1,
   labelFont: 'sans-serif',
   labelHeight: 20,
-  labelMode: 'MIDDLE',
   penMode: 'PAINT',
   visible: true,
 };
