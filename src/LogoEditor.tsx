@@ -152,7 +152,7 @@ const Editor: React.FC = () => {
 
   // Menu per l'Area C (Editor LOGO)
   const menuC = [
-  { label: 'File', submenu: [
+  { label: t('menu.file'), submenu: [
     { label: t('menu.clear'), action: handleClear },
     { label: t('menu.load'), action: handleFileLoad },
     { label: t('menu.save'), action: handleFileSave },

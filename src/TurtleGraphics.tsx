@@ -272,6 +272,7 @@ export function _SETPENSIZE(values: any[], state: TurtleState): TurtleState | nu
     };
 }
 // accepts multiple arguments both in parentheses and in square brackets
+// see _LABEL for similar interpretation of the signature
 export function _SETFONT(values: any[], state: TurtleState): TurtleState | null {
   var fontHeight: number | string;
   var head; // at a certain time, the word or list defining the font family

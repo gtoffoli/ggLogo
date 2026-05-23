@@ -105,7 +105,7 @@ const Browser: React.FC = () => {
 
   // Menu per l'Area E (Browser LOGO)
   const menuE = [
-  { label: 'File', submenu: [
+  { label: t('menu.file'), submenu: [
     { label: t('menu.open_web'), action: handleOpenWeb, requiresInput: true },
     { label: t('menu.open_doc'), action: handleOpenLocal, requiresInput: true },
     { label: t('menu.print'), action: handlePrint },

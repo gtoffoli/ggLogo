@@ -7,7 +7,7 @@ import './i18n';
 import * as fflate from 'fflate';
 import { useTranslation } from 'react-i18next';
 import PanelContainer from './PanelContainer';
-import { useLocalization, LanguageCode } from './UseLocalization';
+import { useLocalization, LanguageCode, loadLanguagePack } from './UseLocalization';
 import { useLogoState } from './LogoStateContext';
 import { setInterruption } from './Interpreter';
 import { stopAsynchronousActivities } from './LogoControl';
@@ -197,7 +197,11 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
   const { t, i18n } = useTranslation();
 
     // Azione 1: Imposta la lingua (usa l'hook di localizzazione)
-    const handleSetLanguage = (langCode: LanguageCode) => {
+    const handleSetLanguage = async (langCode: LanguageCode) => {
+        if (langCode === 'fr') {
+          const langData = await loadLanguagePack(langCode);
+          console.log('handleSetLanguage', langData);
+        }
         setLanguage(langCode); // Questa funzione aggiorna lo stato della lingua usato da LocalizationMaps
         i18n.changeLanguage(langCode); // Questa funzione aggiorna lo stato della lingua usato da i18n
         shared_langCode = langCode;
@@ -226,7 +230,7 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
   // Menu per l'Area B (Interprete/Console)
   const menuB = [
 	// Menu File
-	{ label: 'File', submenu: [
+	{ label: t('menu.file'), submenu: [
 	  { label: t('menu.load'), action: handleFileLoad },
 	  { label: t('menu.save'), action: () => alert('Salva...') },
 	]},
@@ -247,6 +251,7 @@ const LogoShell: React.FC = ({ activeLang, setLanguage }) => {
 	{ label: t('menu.language'), submenu: [
 	  { label: 'Italiano', action: () => handleSetLanguage('it'), active: activeLang === 'it' },
 	  { label: 'English', action: () => handleSetLanguage('en'), active: activeLang === 'en' },
+    { label: 'Français', action: () => handleSetLanguage('fr'), active: activeLang === 'fr' },
  	]},
   ];
 

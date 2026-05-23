@@ -6,6 +6,7 @@
 import React, { useState, useMemo } from 'react';
 import { isSeparator, CORE_DEFINITIONS, CommandDef, ParamDef } from './CoreDefinitions';
 import { LANGUAGE_MAPS, LanguageMap, CoreDefinitionKeys, PROPERTY_MAPS, copyActiveMapItem } from './LocalizationMaps';
+import { LogoError } from './Interpreter';
 
 export type LanguageCode = keyof typeof LANGUAGE_MAPS;
 
@@ -80,7 +81,9 @@ export function colorResolver(keyword: string): string {
 export function commandResolver(commandName: string): CoreDefinitionKeys {
   // Cerca il nome del comando all'interno della mappa linguistica attiva
   const activeMap = LANGUAGE_MAPS[shared_langCode];
-  const coreKey: CoreDefinitionKeys | undefined = activeMap[commandName.toUpperCase()];
+  var coreKey: CoreDefinitionKeys | undefined = activeMap[commandName.toUpperCase()];
+  if (!coreKey)
+    coreKey = activeMap[commandName.toLowerCase()];
   // Riporta il nome del comando risolto solo se è una keyword in CORE_DEFINITIONS
   if (coreKey && CORE_DEFINITIONS[coreKey])
       return coreKey;
@@ -107,3 +110,19 @@ export function copyActiveMapItem(newName: string, oldName: string, deleteOld: b
   activeMap[newName.toUpperCase()] = coreKey;
   if (deleteOld) delete activeMap[oldName.toUpperCase()];
 }
+
+export async function loadLanguagePack(langCode: string) {
+  try {
+    const response = await fetch(`/languages/${langCode}.json`);
+    if (!response.ok) throw new LogoError("Lingua non trovata");
+    const langData = await response.json();
+    LANGUAGE_MAPS[langCode] = langData['primitives'];
+    PROPERTY_MAPS[langCode] = langData['properties'];
+    // Ora aggiorni il tuo stato globale dell'interprete
+    // updateInterpreterDictionary(langData);
+    return langData;
+  } catch (error) {
+    console.error("Errore nel caricamento della lingua:", error);
+  }
+}
+

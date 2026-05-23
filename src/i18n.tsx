@@ -7,6 +7,7 @@ import { initReactI18next } from 'react-i18next';
 // 1. Importa i dati (Assicurati che il percorso sia corretto rispetto a i18n.tsx)
 import translationEN from '../public/locales/en/translation.json'; 
 import translationIT from '../public/locales/it/translation.json';
+import translationFR from '../public/locales/fr/translation.json';
 
 const resources = {
   en: {
@@ -14,6 +15,9 @@ const resources = {
   },
   it: {
     translation: translationIT,
+  },
+  fr: {
+    translation: translationFR,
   },
 };
 

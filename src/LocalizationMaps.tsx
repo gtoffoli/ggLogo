@@ -6,6 +6,7 @@ import { CoreDefinitionKeys } from './CoreDefinitions';
 export const languageVoc = {
 	'en': 'english',
 	'it': 'italiano',
+  'fr': 'français',
 }
 
 // Tipo che definisce la Mappa di una lingua:
@@ -471,9 +472,10 @@ export const EN_MAP: LanguageMap = {
   "CLOSED": "CLOSED",
 };
 
-export const LANGUAGE_MAPS: Record<string, LanguageMap> = {
+export var LANGUAGE_MAPS: Record<string, LanguageMap> = {
   'it': IT_MAP,
   'en': EN_MAP,
+  // 'fr': FR_MAP,
   // ... altre lingue ...
 };
 
@@ -545,6 +547,7 @@ export const IT_PROPERTIES: LanguageMap = {
 export const PROPERTY_MAPS: Record<string, string> = {
   'it': IT_PROPERTIES,
   'en': EN_PROPERTIES,
+  'fr': EN_PROPERTIES,
   // ... altre lingue ...
 };
 
