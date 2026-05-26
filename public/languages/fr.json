@@ -19,6 +19,8 @@
     "couleur": "SETPENCOLOR",
     "fixecouleurécran": "SETBACKGROUNDCOLOR",
     "fcé": "SETBACKGROUNDCOLOR",
+    "couleurremplissage": "FILLCOLOR",
+    "fixecouleurremplissage": "SETFILLCOLOR",
     "ASDIMCAMPO": "SETCANVASSIZE",
     "ASSFONDO": "SETBACKGROUNDCOLOR",
     "fixecap": "SETHEADING",

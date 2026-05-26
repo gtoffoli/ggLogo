@@ -7,6 +7,7 @@
   },
  "menu": {
     "turtle": "Turtle",
+    "reset": "Reset",
     "home": "Home",
     "hide_show": "Hide/show Turtle",
     "image": "Image",

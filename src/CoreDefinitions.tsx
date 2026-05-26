@@ -16,7 +16,7 @@ import { _NUMBERP, _LESSP, _LESSEQUALP, _GREATERP, _GREATEREQUALP } from './Math
 import { _RAD, _SIN, _COS, _TAN, _ARCTAN, _RADSIN, _RADCOS, _RADTAN, _RADARCTAN } from './Math';
 import { _SCREENSIZE, _CANVASSIZE, _SETCANVASSIZE, _BOUNDS, _HOME, _CLEAR, _CS, _WINDOW, _FENCE, _WRAP, _SETTURTLEMODE, _TURTLEMODE, _SETSCALE, _SCALE, _SETBACKGROUNDCOLOR, _BACKGROUNDCOLOR } from './TurtleGraphics';
 import { _SETPOS, _SETX, _SETY, _SETXY, _TOWARDS, _FD, _BK, _LABEL, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING, _FILL, _FILLSTART, _ARC, _CIRCLE } from './TurtleGraphics';
-import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _PENSIZE, _SETPENSIZE, _FONT, _SETFONT, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './TurtleGraphics';
+import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _FILLCOLOR, _SETFILLCOLOR, _PENSIZE, _SETPENSIZE, _FONT, _SETFONT, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './TurtleGraphics';
 import { _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR } from './Communication';
 import { _TIME, _SETTIME, _WAIT, _MIDIOPEN, _MIDICLOSE, _MIDILOADINSTRUMENT, _MIDI, _MIDICHANNELS, _MIDIMSG, _MIDIPLAY, _BLUEDEVICES } from './TimeMusic';
 
@@ -112,8 +112,6 @@ export type Context = {
 	liv_esecuzione: number; // nest dei blocchi in proc. corrente
 	val_verifica: boolean | null; // valore ultima condizione verificata
 	conto_esegui: number; // contatore delle iterazioni di un blocco
-	// RepCount: number;
-	// RepTotal: number;
 	n_arg_attesi: number; // numero di parametri atteso dalla funzione corrente
 	n_arg_trovati: number; // numero di oggetti sullo stack per la fun corrente
 	parentesi: number; // = liv_funzione se sfun corr. e' preceduta da "("
@@ -121,7 +119,6 @@ export type Context = {
 	block: Cell[][]; // used also in context of type CT_NESTED_EXEC
 	i_line: number;
 	i_token: number;
-	ini_token:  number | null;
   localVariables: Record<string, any>;
   nestedExecSpecs?: NestedExecSpecs; // parametri che specificano il tipo di ciclo
   nestedExecTest?: Cell[]; // test associato a ciclo condizionale 
@@ -139,10 +136,7 @@ export const initialContext: Context = {
   liv_esecuzione: 0,
   val_verifica: null,
   conto_esegui: 0,
-  // RepCount: 0,
-  // RepTotal: 0,
   i_token: 0,
-  ini_token: 0,
   n_arg_attesi: 0,
   n_arg_trovati: 0,
   parentesi: -1,
@@ -305,7 +299,7 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
   SETSCALE: {
     classes: [FunClass.CANVAS],
-    args: [{ name: "scala", type: A_LN }],
+    args: [{ name: "scala", type: A_LN_N_L}, { name: "scalay", type: A_N, "optional": true }],
     ref: _SETSCALE,
   } as CommandDef,
   SCALE: {
@@ -396,6 +390,16 @@ export const CORE_DEFINITIONS = {
     args: [{ name: "colore", type: Arg.COLORE }],
     ref: _SETPENCOLOR,
   } as CommandDef,
+  FILLCOLOR: {
+    classes: [FunClass.TURTLE],
+    signature: [FunSignature.FUNCTION],
+    ref: _FILLCOLOR,
+  } as CommandDef,
+  SETFILLCOLOR: {
+    classes: [FunClass.TURTLE],
+    args: [{ name: "colore", type: Arg.COLORE }],
+    ref: _SETFILLCOLOR,
+  } as CommandDef,
   PENUP: {
     classes: [FunClass.TURTLE],
     ref: _PENUP,
@@ -474,7 +478,7 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
   FILL: {
     classes: [FunClass.TURTLE],
-    args: [{ name: "colore", type: Arg.COLORE }],
+    args: [{ name: "colore", type: Arg.COLORE, optional: true }],
     ref: _FILL,
   } as CommandDef,
   FILLSTART: {

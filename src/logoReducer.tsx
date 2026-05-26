@@ -14,6 +14,7 @@ export const initialTurtleState: TurtleState = {
   heading: 0, 
   penDown: true, 
   penColor: '#000000', // black
+  fillColor: '#000000', // black
   penSize: 1,
   labelFont: 'sans-serif',
   labelHeight: 20,

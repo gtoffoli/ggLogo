@@ -58,7 +58,14 @@ export function _SCALE(values: any[], state: GraphicWindowState): Cell {
   return { type: CellType.LIST, val: [{ type: CellType.NUMBER, val: xScale}, { type: CellType.NUMBER, val: yScale}] }
 }
 export function _SETSCALE(values: any[], state: GraphicWindowState): GraphicWindowState {
-  var scale = values[0].val.map((c: Cell) => parseInt(c.val));
+  // var scale = values[0].val.map((c: Cell) => parseInt(c.val));
+  if ((values.length === 1) && (values[0].type === CellType.LIST))
+    values = values[0].val;
+  var scale: number[] = values.map((c: Cell) => parseInt(c.val));
+  if (scale.length === 1)
+    scale.push(scale[0]);
+  else if (scale.length > 2)
+    throwError('e05', null, values[0].val);
   if ((scale[0] === 1) && (scale[1] === 1))
     scale = null;
   const newState = {
@@ -141,18 +148,7 @@ export function _BK(values: any[], state: TurtleState): [ newState: TurtleState,
 	const distance: number = -(values[0].val);
 	return calculateForward(state, distance);
 }
-/*
-export function _LABEL(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
-  const text: string = nodeToString(values[0], false);
-  var modes: any[] = [];
-  if (values.length > 1) {
-    modes = values[1].val.map((n: Cell) => n.val);
-    modes = keywordsResolver(modes, 'upper');
-    console.log('_LABEL modes:', modes);
-  }
-  return calculateLabel(state, text, modes);
-}
-*/
+
 // similar to jslogo LABEL and Terrapin Logo TURTLETEXT
 // like _SETFONT (see) accepts multiple arguments both in parentheses and in square brackets
 export function _LABEL(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
@@ -256,6 +252,16 @@ export function _SETPENCOLOR(values: any[], state: TurtleState): TurtleState | n
       penColor: color
     };
 }
+export function _FILLCOLOR(values: any[], state: TurtleState): Cell {
+  return { type: CellType.WORD, val: state.fillColor}
+}
+export function _SETFILLCOLOR(values: any[], state: TurtleState): TurtleState | null {
+  const color: string = values[0].val;
+    return {
+      ...state, 
+      fillColor: color
+    };
+}
 
 export function _PENSIZE(values: any[], state: TurtleState): Cell {
   const cell: Cell = { type: CellType.NUMBER, val: state.penSize};
@@ -263,7 +269,7 @@ export function _PENSIZE(values: any[], state: TurtleState): Cell {
 }
 export function _SETPENSIZE(values: any[], state: TurtleState): TurtleState | null {
   var arg: Cell = values[0];
-  if (arg.type === CellType.LIST)
+  if (arg.type === CellType.LIST) // per compatibilità con IperLogo e MSWLogo?
     arg = (arg.val)[0];
   const size: number = arg.val;
     return { 
@@ -289,6 +295,8 @@ export function _SETFONT(values: any[], state: TurtleState): TurtleState | null 
     fontHeight = size.val;
   if (isNaN(fontHeight)) // fontHeight può essere undefined
     fontHeight = state.labelHeight;
+  if (fontHeight < 0)
+    fontHeight = -fontHeight // per compatibilità con IperLoogo/MSWLogo ?
   console.log('_SETFONT', head, size, modifiers, fontFamily, fontHeight);
   const newState: TurtleState = { 
     ...state,
@@ -486,7 +494,7 @@ function setNewPos(state: TurtleState, p: Point): [ newState: TurtleState, drawi
     x: p2.x, 
     y: p2.y 
   };
-  if ((activePath) && (screenMode === 'CLOSED'))
+  if ((activePath.length) && (screenMode === 'CLOSED'))
     activePath.push(p2);
   return [ newState, drawingCommands ];
 }
@@ -545,13 +553,15 @@ export function _FILLSTART(values: any[], state: TurtleState): TurtleState {
   return state;
 }
 export function _FILL(values: any[], state: TurtleState): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
-  const color = values[0].val;
+  const color = (values.length === 1) ? values[0].val : state.fillColor;
   var drawingCommand: DrawingCommand;
   var drawingCommands: DrawingCommand[];
-  if (activePath.length >= 3) {
+  if (!activePath.length)
+    drawingCommand = { type: 'FLOODFILL', x: state.x, y: state.y, fillColor: color };
+  else if (activePath.length >= 3)
     drawingCommand = { type: 'POLYGON', fillColor: color, path: activePath };
+  if (drawingCommand)
     drawingCommands = [drawingCommand];
-  }
   resetActivePath();
   return [ state, drawingCommands ];
 }

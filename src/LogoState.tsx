@@ -27,6 +27,7 @@ export interface TurtleState {
   heading: number; // Direzione (0-359 gradi)
   penDown: boolean;
   penColor: string; // Basato sul parametro PENCOLOR
+  fillColor: string;
   penSize: number;
   labelFont: string;
   labelHeight: number;

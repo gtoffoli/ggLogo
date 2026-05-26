@@ -7,6 +7,7 @@
   },
   "menu": {
     "turtle": "Tortue",
+    "reset": "Réinitialiser",
     "home": "Origine",
     "hide_show": "Casher/Montrer la Tortue",
     "image": "Image",

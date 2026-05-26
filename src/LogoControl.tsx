@@ -495,8 +495,6 @@ function blk_in(ctx: Context, block: Cell[][], is_arg_atteso: number): void {
   AssertContesto(ctx);
   push_sc(ctx.funzione);
   ctx.funzione = null;
-  push_sc(ctx.ini_token);
-  ctx.ini_token = ctx.i_token;
   push_sc(ctx.block);
   ctx.block = block;
   push_sc(ctx.i_line);
@@ -537,7 +535,6 @@ export function blk_out(ctx: Context): void {
   ctx.i_line = pop_sc('i_line');
   block = ctx.block;
   ctx.block = pop_sc('block');
-  ctx.ini_token = pop_sc('ini_token');
   ctx.funzione = pop_sc ('funzione');
 
   --ctx.liv_esecuzione;
@@ -561,6 +558,7 @@ export function ini_exec(): void {
   is_nestedExec = false;
   is_stop = false;    /* se vero e' terminata esecuz. procedura corrente */
   v_stack = [];
+  tracked_functions = [];
 }
 
 // inizializzazione parziale di Commander (NestedExec)

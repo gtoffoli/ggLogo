@@ -42,56 +42,75 @@ const drawIperLogoTurtle = (ctx: CanvasRenderingContext2D, turtle: TurtleState, 
 /* Per implementare `FILL` (riempimento a macchia d'olio), non possiamo usare i comandi vettoriali del Canvas.
    Dobbiamo operare sui pixel.
    Ecco un algoritmo **iterativo** (per evitare lo "stack overflow" della ricorsione su aree grandi) */
-
 // algoritmo floodFill classico, alternativo a quello realizzato in risposta ad un DrawingCommand di tipo 'POLYGON'
-// (ancora non è utilizzato da una primitiva, come in jsLogo)
-function floodFill(ctx, startX, startY, fillColor) {
-  const width = ctx.canvas.width;
-  const height = ctx.canvas.height;
-  
-  // 1. Ottieni tutti i pixel del canvas in un colpo solo
-  const imageData = ctx.getImageData(0, 0, width, height);
+function floodFill3(imageData, width: number, height: number, startX: number, startY: number, cssColor, tolerance = 30) {
   const data = imageData.data;
-
-  // 2. Leggi il colore del pixel di partenza (il "colore da sostituire")
-  const startPos = (Math.floor(startY) * width + Math.floor(startX)) * 4;
-  const startR = data[startPos];
-  const startG = data[startPos + 1];
-  const startB = data[startPos + 2];
-  const startA = data[startPos + 3];
-
-  // Se il colore è già quello desiderato, esci
-  if (isSameColor(startR, startG, startB, startA, fillColor)) return;
-
-  // 3. Coda dei pixel da processare
-  const stack = [[Math.floor(startX), Math.floor(startY)]];
-  while (stack.length > 0) {
-    const [x, y] = stack.pop();
-    const pos = (y * width + x) * 4;
-
-    if (isSameColor(data[pos], data[pos+1], data[pos+2], data[pos+3], [startR, startG, startB, startA])) {
-      // Colora il pixel
-      data[pos] = fillColor[0];
-      data[pos + 1] = fillColor[1];
-      data[pos + 2] = fillColor[2];
-      data[pos + 3] = 255;
-
-      // Aggiungi i vicini (su, giù, sinistra, destra)
-      if (x > 0) stack.push([x - 1, y]);
-      if (x < width - 1) stack.push([x + 1, y]);
-      if (y > 0) stack.push([x, y - 1]);
-      if (y < height - 1) stack.push([x, y + 1]);
+  const targetColor = getPixelColor(data, startX, startY, width);
+  const fillRGBA = cssToRgba(cssColor);
+  if (colorsMatch(targetColor, fillRGBA, 0)) return;
+  const queue = [[startX, startY]];
+  // Matrice per evitare di ri-analizzare pixel già processati
+  const visited = new Uint8Array(width * height);
+  visited[startY * width + startX] = 1;
+  // Colora subito il punto di partenza
+  setPixelColor(data, startX, startY, width, fillRGBA);
+  while (queue.length > 0) {
+    const [x, y] = queue.shift();
+   // Controlla i 4 vicini
+    const neighbors = [
+      [x + 1, y],
+      [x - 1, y],
+      [x, y + 1],
+      [x, y - 1]
+    ];
+    for (const [nx, ny] of neighbors) {
+      if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+        const idx = ny * width + nx;
+        if (!visited[idx]) {
+          visited[idx] = 1; // Segna come visitato immediatamente
+          const currentColor = getPixelColor(data, nx, ny, width);
+          // Il confronto va fatto sempre rispetto al colore originale (targetColor)
+          if (colorsMatch(currentColor, targetColor, tolerance)) {
+            setPixelColor(data, nx, ny, width, fillRGBA);
+            queue.push([nx, ny]);
+          }
+        }
+      }
     }
   }
-  
-  // 4. Riporta i pixel modificati sul canvas
-  ctx.putImageData(imageData, 0, 0);
 }
-
-function isSameColor(r, g, b, a, target) {
-  return r === target[0] && g === target[1] && b === target[2] && a === target[3];
+function cssToRgba(cssColor) {
+  // Crea un canvas temporaneo da 1x1 pixel
+  const canvas = document.createElement('canvas');
+  canvas.width = 1; canvas.height = 1;
+  const ctx = canvas.getContext('2d');
+  // Disegna il pixel
+  ctx.fillStyle = cssColor;
+  ctx.fillRect(0, 0, 1, 1);
+  // Estrae i byte del pixel
+  return ctx.getImageData(0, 0, 1, 1).data;
 }
-
+function colorsMatch(c1, c2, tolerance) {
+  return Math.abs(c1[0] - c2[0]) <= tolerance &&
+         Math.abs(c1[1] - c2[1]) <= tolerance &&
+         Math.abs(c1[2] - c2[2]) <= tolerance &&
+         Math.abs(c1[3] - c2[3]) <= tolerance;
+}
+function setPixelColor(data, nx, ny, width, fillRGBA) {
+  const index = (ny * width + nx) * 4;
+  data[index] = fillRGBA[0];
+  data[index + 1] = fillRGBA[1];
+  data[index + 2] = fillRGBA[2];
+  data[index + 3] = fillRGBA[3];
+}
+function getPixelColor(data, nx, ny, width) {
+  const index = (ny * width + nx) * 4;
+  return [
+    data[index],
+    data[index + 1],
+    data[index + 2],
+    data[index + 3]];
+}
 
 interface TurtleCanvasProps {
     windowId: string; // "TARTA"
@@ -99,7 +118,7 @@ interface TurtleCanvasProps {
 
 const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
   const scale = window.devicePixelRatio;
-  console.log('TurtleCanvas - starting', scale);
+  // console.log('TurtleCanvas - starting', scale);
   const containerRef = useRef<HTMLCanvasElement>(null);
   const backgroundRef = useRef<HTMLCanvasElement>(null);
   const foregroundRef = useRef<HTMLCanvasElement>(null);
@@ -226,6 +245,13 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
           ctx.fill();
           break;
 
+        case 'FLOODFILL':
+          var { x, y, fillColor } = currentCmd;
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          floodFill3(imageData, canvas.width, canvas.height, x + centerX, y + centerY, fillColor, 10);
+          ctx.putImageData(imageData, 0, 0);
+          break;
+
         case 'LABEL':
           var { text, x, y, heading, font, color } = currentCmd;
           console.log('LABEL', text, x, y, heading, font, color, centerX, centerY);
@@ -290,6 +316,18 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
       newState: initialTurtleState 
     });
   };
+  const handleClearCanvas = () => {
+    dispatch({ 
+      type: 'ADD_DRAWING_COMMANDS', 
+      windowId: windowId,
+      commands: [{ type: 'CLEAR_CANVAS' }]
+    });
+  };
+  const handleClearScreen = () => {
+    handleClearCanvas();
+    handleHome();
+  };
+
   const handleToggleVisibility = () => {
     const toggled = !(windowState.turtleState.visible);
     dispatch({ 
@@ -299,16 +337,6 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
         ...windowState.turtleState,
         visible: toggled
       }
-    });
-  };
-
-  const handleClearCanvas = () => {
-    dispatch({ 
-      // type: 'ADD_DRAWING_COMMAND', 
-      type: 'ADD_DRAWING_COMMANDS', 
-      windowId: windowId,
-      // command: { type: 'CLEAR_CANVAS' }
-      commands: [{ type: 'CLEAR_CANVAS' }]
     });
   };
 
@@ -362,6 +390,7 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
   // Menu per l'Area A (Canvas/Grafica)
   const menuA = [
   { label: t('menu.turtle'), submenu: [
+    { label: t('menu.reset'), action: handleClearScreen },
     { label: t('menu.home'), action: handleHome },
     { label: t('menu.hide_show'), action: handleToggleVisibility },
   ]},
