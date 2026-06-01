@@ -201,11 +201,20 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
           // Troviamo il punto di partenza
           let prevX = 0;
           let prevY = 0;
+          /*
           if ((i > 0) && (['MOVE_TO', 'LINE_TO'].includes(commands[i - 1].type))) {
             prevX = commands[i - 1].x;
             prevY = commands[i - 1].y;
           }
-
+          */
+          if (i > 0)
+            for (var j=i-1; j>=0; j--)
+              if (['MOVE_TO', 'LINE_TO'].includes(commands[j].type)) {
+                prevX = commands[j].x;
+                prevY = commands[j].y;
+                break;
+              }
+ 
           if (currentCmd.type === 'LINE_TO') {
             ctx.beginPath();
             ctx.moveTo(prevX + centerX, centerY + prevY);
@@ -256,13 +265,15 @@ const Canvas: React.FC<TurtleCanvasProps> = ({ windowId }) => {
           var { text, x, y, heading, font, color } = currentCmd;
           console.log('LABEL', text, x, y, heading, font, color, centerX, centerY);
           ctx.save(); // Salva lo stato corrente (posizione, colore, rotazione)
-          ctx.translate(centerX, centerY); // Sposta l'origine degli assi sulla tartaruga
+          // ctx.translate(centerX, centerY); // Sposta l'origine degli assi sulla tartaruga
+          ctx.translate(x + centerX, y + centerY); // Sposta l'origine degli assi sulla tartaruga
           ctx.rotate(heading); // Ruota gli assi in base alla direzione della tarta
           ctx.textAlign = 'center'; // Allinea il testo in orizzontale ('left' / 'center' / 'right' / 'start' / 'end')
           ctx.textBaseline = 'middle'; // Allinea il testo in verticale ('top' / 'middle' / 'bottom' / 'alphabetic')
           ctx.font = font;
           ctx.fillStyle = color;
-          ctx.fillText(text, x, y);
+          // ctx.fillText(text, x + centerX, y + centerY);
+          ctx.fillText(text, 0, 0);
           // ctx.strokeStyle = 'green';
           // ctx.strokeText(text, x, y);
           console.log('LABEL', text,  x + centerX, y + centerY, ctx);

@@ -51,7 +51,8 @@ const FSM_MATRIX: Transition[][] = [
     [State.IN_COMMENT, Action.IGNORE],    // COMMENT -> Ignora, entra in COMMENT
     [State.START, Action.IGNORE],         // NEWLINE -> Ignora, resta in START
     [State.IN_TOKEN, Action.APPEND],      // OTHER -> Entra in TOKEN, Append
-    [State.FINAL, Action.IGNORE],         // EOF -> Fine
+    // [State.FINAL, Action.IGNORE],      // EOF -> Fine
+    [State.FINAL, Action.FINALISE_TOKEN], // EOF -> Fine
     [State.IN_TOKEN, Action.IGNORE]       // ma BACKSLASH ha un side-effect
   ],
   [ /* [1] IN_TOKEN (Parola/Numero) */
@@ -68,6 +69,7 @@ const FSM_MATRIX: Transition[][] = [
     [State.START, Action.FINALISE_TOKEN], // BLANKSPACE -> Append (stringhe NON mantengono spazi)
     [State.IN_LITERAL, Action.ERROR],     // QUOTE -> Errore (In Iperlogo il QUOTE non va chiuso)
     [State.START, Action.FINALISE_TOKEN], // SEPARATOR -> Append
+    // [State.IN_LITERAL, Action.APPEND],    // SEPARATOR -> Append (ma parentesi hanno side-effect)
     [State.IN_LITERAL, Action.APPEND],    // COMMENT -> Append
     [State.IN_LITERAL, Action.APPEND],    // NEWLINE -> Append (le stringhe LOGO possono estendersi su più righe)
     [State.IN_LITERAL, Action.APPEND],    // OTHER -> Append, resta in LITERAL
@@ -156,6 +158,13 @@ function logoTokenizerFSM(input: string): string[] {
   			}
         break;
       case Action.APPEND:
+        if ((parentheses.includes(char)) && (currentToken.length > 0)) {
+          tokens.push(currentToken);
+          tokens.push(char);
+          currentToken = '';
+          nextState = State.START;
+          break;
+        }
         currentToken += char;
         break;
       case Action.FINALISE_TOKEN:

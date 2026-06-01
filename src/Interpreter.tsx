@@ -591,6 +591,8 @@ export class AsynchronousLogoInterpreter {
         if ((ctx.liv_procedura > 0) && (ctx.block.length === 0)) {
           if (is_traccia)
             this.traceReturn('dalla fine');
+          if (ctx.n_arg_trovati > 0)
+              throwError('e12', null, v_stack[v_stack.length-1]);
           uf_ret(ctx);
           console.log('dopo uf_ret dalla fine', liv_contesto, contesti[liv_contesto]);
           continue; // ricadiamo dentro al blocco da cui è stata eseguita la procedura
@@ -606,6 +608,8 @@ export class AsynchronousLogoInterpreter {
             continue;
           }
           else {
+            if (ctx.conto_parentesi > 0)
+              throwError('e14', null, null);
             return; // non c'è altro da fare; è richiesto un nuovo input
           }
         }
@@ -662,14 +666,12 @@ export class AsynchronousLogoInterpreter {
               if (coreKey) {
                 definition = CORE_DEFINITIONS[coreKey];
                 funzione = { type: CellType.SFUN, coreKey: coreKey, definition: definition};
-                // console.log('SFUN', coreKey, definition);
                 sf_in(ctx, funzione);
                 this.currentCommand = coreKey;
               }
               else if (Object.keys(userProcedures).includes(verb)) {
                 definition = userProcedures[verb];
                 funzione = { type: CellType.UFUN, name: verb, definition: definition}; 
-                // console.log('UFUN', verb, definition);
                 uf_in(ctx, funzione);
               }
               else
@@ -683,7 +685,11 @@ export class AsynchronousLogoInterpreter {
             mod_parola = ModParola.VERB;
           break;
         case CellType.OPERATOR:
-          // console.log('OPERATOR-1', cell.val);
+          if (mod_parola === ModParola.LITERAL) {
+            push_arg(ctx, {type: CellType.WORD, val: cell.val});
+            mod_parola = ModParola.VERB;
+            break;
+          }
           switch (cell.val) {
             case Delimiter.DEL_PARSINISTRA:
               parenin(ctx);
@@ -706,18 +712,6 @@ export class AsynchronousLogoInterpreter {
                 else if ((!zeroormore) && (!oneormore) && (ctx.n_arg_trovati > /*N_MASSIMO*/ max_args))
                   throwError('e11', function_key);
                 else {
-/*
-                  var values = this.get_values(ctx);
-                  var result = null;
-                  if (is_function)
-                    result = definition.ref(values);
-                  else
-                    definition.ref(values);
-                  sf_out(ctx);
-                  if (result !== null) {
-                    push_arg(ctx, result);
-                  }                 
-*/
                   result = await this.executeFunction(ctx);
                   this.currentCommand = null;
                   parenout(ctx, 1);
@@ -763,6 +757,7 @@ export class AsynchronousLogoInterpreter {
         var top_value = (v_stack.length) ? v_stack[v_stack.length-1] : null;
         // console.log('PRECEDENCE', precedence, next_val, top_value, ctx.funzione);
         if (   (ctx.n_arg_trovati>0)
+          && (mod_parola !== ModParola.LITERAL) // modificatore letterale non ancora applicato ad operatore?
           && (next_type === CellType.OPERATOR)
           && (isSeparator(next_val))
           && (SEPARATORS[next_val].precedence > precedence)

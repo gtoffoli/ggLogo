@@ -166,7 +166,8 @@ export function _LABEL(values: any[], state: TurtleState): [ newState: TurtleSta
   if (heading) // heading può essere undefined
     labelHeading = heading.val;
   if (isNaN(labelHeading)) // labelHeading può essere undefined
-    labelHeading = state.heading; // defaults to the Turtle heading
+    // labelHeading = state.heading; // defaults to the Turtle heading 
+    labelHeading = state.heading + 90; // defaults to the Turtle heading + 90
   return calculateLabel(state, labelText, labelHeading, modes);
 }
 
@@ -505,7 +506,6 @@ function setNewPos(state: TurtleState, p: Point): [ newState: TurtleState, drawi
 function calculateForward(state: TurtleState, distance: number): [ newState: TurtleState, drawingCommands: DrawingCommand[] ] {
   const rad = state.heading * Math.PI / 180;
   var newX = precision(state.x + distance * Math.sin(rad));
-  // var newY = precision(state.y - distance * Math.cos(rad)); // LOGO usa Y decrescente verso l'alto
   var newY = - precision(state.y - distance * Math.cos(rad)); // LOGO usa Y decrescente verso l'alto
 
   return setNewPos(state, { x: newX, y: newY });
