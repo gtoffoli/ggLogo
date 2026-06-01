@@ -13,8 +13,9 @@ enum State {
   START = 0,          // Stato iniziale (In attesa del primo carattere)
   IN_TOKEN = 1,       // All'interno di un token non-stringa (nome, numero, operatore)
   IN_LITERAL = 2,     // All'interno di una stringa letterale (dopo '"')
-  IN_COMMENT = 3,     // All'interno di un commento (dopo ';')
-  FINAL = 4,          // Stato finale (o di accettazione, teorico)
+  IN_VARIABLE = 3,    // stato aggiunto differenziandolo da IN_LITERAL
+  IN_COMMENT = 4,     // All'interno di un commento (dopo ';')
+  FINAL = 5,          // Stato finale (o di accettazione, teorico)
   // Aggiungere altri stati se necessario (es. IN_NUMBER, IN_OPERATOR)
 }
 
@@ -22,12 +23,14 @@ enum State {
 export enum CharClass {
   BLANKSPACE = 0,     // Spazio, Tab (\s)
   QUOTE = 1,        // Doppio apice (") e duepunti (:)
-  SEPARATOR = 2,    // Delimitatori di parola (es. , = < > + - * / ( ) [ ] )
-  COMMENT_START = 3,  // Punto e virgola (;) - Inizio commento
-  NEWLINE = 4,        // Fine riga (\n, \r)
-  OTHER = 5,          // Qualsiasi altro carattere (per nomi, numeri)
-  END_OF_INPUT = 6,   // Fine dell'input
-  BACKSLASH = 7,      // Back slash (\\) - letteralizza 1 carattere
+  COLON = 2,          // duepunti (:); classe aggiunta differenziandola da QUOTE
+  SEPARATOR = 3,    // Delimitatori di parola (es. , = < > + - * / ( ) [ ] )
+  COMMENT_START = 4,  // Punto e virgola (;) - Inizio commento
+  NEWLINE = 5,        // Fine riga (\n, \r)
+  OTHER = 6,          // Qualsiasi altro carattere (per nomi, numeri)
+  END_OF_INPUT = 7,   // Fine dell'input
+  BACKSLASH = 8,      // Back slash (\\) - letteralizza 1 carattere
+  PARENTHESES = 9,    // parentesi quadre e tonde; classe aggiunta differenziandola da SEPARATOR
 }
 
 // C. AZIONI DA ESEGUIRE (Codice di Azione)
@@ -43,21 +46,22 @@ enum Action {
 type Transition = [State, Action]; // [Nuovo Stato, Azione]
 
 const FSM_MATRIX: Transition[][] = [
-  // [0]BLANKSPACE   [1]QUOTE   [2]SEPARATOR   [3]COMMENT [4]NEWLINE [5]OTHER  [6]EOF	[7]BACKSLASH
+  // [0]BLANKSPACE [1]QUOTE [3]SEPARATOR [4]COMMENT [4]NEWLINE [4]OTHER [4]EOF [8]BACKSLASH [9] PARENTHESES
   [ /* [0] START */
     [State.START, Action.IGNORE],         // BLANKSPACE -> Ignora, resta in START
     [State.IN_LITERAL, Action.NEW_TOKEN_APPEND],  // QUOTE -> Entra in LITERAL e Append (QUOTE è un token)
+    [State.IN_VARIABLE, Action.NEW_TOKEN_APPEND], // COLON -> Entra in VARIABILE e Append
     [State.START, Action.NEW_TOKEN_APPEND], // SEPARATOR -> Tokenizza e Append (separatore è un token)
     [State.IN_COMMENT, Action.IGNORE],    // COMMENT -> Ignora, entra in COMMENT
     [State.START, Action.IGNORE],         // NEWLINE -> Ignora, resta in START
     [State.IN_TOKEN, Action.APPEND],      // OTHER -> Entra in TOKEN, Append
-    // [State.FINAL, Action.IGNORE],      // EOF -> Fine
     [State.FINAL, Action.FINALISE_TOKEN], // EOF -> Fine
     [State.IN_TOKEN, Action.IGNORE]       // ma BACKSLASH ha un side-effect
   ],
   [ /* [1] IN_TOKEN (Parola/Numero) */
     [State.START, Action.FINALISE_TOKEN], // BLANKSPACE -> Finalizza, torna in START
     [State.IN_LITERAL, Action.ERROR],     // QUOTE -> Errore (non previsto in un token normale)
+    [State.IN_LITERAL, Action.ERROR],     // COLON -> Errore (non previsto in un token normale)
     [State.START, Action.FINALISE_TOKEN], // SEPARATOR -> Finalizza il token corrente, torna in START (il SEPARATOR sarà tokenizzato al prossimo ciclo)
     [State.IN_COMMENT, Action.FINALISE_TOKEN], // COMMENT -> Finalizza, entra in COMMENT
     [State.START, Action.FINALISE_TOKEN], // NEWLINE -> Finalizza, torna in START
@@ -68,29 +72,44 @@ const FSM_MATRIX: Transition[][] = [
   [ /* [2] IN_LITERAL (Stringa preceduta da virgolette) */
     [State.START, Action.FINALISE_TOKEN], // BLANKSPACE -> Append (stringhe NON mantengono spazi)
     [State.IN_LITERAL, Action.ERROR],     // QUOTE -> Errore (In Iperlogo il QUOTE non va chiuso)
-    [State.START, Action.FINALISE_TOKEN], // SEPARATOR -> Append
-    // [State.IN_LITERAL, Action.APPEND],    // SEPARATOR -> Append (ma parentesi hanno side-effect)
+    [State.IN_LITERAL, Action.ERROR],     // COLON -> Errore (In Iperlogo il QUOTE non va chiuso)
+    // [State.START, Action.FINALISE_TOKEN], // SEPARATOR -> Append
+    [State.IN_LITERAL, Action.APPEND],    // SEPARATOR -> Append (ma parentesi hanno side-effect)
     [State.IN_LITERAL, Action.APPEND],    // COMMENT -> Append
     [State.IN_LITERAL, Action.APPEND],    // NEWLINE -> Append (le stringhe LOGO possono estendersi su più righe)
     [State.IN_LITERAL, Action.APPEND],    // OTHER -> Append, resta in LITERAL
     [State.FINAL, Action.FINALISE_TOKEN], // EOF -> Append (una stringa letterale può terminare insieme con l'input)
     [State.IN_LITERAL, Action.IGNORE]     // ma BACKSLASH ha un side-effect
   ],
-    /* [3] IN_COMMENT */ [
+  [ /* [3] IN_VARIABLE (Stringa preceduta da colon); come IN_LITERAL, con piccoli adattamenti */
+    [State.START, Action.FINALISE_TOKEN], // BLANKSPACE -> Append
+    [State.IN_VARIABLE, Action.ERROR],    // QUOTE -> Errore
+    [State.IN_VARIABLE, Action.ERROR],    // COLON -> Errore
+    [State.START, Action.FINALISE_TOKEN], // SEPARATOR -> Append
+    [State.IN_VARIABLE, Action.APPEND],   // COMMENT -> Append
+    [State.IN_VARIABLE, Action.FINALISE_TOKEN], // NEWLINE ->
+    [State.IN_VARIABLE, Action.APPEND],   // OTHER -> Append, resta in VARIABLE
+    [State.FINAL, Action.FINALISE_TOKEN], // EOF -> Append (una variabile può terminare insieme con l'input)
+    [State.IN_VARIABLE, Action.IGNORE]    // BACKSLASH
+  ],
+  [ /* [4] IN_COMMENT */
     [State.IN_COMMENT, Action.IGNORE],    // BLANKSPACE -> Ignora
     [State.IN_COMMENT, Action.IGNORE],    // QUOTE -> Ignora
+    [State.IN_COMMENT, Action.IGNORE],    // COLON -> Ignora
     [State.IN_COMMENT, Action.IGNORE],    // SEPARATOR -> Ignora
     [State.IN_COMMENT, Action.IGNORE],    // COMMENT -> Ignora
     [State.START, Action.IGNORE],         // NEWLINE -> Torna in START
     [State.IN_COMMENT, Action.IGNORE],    // OTHER -> Ignora
     [State.FINAL, Action.IGNORE],         // EOF -> Fine
     [State.IN_COMMENT, Action.IGNORE]     // BACKSLASH
-  ]
+  ],
 ];
 
 const BLANK = ' ';
 const COMMA = ',';
-const quotes = '\":'; 
+// const quotes = '\":'; 
+const quotes = '\"'; 
+const colons = ':'; 
 const blanks = ' \t'; 
 const parentheses = '()[]';
 export const infix_operators = '+-*/^<=>';
@@ -109,6 +128,8 @@ export function getCharClass(char: string | undefined): CharClass {
       return CharClass.BLANKSPACE;
   } else if (quotes.includes(char)) {
       return CharClass.QUOTE;
+  } else if (colons.includes(char)) {
+      return CharClass.COLON;
   } else if (char === '\\') {
       return CharClass.BACKSLASH;
   } else if (char === ';') {
@@ -177,7 +198,8 @@ function logoTokenizerFSM(input: string): string[] {
         if (currentToken.length > 0)
           tokens.push(currentToken);  // Finalizza il precedente
         currentToken = char;            // Inizia il nuovo token con il carattere corrente
-        if ((charClass === CharClass.QUOTE) || (charClass === CharClass.SEPARATOR)){
+        // if ((charClass === CharClass.QUOTE) || (charClass === CharClass.SEPARATOR)){
+        if ((charClass === CharClass.QUOTE) || (charClass === CharClass.COLON) || (charClass === CharClass.SEPARATOR)){
 		      // LOOK-AHEAD per separatori multi-carattere
          	if (   (charClass === CharClass.SEPARATOR)
               && (i < fullInput.length)
@@ -249,6 +271,9 @@ export function Parse(input: string): any[] {
         	case CharClass.QUOTE:
 				    cell_type = CellType.QUOTE;
 				    break;
+          case CharClass.COLON:
+            cell_type = CellType.COLON;
+            break;
         	case CharClass.SEPARATOR:
             if ((token === '-') &&
                 ((i === 0) || ((BLANK+parentheses).includes(tokens[i-1]))) &&

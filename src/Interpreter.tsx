@@ -634,11 +634,19 @@ export class AsynchronousLogoInterpreter {
         case CellType.LIST:
           push_arg(ctx, cell);
           break;
+/*
         case CellType.QUOTE:
           if (cell.val === '"')
             mod_parola = ModParola.LITERAL;
           else // cell.val === ':'
             mod_parola = ModParola.VARIABLE;
+          break;
+*/
+        case CellType.QUOTE:
+          mod_parola = ModParola.LITERAL;
+          break;
+        case CellType.COLON:
+          mod_parola = ModParola.VARIABLE;
           break;
         case CellType.NUMBER: // può derivare solo dal riconoscimento lessicale di un '-' unario
           push_arg(ctx, cell);
@@ -758,6 +766,7 @@ export class AsynchronousLogoInterpreter {
         // console.log('PRECEDENCE', precedence, next_val, top_value, ctx.funzione);
         if (   (ctx.n_arg_trovati>0)
           && (mod_parola !== ModParola.LITERAL) // modificatore letterale non ancora applicato ad operatore?
+          && (mod_parola !== ModParola.VARIABLE) // modificatore letterale non ancora applicato ad operatore?
           && (next_type === CellType.OPERATOR)
           && (isSeparator(next_val))
           && (SEPARATORS[next_val].precedence > precedence)

@@ -77,7 +77,8 @@ export function _TO(values: any[]): void {
 	while (ctx.i_token < declaration.length) {
 		cell = declaration[ctx.i_token];
 		ctx.i_token += 1;
-		if ((!parameter_expected) && (cell.type === CellType.QUOTE) && (cell.val === ':')) {
+		// if ((!parameter_expected) && (cell.type === CellType.QUOTE) && (cell.val === ':')) {
+    if ((!parameter_expected) && (cell.type === CellType.COLON)) {
 			parameter_expected = true;
 		}
 		else if ((parameter_expected) && (cell.type === CellType.WORD)) {

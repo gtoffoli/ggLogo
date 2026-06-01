@@ -58,16 +58,17 @@ export enum ModParola {
 export enum CellType {
   BLANK = 0,
   QUOTE = 1,
-  OPERATOR = 2,// operatore
-  STRING = 3,  // numero
-  WORD = 4,    // parola Logo
-  NUMBER = 5,  // numero
-  BOOLEAN = 6, // valore logico
-  LIST = 7,    // lista
-  ARRAY = 8,   // array sparso
-  VAR = 9,     // variabile Logo
-  SFUN = 10,   // funzione primitiva
-  UFUN = 11,   // funzione di utente (procedura)
+  COLON = 2,
+  OPERATOR = 3,// operatore
+  STRING = 4,  // numero
+  WORD = 5,    // parola Logo
+  NUMBER = 6,  // numero
+  BOOLEAN = 7, // valore logico
+  LIST = 8,    // lista
+  ARRAY = 9,   // array sparso
+  VAR = 10,     // variabile Logo
+  SFUN = 11,   // funzione primitiva
+  UFUN = 12,   // funzione di utente (procedura)
 }
 
 // typed token in the Parser output
