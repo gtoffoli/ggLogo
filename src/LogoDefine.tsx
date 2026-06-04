@@ -3,7 +3,7 @@
 
 import { CellType, Cell, contextType, Context, ProcedureDef } from './CoreDefinitions';
 import { Parse, unParse } from './Parser';
-import { userProcedures, globalVariables, propLists, throwError } from './Interpreter';
+import { userProcedures, propLists, throwError } from './Interpreter';
 import { contesti, liv_contesto, sf_out } from './LogoControl';
 import { commandResolver, copyActiveMapItem } from './UseLocalization';
 import { wordCell } from './Structures';
@@ -112,45 +112,88 @@ export function _TEXT(values: any[]): Cell {
 }
 
 function getProcedureCtx(): Context | null {
-  var liv = liv_contesto;
-  while (liv > 0) {
-    if (contesti[liv].id === contextType.CT_PROCEDURE)
-      return contesti[liv];
-    --liv;
+  var level = liv_contesto;
+  while (level > 0) {
+    if (contesti[level].id_contesto === contextType.CT_PROCEDURE)
+      return contesti[level];
+    --level;
   }
   return null;
+}
+
+// cerca un nome di variabile a ritroso nello stack dei contesti, a partire dal livello specificato;
+// gli associa il valore se lo trova o al livello 0
+function _make(level: number, name: string, value: any): void {
+  var ctx: Context;
+  var id: number;
+  while (level > 0) {
+    ctx = contesti[level];
+    id = ctx.id_contesto;
+    if (id === contextType.CT_PROCEDURE)
+      if (name in ctx.variables)
+        break;
+    --level;
+  }
+  contesti[level].variables[name] = value;
+}
+
+// cerca un nome di variabile a ritroso nello stack dei contesti, a partire dal livello specificato;
+// riporta il valore corrispondente, se lo trova; altrimenti undefined
+export function _thing(level: number, name: string): any {
+  var ctx: Context;
+  var id: number;
+  while (level > 0) {
+    ctx = contesti[level];
+    id = ctx.id_contesto;
+    if (id === contextType.CT_PROCEDURE)
+      if (name in ctx.variables)
+        return ctx.variables[name];
+    --level;
+  }
+  ctx = contesti[level];
+  if (name in ctx.variables)
+    return ctx.variables[name];
+  else
+    return undefined;
 }
 
 export function _MAKE(args: any[]): void {
   const name = args[0].val;
   const value = args[1];
-  const localCtx = getProcedureCtx();
-  if (localCtx && typeof localCtx.localVariables[name] !== "undefined")
-    localCtx.localVariables[name] = value;
-  else
-    globalVariables[name] = value;
+  _make(liv_contesto, name, value);
 }
 
 export function _THING(args: any[]): Cell {
   const name = args[0].val;
-  const localCtx = getProcedureCtx();
-  if (localCtx && typeof localCtx.localVariables[name] !== "undefined")
-    return localCtx.localVariables[name];
+  const value = _thing(liv_contesto, name);
+  if (value === undefined)
+    throwError('e01', null, args[0]);
   else
-    return globalVariables[name];
+    return value;
 }
 
-export function _LOCAL(args: any[]): Cell {
-  const localCtx = getProcedureCtx();
-  var localName;
-  if (localCtx)
-    for (var i=0; i<values.length; i++) {
-      localName = values[i].val;
-      localCtx.localVariables[localName] = null;
-    }
-  else {
-    console.log('non siamo dentro una procedura')
-  }
+function _local(ctx: Context, name: string): void {
+  if (!(name in ctx.variables))
+    ctx.variables[name] = undefined;
+}
+
+export function _localMake(ctx: Context, name: string, value: any): void {
+  if (!(name in ctx.variables))
+    ctx.variables[name] = value;
+}
+
+// un numero indefinito di parole, eventualmente tra parentesi
+// oppure una lista di parole (non standard)
+export function _LOCAL(args: any[]): void {
+  var [head, ...tail] = args; // the original arguments destructured
+  if ((args.length === 1) && (head.type === CellType.LIST))
+    args = head.val; // only 1 arg whose value is a cell list
+  const ctx = getProcedureCtx();
+  if (ctx)
+    for (var i=0; i<args.length; i++)
+      _local(ctx, args[i].val);
+  else
+    throwError('e03', null, null);
 }
 
 export function _PPROP(args: any[]): void {
@@ -192,6 +235,7 @@ export function _PROCEDURES(args: any[]): Cell {
   return { type: CellType.LIST, val: list.map((s: string) => wordCell(s)) }; 
 }
 export function _GLOBALS(args: any[]): Cell {
-  var list: string[] = Object.keys(globalVariables);
+  // var list: string[] = Object.keys(globalVariables);
+  var list: string[] = Object.keys(contesti[0].variables);
   return { type: CellType.LIST, val: list.map((s: string) => wordCell(s)) }; 
 }

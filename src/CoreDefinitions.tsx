@@ -120,7 +120,7 @@ export type Context = {
 	block: Cell[][]; // used also in context of type CT_NESTED_EXEC
 	i_line: number;
 	i_token: number;
-  localVariables: Record<string, any>;
+  variables: Record<string, any>;
   nestedExecSpecs?: NestedExecSpecs; // parametri che specificano il tipo di ciclo
   nestedExecTest?: Cell[]; // test associato a ciclo condizionale 
   nestedExecCount?: number; // indice della ripetizione corrente
@@ -144,7 +144,7 @@ export const initialContext: Context = {
   conto_parentesi: 0,
   block: [],
   i_line: 0,
-  localVariables: {},
+  variables: {},
 };
 
 

@@ -2,7 +2,8 @@
 // 251116 - 1st version: inspired to Ilcontro.cpp of IperLogo
 
 import { contextType, Context, initialContext, CellType, Cell, CommandDef, ModParola, ProcedureDef } from './CoreDefinitions';
-import { LogoError, throwError, globalVariables, userProcedures } from './Interpreter';
+import { LogoError, throwError, userProcedures } from './Interpreter';
+import { _localMake } from './LogoDefine';
 import { resetActivePath } from './TurtleGraphics';
 import { resetMidiChannels } from './TimeMusic';
 
@@ -17,8 +18,6 @@ var ha_blocco_valore: boolean = false;
 var is_funzione: boolean = false;
 export var liv_analisi: number; // parentesi non chiuse
 export var is_nestedExec: boolean;
-var n_locali: number = 0;       // numero variabili locali nella procedura
-var n_argomenti: number;        // numero argomenti della procedura
 export var risultato: any;      // risultato della procedura corrente
 export var is_stop: boolean;    // incontrata fine di valutazione di procedura (UFUN)
 var is_riporta: boolean;        // procedura termina con RIPORTA
@@ -363,13 +362,12 @@ export function uf_call(ctx: Context): void {
   // e proc. da attivare coincide con proc.attiva
   push_procedure_context(ctx);
   ctx = contesti[liv_contesto];
-  push_sc(n_parameters);
-  // svuota stack argomenti e ne copia il valore in locale
+   // svuota stack argomenti e ne copia il valore in locale
   for (var i=0; i<n_parameters; ++i)
     argomenti.push(pop_sv());
-  // binding temporaneo degli argomenti con salvataggio vecchio binding
+  // binding degli argomenti
   for (var i=0; i < n_parameters; ++i)
-    pushloc(parameters[i], argomenti[n_parameters-i-1]);
+    _localMake(ctx, parameters[i], argomenti[n_parameters-i-1]);
   is_stop = false;
   risultato = null;
   ctx.n_arg_attesi = ctx.n_arg_trovati = 0;
@@ -396,55 +394,10 @@ export function uf_ret(ctx: Context): void {
       if (ctx.conto_parentesi > 0) break;
       blk_out (ctx);
     };
-  // spurga le variabili argomento
-  const n_parameters = pop_sc('n_parameters');  // numero delle variabili argomento
-  poploc(ctx, n_parameters);      // spurgo delle variabili argomento
   is_stop = false;
   pop_procedure_context();
   ctx = contesti[liv_contesto];
   f_out(ctx);
-}
-
-/*-----------------------------------------------------------------------------
-  se nello spazio delle parole non esiste una variabile di nome specificato la
-  crea e considera che il suo vecchio valore sia NULLVALUE (valore invalido);
-  comunque mette il valore specificato nella variabile e salva su stack dei
-  valori la variabile e il vecchio valore
-  ---------------------------------------------------------------------------*/
-function pushloc(parola: string, nuovo_valore: any): void {
-  var vecchio_valore;
-  if (Object.keys(globalVariables).includes(parola))
-    vecchio_valore = globalVariables[parola];
-  else
-    vecchio_valore = null;
-  globalVariables[parola] = nuovo_valore;
-  // console.log('PUSHLOC', parola, nuovo_valore, globalVariables);
-  push_sv(parola);
-  push_sv(vecchio_valore);
-}
-
-/*------------------------------------------------------------------------
-  ripristina i vecchi valori di n variabili; in cima al vstack si trovano
-  n coppie (variabile, vecchio-valore); se il vecchio valore era NULLVALUE
-  (valore non assegnato) la variabile NON viene piu' cancellata dallo spazio
-  delle parole
-  ------------------------------------------------------------------------*/
-function poploc(ctx: Context, n: number): void {
-  var risultato: any;
-  var parola: string;
-  var valore: any;
-
-  if (ctx.n_arg_trovati != 0)
-    risultato = pop_sv();
-  for (var i = 1; i <= n; ++i) {
-      valore = pop_sv();
-      parola = pop_sv();
-      if (valore)
-        globalVariables[parola] = valore;
-    // console.log('POPLOC', parola, valore, globalVariables);
-  };
-  if (ctx.n_arg_trovati != 0)
-    push_sv(risultato);
 }
 
 /*---------------------------
@@ -505,8 +458,6 @@ function blk_in(ctx: Context, block: Cell[][], is_arg_atteso: number): void {
   ctx.conto_parentesi = 0;
   ctx.parentesi = -1;
   ctx.n_arg_attesi = is_arg_atteso;
-  push_sc(n_locali);
-  n_locali = 0;
   ++ctx.liv_esecuzione;
   ctx.conto_esegui = 0;
   ctx.val_verifica = false;
@@ -524,8 +475,6 @@ export function blk_out(ctx: Context): void {
   AssertContesto(ctx);
   console.log('blk_out start', liv_contesto, ctx);
   parenout(ctx, ctx.conto_parentesi);
-  n_locali = pop_sc ('n_locali');
-  poploc(ctx, n_locali);
   locale = ctx.n_arg_trovati;
   popco(ctx);
   ctx.n_arg_trovati = ctx.n_arg_trovati + locale;
@@ -600,6 +549,7 @@ function push_procedure_context(ctx: Context): void {
   ctx.id_contesto = contextType.CT_PROCEDURE;
   ctx.liv_procedura += 1;
   ctx.liv_esecuzione = 0;
+  ctx.variables = {};
   is_nestedExec = false;
   ctx.funzione = null;
 }

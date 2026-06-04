@@ -11,7 +11,7 @@ import { Parse, infix_operators, BLANK, unParse, nodeToString } from './Parser';
 import { contesti, liv_contesto, liv_analisi, risultato, v_stack, is_stop, is_traccia, is_nestedExec, pop_nestedExecution_context, cancelNestedExec, stopAsynchronousActivities } from './LogoControl';
 import { push_sv, pop_sv,  push_arg, minArgsNumber, sf_in, sf_out, uf_in, uf_call, uf_ret, blk_ini, blk_out, parenin, parenout } from './LogoControl';
 import { ini_main, ini_exec, ini_valuta, AssertContesto } from './LogoControl';
-import { isProcedureDefinition, iniDefine, pushProcedureLine } from './LogoDefine';
+import { isProcedureDefinition, iniDefine, pushProcedureLine, _thing } from './LogoDefine';
 import { localizedTruthValues, normalizeBoolean } from './Logic';
 import { InputSource, OutputChannel } from './Streams';
 import { ShellSource, ShellOutput, InteractiveData } from './Streams';
@@ -19,7 +19,6 @@ import { keywordResolver, commandResolver } from './UseLocalization';
 import { checkFormatColor } from './TurtleGraphics';
 
 export var userProcedures: Record<string, ProcedureDef> = {};
-export var globalVariables: Record<string, any> = {};
 export var propLists: Record<string, Record<string, any>> = {};
 export var mod_parola: ModParola;// modalita' di esecuzione di una parola LOGO
 var next_type: CellType | null;
@@ -658,9 +657,13 @@ export class AsynchronousLogoInterpreter {
             push_arg(ctx, cell);
           }
           else if (mod_parola === ModParola.VARIABLE) {
-            cell = globalVariables[cell.val];
+            // cell = globalVariables[cell.val];
+            // push_arg(ctx, cell);
+            var value = _thing(liv_contesto, cell.val);
+            if (value === undefined)
+              throwError('e01', null, cell);
             // console.log('VARIABILE', cell);
-            push_arg(ctx, cell);
+            push_arg(ctx, value);
           }
           else if (mod_parola === ModParola.VERB) {
             numeric = parseFloat(cell.val);
