@@ -716,10 +716,8 @@ export class AsynchronousLogoInterpreter {
               }
               else if (ctx.parentesi === ctx.liv_funzione) {
                 this.get_function(ctx);
-                if ((!zeroormore) && (ctx.n_arg_trovati < min_args)) {
+                if ((!zeroormore) && (ctx.n_arg_trovati < min_args))
                   throwError('e11', function_key);
-                }
-                // else if ((!zeroormore) && (!oneormore) && (ctx.n_arg_trovati > /*N_MASSIMO*/ ctx.n_arg_attesi))
                 else if ((!zeroormore) && (!oneormore) && (ctx.n_arg_trovati > /*N_MASSIMO*/ max_args))
                   throwError('e11', function_key);
                 else {

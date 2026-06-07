@@ -182,6 +182,10 @@ export function _localMake(ctx: Context, name: string, value: any): void {
     ctx.variables[name] = value;
 }
 
+export function _LOCALMAKE(args: any[]): void {
+  _localMake(contesti[liv_contesto], args[0].val, args[1]);
+}
+
 // un numero indefinito di parole, eventualmente tra parentesi
 // oppure una lista di parole (non standard)
 export function _LOCAL(args: any[]): void {
