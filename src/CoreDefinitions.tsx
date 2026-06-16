@@ -18,7 +18,7 @@ import { _SCREENSIZE, _CANVASSIZE, _SETCANVASSIZE, _BOUNDS, _HOME, _CLEAR, _CS, 
 import { _SETPOS, _SETX, _SETY, _SETXY, _TOWARDS, _FD, _BK, _LABEL, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING, _FILL, _FILLSTART, _ARC, _CIRCLE } from './TurtleGraphics';
 import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _FILLCOLOR, _SETFILLCOLOR, _PENSIZE, _SETPENSIZE, _FONT, _SETFONT, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './TurtleGraphics';
 import { _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR } from './Communication';
-import { _TIME, _SETTIME, _WAIT, _MIDIOPEN, _MIDICLOSE, _MIDILOADINSTRUMENT, _MIDI, _MIDICHANNELS, _MIDIMSG, _MIDIPLAY, _BLUEDEVICES } from './TimeMusic';
+import { _TIME, _SETTIME, _WAIT, _MIDIOPEN, _MIDICLOSE, _MIDILOADINSTRUMENT, _MIDI, _MIDICHANNELS, _MIDIMSG, _MIDIPLAY, _BLUEDEVICES, _BLUE } from './TimeMusic';
 
 export const SEPARATORS = {
 	// "\t\r\":()+-*/^<=> "
@@ -300,7 +300,7 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
   SETSCALE: {
     classes: [FunClass.CANVAS],
-    args: [{ name: "scala", type: A_LN_N_L}, { name: "scalay", type: A_N, "optional": true }],
+    args: [{ name: "scala", type: A_LN_N_L}, { name: "scalay", type: A_N, optional: true }],
     ref: _SETSCALE,
   } as CommandDef,
   SCALE: {
@@ -1150,7 +1150,14 @@ export const CORE_DEFINITIONS = {
   } as CommandDef,
   BLUEDEVICES: {
     classes: [FunClass.ASYNC],
+    signature: [FunSignature.FUNCTION],
     ref: _BLUEDEVICES,
+  } as CommandDef,
+  BLUE: {
+    classes: [FunClass.ASYNC],
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "prefix", type: A_W_S }, { name: "command", type: A_W_S }, { name: "text", type: A_W_S_L, optional: true }],
+    ref: _BLUE,
   } as CommandDef,
 
   STOP: {

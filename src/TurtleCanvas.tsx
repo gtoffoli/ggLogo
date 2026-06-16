@@ -13,6 +13,26 @@ import { DrawingCommand} from './LogoState';
 import { initialTurtleState } from './logoReducer';
 // ... importa DrawingCommand, GraphicWindowState, etc.
 
+// Per inviare testo, devi prima rasterizzarlo
+export function renderTextToBitmap(text: string) {
+// export function renderTextToBitmap(text: string): Uint8Array {
+  const canvas = document.createElement('canvas');
+  canvas.width = 64; 
+  canvas.height = 32;
+  const ctx = canvas.getContext('2d')!;
+  
+  ctx.fillStyle = 'black'; // Sfondo
+  ctx.fillRect(0, 0, 64, 32);
+  ctx.fillStyle = 'white'; // Colore testo
+  ctx.font = '16px Arial';
+  ctx.fillText(text, 0, 20);
+  
+  // Ora converti i pixel in un formato binario che il protocollo iPixel si aspetta
+  // Nota: dovrai consultare la doc del protocollo per l'header del pacchetto!
+  return ctx.getImageData(0, 0, 64, 32).data;
+  // return formatForIPixel(ctx.getImageData(0, 0, 64, 32).data);
+}
+
 // const drawIperLogoTurtle = (ctx: CanvasRenderingContext2D, turtle: TurtleState) => {
 const drawIperLogoTurtle = (ctx: CanvasRenderingContext2D, turtle: TurtleState, foreground: HTMLCanvasElement, container: HTMLCanvasElement) => {
   const { x, y, heading } = turtle;

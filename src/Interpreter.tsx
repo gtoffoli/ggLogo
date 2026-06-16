@@ -471,7 +471,10 @@ export class AsynchronousLogoInterpreter {
       else {
         if (is_function) {
           console.log('sf_call - from interpreter:', function_key);
-          result = definition.ref(values);
+          if (classes.includes(FunClass.ASYNC))
+            result = await definition.ref(values);
+          else
+            result = definition.ref(values);
         }
         else {
           console.log('sf_call - from interpreter:', function_key);
