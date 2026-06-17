@@ -1,4 +1,4 @@
-## ggLogo - a new Logo-in-browser implementation
+## ggLogo (Iperlogo 2026) - a new Logo-in-browser implementation
 
 # Project
 
@@ -32,10 +32,18 @@ and suggestions for improving the functional specifications and the software arc
 
 - stand-alone - can be run locally, without an Internet connection;
 - multilingual - by design: initial support for Italian and English at the level of primitive names and user interface;
-- compatibility - the English terminology should be fairly compatible with MswLogo and jsLogo;
+- compatibility - the English terminology should be fairly compatible with MswLogo, Terrapin Logo and jsLogo;
   the Italian terminology should be highly compatible with sLogo and Iperlogo;
+- extensions - support if foreseen for most of the music functionality of *Terrapin Logo* (MIDI emulation)
+  and for the Bluetooth protocol to control near-field devices such as a popular LED matrix display.
 
 # Deployment
+
+Currently Iperlogo 2026 is being tested at localhost with the Chrome and Firefox browsers on:
+- a Windows 11 desktop; console command: python -m http.server; web address: http://localhost:3000/
+- an Android smartphone, using the Simple HTTP Server app and an optional icon created with the Shortcut Maker app.
+
+In both cases, the deployment requires only the download of a compact bundle produced with Bun.
 
 # bun-react-template
 
