@@ -6,8 +6,8 @@ import path from 'path';
 import { CellType, Cell } from './CoreDefinitions';
 import { throwError} from './Interpreter';
 import { toLogoCell, nodeToString } from './Parser';
-import { contesti, liv_contesto } from './LogoControl';
-import { password } from 'bun';
+// import { contesti, liv_contesto } from './LogoControl';
+// import { password } from 'bun';
 
 var referenceTime: number = 0;
 

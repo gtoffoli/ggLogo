@@ -9,6 +9,7 @@
     "start": "NODE_ENV=production bun src/index.tsx"
   },
   "dependencies": {
+    "crc-32": "^1.2.2",
     "fflate": "^0.8.2",
     "i18next": "^25.7.1",
     "marked": "^17.0.5",

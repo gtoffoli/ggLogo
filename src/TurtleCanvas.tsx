@@ -14,22 +14,23 @@ import { initialTurtleState } from './logoReducer';
 // ... importa DrawingCommand, GraphicWindowState, etc.
 
 // Per inviare testo, devi prima rasterizzarlo
-export function renderTextToBitmap(text: string) {
 // export function renderTextToBitmap(text: string): Uint8Array {
+// export function renderTextToBitmap(text: string) {
+export function renderTextToBitmap(text: string, width: number, height: number, fontHeight: number, fontName: string) {
   const canvas = document.createElement('canvas');
-  canvas.width = 64; 
-  canvas.height = 32;
+  canvas.width = width; 
+  canvas.height = height;
   const ctx = canvas.getContext('2d')!;
   
   ctx.fillStyle = 'black'; // Sfondo
-  ctx.fillRect(0, 0, 64, 32);
+  ctx.fillRect(0, 0, width, height);
   ctx.fillStyle = 'white'; // Colore testo
-  ctx.font = '16px Arial';
-  ctx.fillText(text, 0, 20);
+  ctx.font = fontHeight.toString() + 'px ' + fontName; // '16px Arial';
+  ctx.fillText(text, 0, fontHeight);
   
   // Ora converti i pixel in un formato binario che il protocollo iPixel si aspetta
   // Nota: dovrai consultare la doc del protocollo per l'header del pacchetto!
-  return ctx.getImageData(0, 0, 64, 32).data;
+  return ctx.getImageData(0, 0, width, height).data;
   // return formatForIPixel(ctx.getImageData(0, 0, 64, 32).data);
 }
 
