@@ -16,7 +16,7 @@ import { initialTurtleState } from './logoReducer';
 // Per inviare testo, devi prima rasterizzarlo
 // export function renderTextToBitmap(text: string): Uint8Array {
 // export function renderTextToBitmap(text: string) {
-export function renderTextToBitmap(text: string, width: number, height: number, fontHeight: number, fontName: string) {
+export function renderTextToBitmap(text: string, width: number, height: number, fontHeight: number, fontName: string): Uint8ClampedArray {
   const canvas = document.createElement('canvas');
   canvas.width = width; 
   canvas.height = height;

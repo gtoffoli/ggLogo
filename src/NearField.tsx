@@ -59,7 +59,7 @@ export async function _BLUE(args: any[]): any {
   if (namePrefix.toUpperCase().startsWith(LED_DEVICE_PREFIX)) {
     results.push(LED_DEVICE_NAME);
     results.push(command);
-    if (command !== 'TEXT')
+    // if (command !== 'TEXT')
     if ((command !== 'DISCONNECT') && ((!device) || (!device.gatt?.connected))) {
       await LED_connect();
       // device.addEventListener('gattserverdisconnected', onDisconnected);
@@ -111,7 +111,18 @@ async function LED_connect() {
 
   // Abilita le notifiche per ricevere risposte dal dispositivo
   await notifyChar?.startNotifications();
+  await notifyChar?.addEventListener('characteristicvaluechanged', handleNotifications);
   // return [writeChar, notifyChar];
+}
+
+function handleNotifications(event) {
+  let characteristic = event.target;
+  let value = characteristic.value; // Questo è un oggetto DataView
+   console.log('Notifica ricevutoa ', value);
+  
+  // Esempio: Lettura di un valore intero a 8 bit (Uint8)
+  // let myValue = value.getUint8(0);
+  // console.log('Nuovo valore ricevuto: ', myValue);
 }
 
 function LED_disconnect() {
@@ -149,11 +160,14 @@ async function LED_sendText(writeChar: BluetoothRemoteGATTCharacteristic, text: 
   var height = 32;
   var fontHeight = 16;
   var fontName = 'Arial';
-  var bitmap: Uint8Array = renderTextToBitmap(text, width, height, fontHeight, fontName);
-  console.log('_BLUE text', text, bitmap.length);
-  var sendText = formatForIPixel(num_chars, bitmap);
-  // await writeChar.writeValue(sendText);
-  console.log('_BLUE - sendText', sendText);
+  var bitmapClamped: Uint8ClampedArray = renderTextToBitmap(text, width, height, fontHeight, fontName);
+  var bitmapUint8: Uint8Array = new Uint8Array(bitmapClamped.buffer, bitmapClamped.byteOffset, bitmapClamped.length);
+  console.log('_BLUE sendText 1', text, bitmapUint8.length);
+  var sendTextBuffer: ArrayBuffer = formatForIPixel(num_chars, bitmapUint8);
+  console.log('_BLUE - sendText 2', sendTextBuffer);
+  // await writeChar.writeValue(sendTextBuffer);
+  await writeChar.writeValueWithResponse(sendTextBuffer);
+  console.log('_BLUE - sendText 3');
 }
 
 // see 1. https://github.com/sdolphin-JP/ipixel-ctrl/blob/main/docs/DeviceCommands.md
@@ -162,16 +176,21 @@ function formatForIPixel(num_chars: number, bitmap: Uint8Array) {
   const fgRed = 0xff; const fgGreen = 0xff; const fgBlue = 0xff;
   const bgRed = 0x00; const bgGreen = 0x00; const bgBlue = 0x00;
   var prefix = new Uint8Array([
+    0x00, 0x00, // place for Total command size in little endian at offset 0
+    0x00, 0x01, // Comando 0x0100 - set_text
+    // DATA FOR COMMAD follow
+    
     0x00, // fixed, unknown use
-    0x00, 0x00, 0x00, 0x00, // DAT data size, place for data size at offset 1
-    0x00, 0x00, 0x00, 0x00, // CRC32 of DAT data, place for crc 32 at offset 5
+    0x00, 0x00, 0x00, 0x00, // DAT_SIZE_LE, place for DAT data size at offset 4+1
+    0x00, 0x00, 0x00, 0x00, // DAT_CRC32_LE, place for crc 32 of DAT data at offset 4+5
     0x00, // fixed, unknown use
     0x01, // SCR_NO (1 - 255), screen number ?
     // TXT_DATA: follow the prefix
   ]);
-  // properties: 3 fixed bytes (?) + animation + speed + rainbow + 3 bytes color + 1 byte bg flag + 3 bytes bg color(from 2)
+  // properties: 3 fixed bytes (?) + animation + speed + rainbow + 3 bytes fg color + 1 byte bg flag + 3 bytes bg color(from 2)
   var textProperties = new Uint8Array([ // (from 1)
-    0x00, 0x00, // DAT_LEN_LEN, place for text length at offset 0
+    // TXT_DATA: follow the prefix
+    0x00, 0x00, // DAT_LEN_LEN, place for Text Length  at offset 0
     0x01, 0x01, // reserved, unknown use
     0x00, // animation (= no effect)
     0x00, // speed (= fixed)
@@ -181,15 +200,33 @@ function formatForIPixel(num_chars: number, bitmap: Uint8Array) {
     bgRed, bgGreen, bgBlue, // backround color RGB
   ]);
   new DataView(textProperties.buffer).setUint16(0, num_chars, true); // inserisco direttamente num_chars LE a offset 0
-  var charactersBytes  = encode_car_image(bitmap)
-  const dataPayload = [...textProperties, ...charactersBytes];
+  // var charactersBytes = new Uint8Array([0xff]);
+  var charactersBytes = encode_car_image(bitmap);
+  const dataPayload = concatUint8Arrays([textProperties, charactersBytes]);
   const payloadSize = dataPayload.length;
-  // const crc_32 = Bun.hash.crc32(dataPayload);
+  const commandSize = payloadSize + prefix.length;
+  new DataView(prefix.buffer).setUint16(0, commandSize, true); // inserisco direttamente command size LE a offset 0 di prefix
   const crc_32 = buf(dataPayload); // see https://github.com/sheetjs/js-crc32
-  console.log(crc_32); // Outputs a decimal number
-  new DataView(prefix.buffer).setUint32(1, payloadSize, true); // inserisco direttamente payload size LE a offset 1
-  new DataView(prefix.buffer).setUint32(5, crc_32, true); // inserisco direttamente crc LE a offset 5
-  return [...prefix, ...dataPayload];
+  console.log('CRC32', crc_32); // Outputs a decimal number
+  new DataView(prefix.buffer).setUint32(4+1, payloadSize, true); // inserisco direttamente payload size LE a offset 4+1 di prefix
+  new DataView(prefix.buffer).setUint32(4+5, crc_32, true); // inserisco direttamente crc LE a offset 4+5 di prefix
+  const formattedText: Uint8Array = concatUint8Arrays([prefix, dataPayload]);
+  const textBuffer: ArrayBuffer = formattedText.buffer;
+  return textBuffer;
+}
+
+function concatUint8Arrays(arrays: Uint8Array[]): Uint8Array {
+  // 1. Calcola la dimensione totale di tutti gli array
+  const totalLength = arrays.reduce((acc, arr) => acc + arr.length, 0);
+  // 2. Crea un nuovo array della dimensione corretta
+  const result = new Uint8Array(totalLength);
+  // 3. Copia i singoli array nel risultato man mano
+  let offset = 0;
+  for (const arr of arrays) {
+      result.set(arr, offset);
+      offset += arr.length;
+  }
+  return result;
 }
 
 // see https://github.com/lucagoc/pypixelcolor/blob/main/src/pypixelcolor/commands/send_text/image_processing.py
