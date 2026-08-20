@@ -5,6 +5,9 @@ node_modules
 public/sounds
 public/locales/??/doc
 
+# local storage
+files
+
 # eclipse
 .project
 

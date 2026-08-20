@@ -18,6 +18,7 @@ import { _SCREENSIZE, _CANVASSIZE, _SETCANVASSIZE, _BOUNDS, _HOME, _CLEAR, _CS, 
 import { _SETPOS, _SETX, _SETY, _SETXY, _TOWARDS, _FD, _BK, _LABEL, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING, _FILL, _FILLSTART, _ARC, _CIRCLE } from './TurtleGraphics';
 import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _FILLCOLOR, _SETFILLCOLOR, _PENSIZE, _SETPENSIZE, _FONT, _SETFONT, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './TurtleGraphics';
 import { _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR } from './Communication';
+import { _CURDIR, _SETCURDIR, _FILEP, _DELETE_FILE, _RENAME_FILE } from './Storage';
 import { _TIME, _SETTIME, _WAIT, _MIDIOPEN, _MIDICLOSE, _MIDILOADINSTRUMENT, _MIDI, _MIDICHANNELS, _MIDIMSG, _MIDIPLAY } from './TimeMusic';
 import { _BLUEDEVICES, _BLUE } from './NearField';
 
@@ -782,6 +783,33 @@ export const CORE_DEFINITIONS = {
   READLIST: {
     classes: [FunClass.TXIN, FunSignature.FUNCTION],
     ref: _READLIST,
+  } as CommandDef,
+
+  CURDIR: {
+    classes: [FunClass.ASYNC],
+    signature: [FunSignature.FUNCTION],
+    ref: _CURDIR,
+  } as CommandDef,
+  SETCURDIR: {
+    classes: [FunClass.ASYNC],
+    args: [{ name: "path", type: A_F_S }],
+    ref: _SETCURDIR,
+  } as CommandDef,
+  FILEP: {
+    classes: [FunClass.ASYNC],
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "path", type: A_F_S }],
+    ref: _FILEP,
+  } as CommandDef,
+  DELETE_FILE: {
+    classes: [FunClass.ASYNC],
+    args: [{ name: "path", type: A_F_S }],
+    ref: _DELETE_FILE,
+  } as CommandDef,
+  RENAME_FILE: {
+    classes: [FunClass.ASYNC],
+    args: [{ name: "oldpath", type: A_F_S }, { name: "newpath", type: A_F_S }],
+    ref: _RENAME_FILE,
   } as CommandDef,
 
   NUMBERP: {
