@@ -18,7 +18,7 @@ import { _SCREENSIZE, _CANVASSIZE, _SETCANVASSIZE, _BOUNDS, _HOME, _CLEAR, _CS, 
 import { _SETPOS, _SETX, _SETY, _SETXY, _TOWARDS, _FD, _BK, _LABEL, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING, _FILL, _FILLSTART, _ARC, _CIRCLE } from './TurtleGraphics';
 import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _FILLCOLOR, _SETFILLCOLOR, _PENSIZE, _SETPENSIZE, _FONT, _SETFONT, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './TurtleGraphics';
 import { _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR } from './Communication';
-import { _CURDIR, _SETCURDIR, _FILEP, _DELETE_FILE, _RENAME_FILE } from './Storage';
+import { _SELECT_FOLDER, _CURDIR, _SETCURDIR, _CREATE_DIR, _DIRECTORY, _SELECT_FILE, _FILEP, _DELETE_FILE, _RENAME_FILE } from './Storage';
 import { _TIME, _SETTIME, _WAIT, _MIDIOPEN, _MIDICLOSE, _MIDILOADINSTRUMENT, _MIDI, _MIDICHANNELS, _MIDIMSG, _MIDIPLAY } from './TimeMusic';
 import { _BLUEDEVICES, _BLUE } from './NearField';
 
@@ -785,6 +785,11 @@ export const CORE_DEFINITIONS = {
     ref: _READLIST,
   } as CommandDef,
 
+  SELECT_FOLDER: {
+    classes: [FunClass.ASYNC],
+    signature: [FunSignature.FUNCTION],
+    ref: _SELECT_FOLDER,
+  } as CommandDef,
   CURDIR: {
     classes: [FunClass.ASYNC],
     signature: [FunSignature.FUNCTION],
@@ -794,6 +799,21 @@ export const CORE_DEFINITIONS = {
     classes: [FunClass.ASYNC],
     args: [{ name: "path", type: A_F_S }],
     ref: _SETCURDIR,
+  } as CommandDef,
+  DIRECTORY: {
+    classes: [FunClass.ASYNC],
+    signature: [FunSignature.FUNCTION],
+    ref: _DIRECTORY,
+  } as CommandDef,
+  SELECT_FILE: {
+    classes: [FunClass.ASYNC],
+    signature: [FunSignature.FUNCTION],
+    ref: _SELECT_FILE,
+  } as CommandDef,
+  CREATE_DIR: {
+    classes: [FunClass.ASYNC],
+    args: [{ name: "path", type: A_F_S }],
+    ref: _CREATE_DIR,
   } as CommandDef,
   FILEP: {
     classes: [FunClass.ASYNC],

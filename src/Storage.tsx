@@ -3,11 +3,14 @@
 
 import { CellType, Cell } from './CoreDefinitions';
 import { throwError} from './Interpreter';
+import { toLogoCell } from './Parser';
 
-export function _SELECT_FOLDER(args: any[]): void {
-}
-
-export function _CREATE_DIR(args: any[]): void {
+export async function _SELECT_FOLDER(args: any[]): Promise<Cell> {
+  const folder = await localService.selectFolder();
+  if (folder)
+    return { type: CellType.WORD, val: folder };
+  else
+    return { type: CellType.BOOLEAN, val: false };
 }
 
 export async function _CURDIR(args: any[]): Promise<Cell> {
@@ -20,10 +23,25 @@ export async function _SETCURDIR(args: any[]) {
   await localService.setCurDir(path.fileName);
 }
 
+export async function _CREATE_DIR(args: any[]) {
+  const path: ParsedPath = parseLogoPath(args[0].val);
+  await localService.createDir(path.fileName);
+}
+
 export function _SUBCURDIR(args: any[]): void {
 }
 
-export function _DIRECTORY(args: any[]): void {
+export async function _DIRECTORY(args: any[]): Promise<Cell> {
+  const directoryList =  await localService.listDirectory();
+  return toLogoCell(directoryList);
+}
+
+export async function _SELECT_FILE(args: any[]): Promise<Cell> {
+  const file = await localService.selectFile();
+  if (file)
+    return { type: CellType.WORD, val: file };
+  else
+    return { type: CellType.BOOLEAN, val: false };
 }
 
 export async function _FILEP(args: any[]): Promise<Cell> {
@@ -31,9 +49,6 @@ export async function _FILEP(args: any[]): Promise<Cell> {
   const exists: boolean = await localService.fileExists(path.fileName);
   console.log('_FILEP', path, exists);
   return { type: CellType.BOOLEAN, val: exists };
-}
-
-export function _SELECT_FILE(args: any[]): void {
 }
 
 export function _CREATE(args: any[]): void {
@@ -127,6 +142,54 @@ export class LocalStorageService {
     currentDirectory = "~FILES/" + fileName;
   }
 
+  /** Emula il comando SELECT.FOLDER di Logo */
+  async selectFolder(): Promise<string> {
+    try {
+      const directoryHandle = await window.showDirectoryPicker({
+        mode: 'readwrite'
+      });
+      return directoryHandle.name;
+    } catch (error) {
+      console.error("Accesso alla cartella negato dall'utente:", error);
+      // throw error;
+      return '';
+    }
+  }
+
+  /** Emula il comando CREATE.DIR di Logo */
+  async createDir(dirName: string) {
+    if (!this.directoryHandle) {
+      await this.initializeDirectory();
+    }
+    const subDirectoryHandle = await this.directoryHandle.getDirectoryHandle(dirName, { create: true });
+  }
+
+  /** Emula il comando DIRECTORY di Logo */
+  async listDirectory() {
+    if (!this.directoryHandle) {
+      await this.initializeDirectory();
+    }
+    var directoryList = [];
+    for await (const [key, value] of this.directoryHandle.entries()) {
+      directoryList.push(key);
+    }
+    return directoryList;
+  }
+
+  /** Emula il comando SELECT.FILE di Logo */
+  async selectFile(): Promise<string> {
+    try {
+      const fileHandle = await window.showOpenFilePicker();
+      console.log("selectFile", fileHandle);
+      if (fileHandle.length > 0)
+        return fileHandle[0].name;
+      return '';
+    } catch (error) {
+      console.error("Accesso al file negato dall'utente:", error);
+      return '';
+    }
+  }
+
   /** Emula il comando FILEP di Logo */
   async fileExists(fileName: string): Promise<boolean> {
     if (!this.directoryHandle) {
@@ -215,6 +278,7 @@ export class LocalStorageService {
 // semplificazione (provvisoria?) rispetto all'uso dello StorageRouter (commentato più sotto)
 const localService: LocalStorageService = new LocalStorageService();
 var currentDirectory = null;
+let directoryStack: FileSystemDirectoryHandle[] = [];
 
 /*
 ## Gestione e Routing dei Servizi (~GDRIVE, ~DROPBOX)
@@ -259,7 +323,7 @@ export class StorageRouter {
 
 import { get, set } from 'idb-keyval'; // Libreria leggera per IndexedDB
 export class PersistentWorkspace {
-  private rootHandle: FileSystemDirectoryHandle | null = null;
+  private rootHandle:  | null = null;
 
   async initWorkspace() {
     // 1. Tenta di recuperare l'handle salvato in precedenza
