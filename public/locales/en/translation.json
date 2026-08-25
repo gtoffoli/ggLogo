@@ -80,7 +80,7 @@
     "e18": "nella definizione di $2 ci sono piu' [ che ]",
     "e19": "$1 non riporta un valore",
     "e20": "21-29  errore logico in archivio o device",
-    "e21": "non trovo l' archivio $2",
+    "e21": "non trovo l'archivio o la cartella $2",
     "e22": "l' archivio o dispositivo $2 non è aperto",
     "e23": "l' archivio o dispositivo $2 è già aperto",
     "e24": "non posso cancellare $2 perché è aperto",

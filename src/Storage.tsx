@@ -28,11 +28,18 @@ export async function _CREATE_DIR(args: any[]) {
   await localService.createDir(path.fileName);
 }
 
-export function _SUBCURDIR(args: any[]): void {
-}
-
 export async function _DIRECTORY(args: any[]): Promise<Cell> {
-  const directoryList =  await localService.listDirectory();
+  var pattern: string = '';
+  if (args.length > 0)
+    pattern = args[0].val;
+  const directoryList =  await localService.listDirectory('file', pattern);
+  return toLogoCell(directoryList);
+}
+export async function _SUBDIR(args: any[]): Promise<Cell> {
+  var pattern: string = '';
+  if (args.length > 0)
+    pattern = args[0].val;
+  const directoryList =  await localService.listDirectory('directory', pattern);
   return toLogoCell(directoryList);
 }
 
@@ -77,7 +84,11 @@ export async function _DELETE_FILE(args: any[]) {
   await localService.fileDelete(path.fileName);
 }
 
-
+/**
+ * StoragePrefix può servire per emulare la distinzione che Terrapin Logo effettua
+ * tra un LocalStorageService, implementato con le File System Access API,
+ * e servizi di storage in cloud, compreso quello fornito da Terrapin stessa con contratto "Class"
+ */
 export type StoragePrefix = '~FILES' | '~HOME' | '~DROPBOX' | '~GDRIVE' | '~CLASS';
 export interface ParsedPath {
   prefix: StoragePrefix;
@@ -90,26 +101,44 @@ export interface ParsedPath {
 export function parseLogoPath(rawPath: string): ParsedPath {
   // Rimuove eventuali virgolette tipiche della sintassi Logo (es. "~FILES/file)
   const cleanPath = rawPath.replace(/^"/, '');
-  
   const match = cleanPath.match(/^(~[A-Z]+)\/(.+)$/);
   if (!match) {
     // Se non viene specificato un prefisso, Terrapin Logo usa ~FILES di default
     return { prefix: '~FILES', fileName: cleanPath };
   }
-
   return {
     prefix: match[1] as StoragePrefix,
     fileName: match[2]
   };
 }
 
-/*
-## Emulazione di ~FILES con le File System Access API
-Ecco la classe TypeScript per gestire lettura e scrittura:
+/**
+ * Emulazione di ~FILES con le File System Access API
+ * Ecco la classe TypeScript per gestire lettura e scrittura:
 */
 
 export class LocalStorageService {
   private directoryHandle: FileSystemDirectoryHandle | null = null;
+
+  // La cartella radice iniziale (scelta dall'utente)
+  private rootHandle: FileSystemDirectoryHandle | null = null;
+  // Lo stack dei handle: l'ultimo elemento è la cartella CORRENTE
+  private directoryStack: FileSystemDirectoryHandle[] = [];
+
+  /**
+   * Richiede all'utente di selezionare una cartella sul proprio PC
+   * deve sostituire ovunque initializeDirectory ?
+   */
+  async selectWorkspace(): Promise<void> {
+    try {
+      const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+      this.rootHandle = handle;
+      this.directoryStack = [handle]; // Il punto di partenza è la radice
+      console.log("Workspace pronto.");
+    } catch (error) {
+      console.error("Accesso negato", error);
+    }
+  }
 
   /**
    * Richiede all'utente di selezionare una cartella sul proprio PC
@@ -126,20 +155,49 @@ export class LocalStorageService {
     }
   }
 
-  /** Emula il comando CURDIR di Logo */
+  /** Emula il comando CURDIR di Logo (pwd) */
   async curDir(): Promise<string> {
-    if (!this.directoryHandle) {
-      await this.initializeDirectory();
+    if (this.directoryStack.length === 0) {
+      await this.selectWorkspace();
     }
-    return currentDirectory;
+    
+    // Mappa i nomi dei handle. La radice non ha un nome nativo dall'API (spesso è vuoto),
+    // quindi le diamo un nome convenzionale come "~" o "/"
+    const pathParts = this.directoryStack.map((handle, index) => index === 0 ? "~" : handle.name);
+    
+    return pathParts.join("/");
   }
 
   /** Emula il comando SETCURDIR di Logo */
-  async setCurDir(fileName: string) {
-    if (!this.directoryHandle) {
-      await this.initializeDirectory();
+  async setCurDir(target: string) {
+    if (this.directoryStack.length === 0) {
+      await this.selectWorkspace();
     }
-    currentDirectory = "~FILES/" + fileName;
+    // Scenario 1: Torna indietro
+    if (target === "..") {
+      if (this.directoryStack.length > 1) {
+        this.directoryStack.pop(); // Rimuove l'ultima cartella dallo stack
+      } else {
+        console.warn("Ti trovi già nella cartella radice.");
+      }
+      return;
+    }
+    // Scenario 2: Torna alla radice
+    if (target === "/" || target === "~") {
+      this.directoryStack = [this.directoryStack[0]]; // Il punto di partenza è la radice
+      return;
+    }
+    // Scenario 3: Entra in una sottocartella
+    const current = this.directoryStack.at(-1);
+    try {
+      // Cerca la sottocartella all'interno di quella corrente
+      // { create: false } evita di crearla se non esiste, lanciando un errore
+      const subDirectoryHandle = await current.getDirectoryHandle(target, { create: false });
+      // Aggiunge la nuova cartella in cima allo stack
+      this.directoryStack.push(subDirectoryHandle);
+    } catch (error) {
+      throwError('e21', null, target);
+    }
   }
 
   /** Emula il comando SELECT.FOLDER di Logo */
@@ -158,20 +216,23 @@ export class LocalStorageService {
 
   /** Emula il comando CREATE.DIR di Logo */
   async createDir(dirName: string) {
-    if (!this.directoryHandle) {
-      await this.initializeDirectory();
+    if (this.directoryStack.length === 0) {
+      await this.selectWorkspace();
     }
-    const subDirectoryHandle = await this.directoryHandle.getDirectoryHandle(dirName, { create: true });
+    const directoryHandle = this.directoryStack.at(-1);
+    const subDirectoryHandle = await directoryHandle.getDirectoryHandle(dirName, { create: true });
   }
 
   /** Emula il comando DIRECTORY di Logo */
-  async listDirectory() {
-    if (!this.directoryHandle) {
-      await this.initializeDirectory();
+  async listDirectory(kind: string, pattern: string) {
+    if (this.directoryStack.length === 0) {
+      await this.selectWorkspace();
     }
+    const directoryHandle = this.directoryStack.at(-1);
     var directoryList = [];
-    for await (const [key, value] of this.directoryHandle.entries()) {
-      directoryList.push(key);
+    for await (const [key, value] of directoryHandle.entries()) {
+      if ((value.kind === kind) && ((!pattern) || (matchWildcard(pattern, key))))
+        directoryList.push(key);
     }
     return directoryList;
   }
@@ -192,25 +253,25 @@ export class LocalStorageService {
 
   /** Emula il comando FILEP di Logo */
   async fileExists(fileName: string): Promise<boolean> {
-    if (!this.directoryHandle) {
-      await this.initializeDirectory();
+    if (this.directoryStack.length === 0) {
+      await this.selectWorkspace();
     }
-    for await (const [key, value] of this.directoryHandle.entries()) {
+    const directoryHandle = this.directoryStack.at(-1);
+    for await (const [key, value] of directoryHandle.entries()) {
       if (key === fileName)
         return true;
     }
-    return false;
   }
 
   /** Emula il comando DELETE di Logo */
   async fileDelete(fileName: string) {
-    if (!this.directoryHandle) {
-      await this.initializeDirectory();
+    if (this.directoryStack.length === 0) {
+      await this.selectWorkspace();
     }
-    for await (const [key, value] of this.directoryHandle.entries()) {
+    const directoryHandle = this.directoryStack.at(-1);
+    for await (const [key, value] of directoryHandle.entries()) {
       if (key === fileName) {
-        // await this.directoryHandle.remove(value);
-        await this.directoryHandle.removeEntry(fileName);
+        await directoryHandle.removeEntry(fileName);
         return;
       }
     }
@@ -219,10 +280,11 @@ export class LocalStorageService {
 
   /** Emula il comando RENAME di Logo */
   async fileRename(oldName: string, newName: string) {
-    if (!this.directoryHandle) {
-      await this.initializeDirectory();
+    if (this.directoryStack.length === 0) {
+      await this.selectWorkspace();
     }
-    for await (const [key, value] of this.directoryHandle.entries()) {
+    const directoryHandle = this.directoryStack.at(-1);
+    for await (const [key, value] of directoryHandle.entries()) {
       if (key === oldName) {
         // Rinomina il file mantenendolo nella stessa cartella
         await value.move(newName);
@@ -278,7 +340,6 @@ export class LocalStorageService {
 // semplificazione (provvisoria?) rispetto all'uso dello StorageRouter (commentato più sotto)
 const localService: LocalStorageService = new LocalStorageService();
 var currentDirectory = null;
-let directoryStack: FileSystemDirectoryHandle[] = [];
 
 /*
 ## Gestione e Routing dei Servizi (~GDRIVE, ~DROPBOX)
@@ -362,4 +423,14 @@ export class PersistentWorkspace {
   // Metodi interni per iniettare l'interfaccia utente di sblocco...
   private showReauthUI() { /* Mostra un banner: "Clicca qui per consentire a Logo l'accesso ai file locali" */ }
   private showSetupUI() { /* Mostra un bottone: "Seleziona la tua cartella Logo sul PC" */ }
+}
+
+function matchWildcard(pattern, str) {
+  // 1. Protegge i caratteri speciali della regex (tranne * e ?)
+  const escaped = pattern.replace(/([.+^${}()|[\]\\])/g, '\\$1');
+  // 2. Sostituisce * con .* e ? con .
+  const regexPattern = '^' + escaped.replace(/\*/g, '.*').replace(/\?/g, '.') + '$';
+  // 3. Crea e testa l'espressione regolare
+  const regex = new RegExp(regexPattern);
+  return regex.test(str);
 }
