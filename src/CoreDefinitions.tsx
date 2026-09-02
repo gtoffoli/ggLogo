@@ -815,6 +815,7 @@ export const CORE_DEFINITIONS = {
   SELECT_FILE: {
     classes: [FunClass.ASYNC],
     signature: [FunSignature.FUNCTION],
+    args: [{ name: "extensions", type: A_L }, { name: "title", type: A_W_S, optional: true }],
     ref: _SELECT_FILE,
   } as CommandDef,
   CREATE_DIR: {

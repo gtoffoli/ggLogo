@@ -44,7 +44,12 @@ export async function _SUBDIR(args: any[]): Promise<Cell> {
 }
 
 export async function _SELECT_FILE(args: any[]): Promise<Cell> {
-  const file = await localService.selectFile();
+  const title: string = (args.length > 1) ? args[1].val : '';
+  var extensions = args[0].val;
+  if (extensions.length > 0) {
+    extensions = extensions.map((n: Cell) => n.val);
+  }
+  const file = await localService.selectFile(extensions, title);
   if (file)
     return { type: CellType.WORD, val: file };
   else
@@ -54,7 +59,6 @@ export async function _SELECT_FILE(args: any[]): Promise<Cell> {
 export async function _FILEP(args: any[]): Promise<Cell> {
   const path: ParsedPath = parseLogoPath(args[0].val);
   const exists: boolean = await localService.fileExists(path.fileName);
-  console.log('_FILEP', path, exists);
   return { type: CellType.BOOLEAN, val: exists };
 }
 
@@ -160,11 +164,9 @@ export class LocalStorageService {
     if (this.directoryStack.length === 0) {
       await this.selectWorkspace();
     }
-    
     // Mappa i nomi dei handle. La radice non ha un nome nativo dall'API (spesso è vuoto),
     // quindi le diamo un nome convenzionale come "~" o "/"
     const pathParts = this.directoryStack.map((handle, index) => index === 0 ? "~" : handle.name);
-    
     return pathParts.join("/");
   }
 
@@ -202,15 +204,21 @@ export class LocalStorageService {
 
   /** Emula il comando SELECT.FOLDER di Logo */
   async selectFolder(): Promise<string> {
-    try {
-      const directoryHandle = await window.showDirectoryPicker({
-        mode: 'readwrite'
-      });
-      return directoryHandle.name;
-    } catch (error) {
-      console.error("Accesso alla cartella negato dall'utente:", error);
-      // throw error;
-      return '';
+    var selectedFolder = null;
+    if (this.directoryStack.length === 0) { // non esiste ancora un workspace (storage system locale)
+      await this.selectWorkspace();
+      if (this.directoryStack.length > 0) // se la creazione del workspace ha successo
+        return this.directoryStack[0].name; // ritorna il nome della sua root (path ~) 
+    }
+    else { // chiede di selezionare un folder all'interno di workspace esistente
+      try {
+        var options = { mode: 'readwrite', startIn: this.directoryStack.at(-1) };  // partendo dal folder tree corrente
+        const directoryHandle = await window.showDirectoryPicker(options);
+        return directoryHandle.name;
+      } catch (error) {
+        console.error("Accesso alla cartella negato dall'utente:", error);
+        return '';
+      }
     }
   }
 
@@ -238,10 +246,24 @@ export class LocalStorageService {
   }
 
   /** Emula il comando SELECT.FILE di Logo */
-  async selectFile(): Promise<string> {
+  // i filtri relativi ai tipi di file vanno implementati meglio
+  async selectFile(extensions, title: string): Promise<string> {
+    if (this.directoryStack.length === 0) { // non esiste ancora un workspace (storage system locale)
+      throwError('e15', null, '');
+    }
+    var options = {};
+    options['startIn'] = this.directoryStack.at(-1);
+    if (extensions.length > 0)
+      options ['types'] = [
+        {
+          description: 'All MIME types',
+          accept: {
+            '*/*': extensions,
+          },
+        },
+      ]
     try {
-      const fileHandle = await window.showOpenFilePicker();
-      console.log("selectFile", fileHandle);
+      const fileHandle = await window.showOpenFilePicker(options); // visualizza il folder tree corrente
       if (fileHandle.length > 0)
         return fileHandle[0].name;
       return '';
