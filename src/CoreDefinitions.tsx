@@ -17,7 +17,7 @@ import { _RAD, _SIN, _COS, _TAN, _ARCTAN, _RADSIN, _RADCOS, _RADTAN, _RADARCTAN 
 import { _SCREENSIZE, _CANVASSIZE, _SETCANVASSIZE, _BOUNDS, _HOME, _CLEAR, _CS, _WINDOW, _FENCE, _WRAP, _SETTURTLEMODE, _TURTLEMODE, _SETSCALE, _SCALE, _SETBACKGROUNDCOLOR, _BACKGROUNDCOLOR } from './TurtleGraphics';
 import { _SETPOS, _SETX, _SETY, _SETXY, _TOWARDS, _FD, _BK, _LABEL, _RT, _LT, _XCOR, _YCOR, _POS, _SETHEADING, _HEADING, _FILL, _FILLSTART, _ARC, _CIRCLE } from './TurtleGraphics';
 import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _FILLCOLOR, _SETFILLCOLOR, _PENSIZE, _SETPENSIZE, _FONT, _SETFONT, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './TurtleGraphics';
-import { _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR } from './Communication';
+import { _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR, _OPEN, _CLOSE } from './Communication';
 import { _SELECT_FOLDER, _CURDIR, _SETCURDIR, _CREATE_DIR, _DIRECTORY, _SUBDIR, _SELECT_FILE, _FILEP, _DELETE_FILE, _RENAME_FILE } from './Storage';
 import { _TIME, _SETTIME, _WAIT, _MIDIOPEN, _MIDICLOSE, _MIDILOADINSTRUMENT, _MIDI, _MIDICHANNELS, _MIDIMSG, _MIDIPLAY } from './TimeMusic';
 import { _BLUEDEVICES, _BLUE } from './NearField';
@@ -838,6 +838,18 @@ export const CORE_DEFINITIONS = {
     classes: [FunClass.ASYNC],
     args: [{ name: "oldpath", type: A_F_S }, { name: "newpath", type: A_F_S }],
     ref: _RENAME_FILE,
+  } as CommandDef,
+
+  OPEN: {
+    classes: [FunClass.ASYNC],
+    signature: [FunSignature.FUNCTION],
+    args: [{ name: "filename", type: A_F_LW_S_L }, { name: "mode", type: A_W_S, optional: true }],
+    ref: _OPEN,
+  } as CommandDef,
+  CLOSE: {
+    classes: [FunClass.ASYNC],
+    args: [{ name: "filename", type: A_F_S + A_N }],
+    ref: _CLOSE,
   } as CommandDef,
 
   NUMBERP: {

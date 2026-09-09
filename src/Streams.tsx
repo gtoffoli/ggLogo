@@ -1,53 +1,6 @@
 // LogoDevices.tsx
 // 251214 - 1st version
 
-/*
-import { CellType, Cell } from './CoreDefinitions';
-import { contesti, liv_contesto } from './LogoControl';
-
-// codifica dei device MLOGO
-export enum devCode {
-  CONSOLE = 0,  // codice di console
-  STAMPANTE = 1,  // codice di stampante
-  FOGLIO = 2,   // codice di device del foglio di editor
-  TARTALFA = 3, // codice di schermo TARTA usato per output alfanum.
-  COM1 = 4,   // codice di porta comunicazione n. 1
-  MIN_DEV = 6,  // minimo codice di device non preallocato
-}
-
-// codifica dei bit di stato MLOGO (_stato) per file C
-export enum devType {
-  NULL_DEV = -1,
-  O_BINARIO = 1,  // file aperto in modalita' binario
-          // 2 riservato futuri usi per file 
-          // 4 riservato futuri usi per file
-  O_FINESTRA = 8, // device corrispondente a viewport del GFX
-  O_TARTA = 16, // finestra di tipo tarta
-  O_FOGLIO = 32,  // finestra di tipo foglio
-  O_ARCHIVIO = 64,// device di tipo archivio
-  O_PLAYER = 128, // player MCI
-  O_BROWSER = 256,// browser HTML
-}
-
-export type deviceDescription = {
-  name: string,
-  handle: number,
-  state: number,
-}
-
-export var DEVICES = {
-  0: { name: 'CONSOLE', handle: 0, state: 0 } as deviceDescription,
-  1: { name: 'TURTLE', handle: 0, state: 0 } as deviceDescription
-}
-
-export var is_recupera: boolean;
-
-export function _READER(values: any[]): Cell {
-	var device = contesti[liv_contesto].dev_recupera;
-	return { cellType: CellType.NUMBER, val: device };
-}
-*/
-
 /* IMPLEMENTATION OF SOURCES PATTERN */
 
 export interface InputSource {
@@ -170,6 +123,51 @@ export class ShellOutput implements OutputChannel {
   }
 }
 
+export class FileStream {
+  private handle: FileSystemFileHandle;
+  private bufferData: Uint8Array = new Uint8Array(0);
+  private cursor: number = 0;
+  private modified: boolean = false;
 
+  constructor(handle: FileSystemFileHandle) {
+    this.handle = handle;
+  }
 
+  async open() {
+    const file = await this.handle.getFile();
+    const arrayBuffer = await file.arrayBuffer();
+    this.bufferData = new Uint8Array(arrayBuffer);
+    this.cursor = 0;
+    this.modified = false;
+  }
 
+  read(length: number): Uint8Array {
+    const end = Math.min(this.cursor + length, this.bufferData.length);
+    const chunk = this.bufferData.slice(this.cursor, end);
+    this.cursor = end;
+    return chunk;
+  }
+
+  write(data: Uint8Array) {
+    // Espande o sovrascrive il buffer in base alla posizione del cursore
+    const newLen = Math.max(this.bufferData.length, this.cursor + data.length);
+    const newBuffer = new Uint8Array(newLen);
+    newBuffer.set(this.bufferData);
+    newBuffer.set(data, this.cursor);
+    this.bufferData = newBuffer;
+    this.cursor += data.length;
+    this.modified = true;
+  }
+
+  seek(position: number) {
+    this.cursor = Math.max(0, Math.min(position, this.bufferData.length));
+  }
+
+  async close() {
+    if (this.modified) {
+      const writable = await this.handle.createWritable();
+      await writable.write(this.bufferData);
+      await writable.close();
+    }
+  }
+}

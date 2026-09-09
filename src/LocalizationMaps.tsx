@@ -23,6 +23,7 @@ export const IT_MAP: LanguageMap = {
   "ACCHIAPPA": "CATCH",
   "ALTRIMENTI": "IFFALSE",
   "AMB": "AND",
+  "APRI": "OPEN",
   "ARCHIVI": "DIRECTORY",
   "ARCHIVIO?": "FILEP",
   "ARCO": "ARC",
@@ -66,6 +67,7 @@ export const IT_MAP: LanguageMap = {
   "CARATTERE": "CHAR",
   "CARICASTRUMENTO": "MIDILOADINSTRUMENT",
   "CERCHIO": "CIRCLE",
+  "CHIUDI": "CLOSE",
   "CIAO": "BYE",
   "CIRCOLARE": "WRAP",
   "COLORE": "PENCOLOR",
@@ -168,6 +170,7 @@ export const IT_MAP: LanguageMap = {
   "NOP": "NOP",
   "NOT": "NOT",
   "NUMERO?": "NUMBERP",
+  "OPEN": "OPEN",
   "OPPURE": "OR",
   "OR": "OR",
   "PAROLA": "WORD",
@@ -263,6 +266,9 @@ export const IT_MAP: LanguageMap = {
 
   "APERTO": "OPEN",
   "CHIUSO": "CLOSED",
+  "CONSOLE": "CONSOLE",
+  "TARTA": "TURTLE",
+  "FOGLIO": "EDITOR",
 };
 
 // Mappa per l'Inglese
@@ -286,6 +292,7 @@ export const EN_MAP: LanguageMap = {
   "CLEAR": "CLEAR",
   "CIRCLE": "CIRCLE",
   "CLEARSCREEN": "CS",
+  "CLOSE": "CLOSE",
   "CONTINUE": "CONTINUE",
   "COPYDEF": "COPYDEF",
   "CREATE.DIR": "CREATE_DIR",
@@ -505,6 +512,9 @@ export const EN_MAP: LanguageMap = {
 
   "OPEN": "OPEN",
   "CLOSED": "CLOSED",
+  "CONSOLE": "CONSOLE",
+  "TURTLE": "TURTLE",
+  "EDITOR": "EDITOR",
 };
 
 export var LANGUAGE_MAPS: Record<string, LanguageMap> = {

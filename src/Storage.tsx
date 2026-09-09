@@ -49,7 +49,7 @@ export async function _SELECT_FILE(args: any[]): Promise<Cell> {
   if (extensions.length > 0) {
     extensions = extensions.map((n: Cell) => n.val);
   }
-  const file = await localService.selectFile(extensions, title);
+  const file = await localService.selectFile(extensions, title).name;
   if (file)
     return { type: CellType.WORD, val: file };
   else
@@ -58,8 +58,9 @@ export async function _SELECT_FILE(args: any[]): Promise<Cell> {
 
 export async function _FILEP(args: any[]): Promise<Cell> {
   const path: ParsedPath = parseLogoPath(args[0].val);
-  const exists: boolean = await localService.fileExists(path.fileName);
-  return { type: CellType.BOOLEAN, val: exists };
+  // const exists: boolean = await localService.fileExists(path.fileName);
+  const fileHandle = await localService.fileGet(path.fileName);
+  return { type: CellType.BOOLEAN, val: (fileHandle) ? true : false };
 }
 
 export function _CREATE(args: any[]): void {
@@ -247,7 +248,7 @@ export class LocalStorageService {
 
   /** Emula il comando SELECT.FILE di Logo */
   // i filtri relativi ai tipi di file vanno implementati meglio
-  async selectFile(extensions, title: string): Promise<string> {
+  async selectFile(extensions, title: string): Promise<FileSystemFileHandle> {
     if (this.directoryStack.length === 0) { // non esiste ancora un workspace (storage system locale)
       throwError('e15', null, '');
     }
@@ -263,9 +264,9 @@ export class LocalStorageService {
         },
       ]
     try {
-      const fileHandle = await window.showOpenFilePicker(options); // visualizza il folder tree corrente
-      if (fileHandle.length > 0)
-        return fileHandle[0].name;
+      const fileHandles = await window.showOpenFilePicker(options); // visualizza il folder tree corrente
+      if (fileHandles.length > 0)
+        return fileHandles[0];
       return '';
     } catch (error) {
       console.error("Accesso al file negato dall'utente:", error);
@@ -274,15 +275,18 @@ export class LocalStorageService {
   }
 
   /** Emula il comando FILEP di Logo */
-  async fileExists(fileName: string): Promise<boolean> {
+  // async fileExists(fileName: string): Promise<boolean> {
+
+  async fileGet(fileName: string): Promise<FileSystemFileHandle | null> {
     if (this.directoryStack.length === 0) {
       await this.selectWorkspace();
     }
     const directoryHandle = this.directoryStack.at(-1);
     for await (const [key, value] of directoryHandle.entries()) {
       if (key === fileName)
-        return true;
+        return value;
     }
+    return null;
   }
 
   /** Emula il comando DELETE di Logo */
@@ -360,7 +364,7 @@ export class LocalStorageService {
 }
 
 // semplificazione (provvisoria?) rispetto all'uso dello StorageRouter (commentato più sotto)
-const localService: LocalStorageService = new LocalStorageService();
+export const localService: LocalStorageService = new LocalStorageService();
 var currentDirectory = null;
 
 /*
