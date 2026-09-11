@@ -83,6 +83,7 @@ export class InteractiveData {
 }
 
 export interface OutputChannel {
+  // type: 'SHELL' | 'BUFFER' | 'NULL';
   type: 'SHELL' | 'BUFFER' | 'NULL';
   write(text: string): void;
   writeLine(text: string): void;
@@ -91,13 +92,16 @@ export interface OutputChannel {
 }
 
 export class ShellOutput implements OutputChannel {
-  private type: 'SHELL'; // as const;
+  // private type: 'SHELL'; // as const;
+  private type; // as const;
   private name: string = "Console";
   private currentLineBuffer: string = "";
   
   // Passiamo il dispatcher per aggiornare lo stato di React
   // Accettiamo il dispatch come argomento
-  constructor(private dispatch: (action: any) => void) {}
+  constructor(private dispatch: (action: any) => void) {
+    this.type = 'SHELL';
+  }
 
   write(text: string) {
     // this.dispatch({ type: 'APPEND_SHELL_LINE', payload: { text, type: 'output' } });

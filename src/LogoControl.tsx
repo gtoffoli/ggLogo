@@ -5,6 +5,7 @@ import { contextType, Context, initialContext, CellType, Cell, CommandDef, ModPa
 import { LogoError, throwError, userProcedures } from './Interpreter';
 import { _localMake } from './LogoDefine';
 import { resetActivePath } from './TurtleGraphics';
+import { ini_flussi } from './Communication';
 import { resetMidiChannels } from './TimeMusic';
 
 const ID_RUN = 1;
@@ -508,6 +509,7 @@ export function ini_exec(): void {
   is_stop = false;    /* se vero e' terminata esecuz. procedura corrente */
   v_stack = [];
   tracked_functions = [];
+  ini_flussi();
 }
 
 // inizializzazione parziale di Commander (NestedExec)

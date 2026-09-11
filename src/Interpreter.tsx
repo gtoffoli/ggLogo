@@ -13,6 +13,7 @@ import { push_sv, pop_sv,  push_arg, minArgsNumber, sf_in, sf_out, uf_in, uf_cal
 import { ini_main, ini_exec, ini_valuta, AssertContesto } from './LogoControl';
 import { isProcedureDefinition, iniDefine, pushProcedureLine, _thing } from './LogoDefine';
 import { localizedTruthValues, normalizeBoolean } from './Logic';
+import { getCurrentOutput } from './Communication';
 import { InputSource, OutputChannel } from './Streams';
 import { ShellSource, ShellOutput, InteractiveData } from './Streams';
 import { keywordResolver, commandResolver } from './UseLocalization';
@@ -33,6 +34,7 @@ var zeroormore = false;  // true if primitive accepts an indefinite number of ar
 var min_args = 0;   // to be computed based on the 'args' slot of a definition 
 var max_args = 0;   // to be computed based on the 'args' slot of a definition
 var is_function = false;// true if primitive returns a result
+export var currentOutput: OutputChannel;
 
 var isInterrupting: boolean = false;
 export function setInterruption(value: boolean) { isInterrupting = value; }
@@ -80,13 +82,13 @@ export class AsynchronousLogoInterpreter {
 
   constructor(getState: () => LogoGlobalState, dispatch: React.Dispatch<any>) {
     this.getState = getState;
-    // this.source = source;
     this.source = new ShellSource();
     this.dataSource = new InteractiveData();
     this.dispatch = dispatch;
-    // this.sourceStack.push(source);
     this.sourceStack.push(this.source);
-    this.outputStack.push(new ShellOutput(dispatch));
+    // this.outputStack.push(new ShellOutput(dispatch));
+    currentOutput = new ShellOutput(dispatch);
+    // this.outputStack.push(shellOutput);
     this.currentCommand = null;
     console.log('AsynchronousLogoInterpreter CREATED');
     ini_main();
@@ -207,7 +209,8 @@ export class AsynchronousLogoInterpreter {
   }
 
   public getCurrentOutput(): OutputChannel {
-    return this.outputStack[this.outputStack.length - 1];
+    // return this.outputStack[this.outputStack.length - 1];
+    return currentOutput;
   }
 
   // Esempio d'uso nell'esecuzione
@@ -406,7 +409,8 @@ export class AsynchronousLogoInterpreter {
         this.dispatch({ type: 'SET_KEYBOARD_TARGET', target: 'commands' });
       }
       else if (classes.includes(FunClass.TXOU)) {
-        definition.ref(this.getCurrentOutput(), values);
+        // definition.ref(this.getCurrentOutput(), values);
+        definition.ref(values);
       }
       else if (classes.includes(FunClass.CANVAS)) {
         const activeWin = this.getState().windows[this.getState().activeWindowId];
