@@ -3,7 +3,7 @@
 
 import { CellType, Cell } from './CoreDefinitions';
 import { BufferSource, ShellSource, OutputChannel, InteractiveData, FileStream } from './Streams';
-import { localService } from './Storage';
+import { localService, ParsedPath, parseLogoPath } from './Storage';
 import { throwError, currentOutput } from './Interpreter';
 import { Parse, nodeToString } from './Parser';
 import { keywordResolver } from './UseLocalization';
@@ -18,19 +18,24 @@ export enum devCode {
 
 // codifica dei bit di stato MLOGO (_stato) per file C
 export enum devType {
+/*
   NULL_DEV = -1,
   O_BINARIO = 1,  // file aperto in modalita' binario
           // 2 riservato futuri usi per file 
           // 4 riservato futuri usi per file
   O_FINESTRA = 8, // device corrispondente a viewport del GFX
   O_TARTA = 16, // finestra di tipo tarta
+*/
+  O_LISTENER = 4, // finestra di IO interattivo
   O_FOGLIO = 32,  // finestra di tipo foglio
   O_ARCHIVIO = 64,// device di tipo archivio
+/*
   O_PLAYER = 128, // player MCI
   O_BROWSER = 256,// browser HTML
+*/
 }
 
-export type deviceDescription = {
+type IoDevice = {
   name: string,
   type: number,
   fileHandle?: FileSystemFileHandle,
@@ -41,12 +46,12 @@ export type deviceDescription = {
 // inizializzazione della mappa dei device
 export var DEVICES =
 [
-  { name: 'CONSOLE' } as deviceDescription, // index 0
-  { name: 'PRINTER' } as deviceDescription, // index 1
-  { name: 'EDITOR', type: devType.O_FOGLIO } as deviceDescription, // index 2
-  { name: 'TURTLE', type: devType.O_TARTA } as deviceDescription, // index 3
+  { name: 'CONSOLE', type: devType.O_LISTENER } as IoDevice, // index 0
+  { name: 'PRINTER', type: 0 } as IoDevice, // index 1
+  { name: 'EDITOR', type: devType.O_FOGLIO } as IoDevice, // index 2
+  // { name: 'TURTLE', type: devType.O_TARTA } as IoDevice, // index 3
 ]
-const MIN_DEV = 4  // minimo codice di device non preallocato
+const MIN_DEV = 3  // minimo codice di device non preallocato
 
 var dev_recupera: number;
 var dev_leggi: number;  /* device per lettura */
@@ -74,18 +79,17 @@ export function ini_flussi () {
   dev_leggi = dev_scrivi = dev_recupera = devCode.CONSOLE;
 }
 
-export function getCurrentOutput(): OutputChannel {
-  if (dev_leggi === devCode.CONSOLE) {}
-  else if (dev_leggi === devCode.FOGLIO) {}
-  else if (dev_leggi >= MIN_DEV) {}
-  return currentOutput;
+function getCurrentInput(): IoDevice {
+  return DEVICES[dev_leggi];
+}
 
+export function getCurrentOutput(): IoDevice {
+  return DEVICES[dev_scrivi];
 }
 
 export function _READER(values: any[]): Cell {
   return { type: CellType.NUMBER, val: dev_leggi };
 }
-
 export function _READFROM(args: any[]) {
   var deviceHandle: number;
   var deviceName;
@@ -94,49 +98,101 @@ export function _READFROM(args: any[]) {
     deviceHandle = args[0].val;
     device = DEVICES[deviceHandle];
     if (!device)
-      throwError('e22', null, deviceHandle);
+      throwError('e22', null, deviceHandle.toString());
   }
   else {
     deviceName = args[0].val;
     deviceHandle = deviceHandleFromName(deviceName);
     if (deviceHandle < 0)
       throwError('e22', null, deviceName);
+    device = DEVICES[deviceHandle];
   }
+  if (![devType.O_LISTENER, devType.O_FOGLIO, devType.O_ARCHIVIO].includes(device.type))
+    throwError('e25', null, device.name);
   dev_leggi = deviceHandle;
 }
+export function _READPOS(values: any[]): Cell {
+  return { type: CellType.NUMBER, val: 0 };
+}
+export function _READAT(values: any[]) {
+}
 
-// export function _PRINT(channel: OutputChannel, args: any[]): void {
+export function _WRITER(values: any[]): Cell {
+  return { type: CellType.NUMBER, val: dev_scrivi };
+}
+export function _WRITETO(args: any[]) {
+  var deviceHandle: number;
+  var deviceName;
+  var device; 
+  if (args[0].type === CellType.NUMBER) {
+    deviceHandle = args[0].val;
+    device = DEVICES[deviceHandle];
+    if (!device)
+      throwError('e22', null, deviceHandle.toString());
+  }
+  else {
+    deviceName = args[0].val;
+    deviceHandle = deviceHandleFromName(deviceName);
+    if (deviceHandle < 0)
+      throwError('e22', null, deviceName);
+    device = DEVICES[deviceHandle];
+  }
+  if (![devType.O_LISTENER, devType.O_FOGLIO, devType.O_ARCHIVIO].includes(device.type))
+    throwError('e25', null, device.name);
+  dev_scrivi = deviceHandle;
+}
+export function _WRITEPOS(values: any[]): Cell {
+  return { type: CellType.NUMBER, val: 0 };
+}
+export function _WRITEAT(values: any[]) {
+}
+
+function textWrite(text: string, device: IoDevice, newline?: boolean) {
+  if (device.type === devType.O_ARCHIVIO) {
+    if (newline)
+      text = text + '\n';
+    var data = new TextEncoder().encode(text);
+    device.stream.write(data);
+  }
+  else {
+    if (newline)
+      currentOutput.writeLine(text);
+    else
+      currentOutput.write(text);
+  }
+}
+
 export function _PRINT(args: any[]): void {
-	console.log('function _PRINT', args);
+  const device = DEVICES[dev_scrivi];
+  var text;
 	for (var i=0; i<args.length; i++) {
-    // channel.writeLine(nodeToString(args[i], false));
-    currentOutput.writeLine(nodeToString(args[i], false));
+    // currentOutput.writeLine(nodeToString(args[i], false));
+    text = nodeToString(args[i], false);
+    textWrite(text, device, true);
   }
 }
 
-// export function _TYPE(channel: OutputChannel, args: any[]): void {
 export function _TYPE(args: any[]): void {
-  console.log('function _TYPE', args);
+  const device = DEVICES[dev_scrivi];
+  var text;
   for (var i=0; i<args.length; i++) {
-    // channel.write(nodeToString(args[i], false));
-    currentOutput.write(nodeToString(args[i], false));
+    text = nodeToString(args[i], false);
+    textWrite(text, device);
   }
 }
 
-// export function _SHOW(channel: OutputChannel, args: any[]): void {
 export function _SHOW(args: any[]): void {
-  console.log('function _SHOW', args);
+  const device = DEVICES[dev_scrivi];
+  var text;
   for (var i=0; i<args.length; i++) {
-    // channel.writeLine(nodeToString(args[i], true));
-    currentOutput.writeLine(nodeToString(args[i], true));
+    text = nodeToString(args[i], true);
+    textWrite(text, device);
   }
 }
 
-// export function _WRITECHAR(channel: OutputChannel, args: any[]): void {
 export function _WRITECHAR(args: any[]): void {
-  console.log('function _WRITECHAR', args);
-  // channel.write(args[0].val);
-  currentOutput.write(args[0].val);
+  const device = DEVICES[dev_scrivi];
+  textWrite(args[0].val, device);
 }
 
 export async function _READWORD(source: InteractiveData): Promise<Cell> {
@@ -179,14 +235,15 @@ function deviceHandleFromName(name: string): number {
     return -1;
 }
 
-export async function _OPEN(args: any[]) : Promise<Cell> {
-  var deviceHandle: number = 0;
+export async function _OPEN(args: any[]): Promise<Cell> {
+  const path: ParsedPath = parseLogoPath(args[0].val);
   var deviceName;
+  var deviceHandle: number = 0;
   var fileHandle: FileSystemFileHandle | null = null;
   var fileStream;
   const deviceNames = getDeviceNames();
   if (args[0].type === CellType.WORD) { // è specificato un nome di file 
-    deviceName = args[0].val;
+    deviceName = path.fileName;
     var normalizedName = keywordResolver(deviceName);
     if (!normalizedName)
       normalizedName = deviceName;
@@ -220,19 +277,61 @@ export async function _OPEN(args: any[]) : Promise<Cell> {
   return { type: CellType.NUMBER, val: deviceHandle }; // riporta un device handle (chiave nella mappa)
 }
 
+export async function _CREATE_FILE(args: any[]): Promise<Cell> {
+  const path: ParsedPath = parseLogoPath(args[0].val);
+  const deviceName = path.fileName;
+  var normalizedName = keywordResolver(deviceName);
+  if (!normalizedName)
+    normalizedName = deviceName;
+  const deviceNames = getDeviceNames();
+  if (deviceNames.includes(normalizedName)) // dispositivo o file già aperto?
+    throwError('e23', null, deviceName);
+  const fileHandle = await localService.fileGet(deviceName, true);
+  if (!fileHandle)
+    throwError('e21', null, deviceName);
+  const fileStream = new FileStream(fileHandle);
+  fileStream.open();
+  const deviceHandle = getFirstFreeSlot(DEVICES);
+  DEVICES[deviceHandle] = {
+    name: deviceName,
+    type: devType.O_ARCHIVIO,
+    fileHandle: fileHandle,
+    state: 0,
+    stream: fileStream
+  };
+  return { type: CellType.NUMBER, val: deviceHandle }; // riporta un device handle (chiave nella mappa)
+}
+
 export async function _CLOSE(args: any[]) {
   var deviceName;
-  if (args[0].type === CellType.WORD) { // è specificato un nome di file 
+  var deviceHandle;
+  var device;
+  if (args[0].type === CellType.WORD) { // è specificato un nome
     deviceName = args[0].val;
     var normalizedName = keywordResolver(deviceName);
     if (!normalizedName)
       normalizedName = deviceName;
     if (getDeviceNames().includes(normalizedName)) { // il nome è presente nella mappa dei device?
-      var deviceHandle = deviceHandleFromName(normalizedName);
-      if (deviceHandle < MIN_DEV) // non si tratta di file ma di dispositivo sempre aperto?
-        throwError('e36', null, deviceName);
+      deviceHandle = deviceHandleFromName(normalizedName);
+      if (deviceHandle < 0)
+        throwError('e22', null, deviceName);
+      device = DEVICES[deviceHandle];
     }
     else // il nome, eventualmente normalizzato, non esiste nella mappa dei device
       throwError('e22', null, deviceName);
   }
+  else {
+    // è specificato un device handle (numero)
+    deviceHandle = args[0].val;
+    device = DEVICES[deviceHandle];
+    if (!device)
+      throwError('e22', null, deviceHandle.toString());
+  }
+  if (deviceHandle < MIN_DEV) // non si tratta di file ma di dispositivo sempre aperto?
+    throwError('e36', null, deviceName);
+  if (device.type === devType.O_ARCHIVIO)
+    device.stream.close();
+  delete DEVICES[deviceHandle];
+  if (dev_scrivi === deviceHandle)
+    dev_scrivi = devCode.CONSOLE;
 }

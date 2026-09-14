@@ -4,6 +4,7 @@
 import { CellType, Cell } from './CoreDefinitions';
 import { throwError} from './Interpreter';
 import { toLogoCell } from './Parser';
+import { DEVICES } from './Communication';
 
 export async function _SELECT_FOLDER(args: any[]): Promise<Cell> {
   const folder = await localService.selectFolder();
@@ -61,15 +62,6 @@ export async function _FILEP(args: any[]): Promise<Cell> {
   // const exists: boolean = await localService.fileExists(path.fileName);
   const fileHandle = await localService.fileGet(path.fileName);
   return { type: CellType.BOOLEAN, val: (fileHandle) ? true : false };
-}
-
-export function _CREATE(args: any[]): void {
-}
-
-export function _OPEN(args: any[]): void {
-}
-
-export function _CLOSE(args: any[]): void {
 }
 
 export async function _RENAME_FILE(args: any[]) {
@@ -277,7 +269,7 @@ export class LocalStorageService {
   /** Emula il comando FILEP di Logo */
   // async fileExists(fileName: string): Promise<boolean> {
 
-  async fileGet(fileName: string): Promise<FileSystemFileHandle | null> {
+  async fileGet(fileName: string, create?: boolean): Promise<FileSystemFileHandle | null> {
     if (this.directoryStack.length === 0) {
       await this.selectWorkspace();
     }
@@ -285,6 +277,10 @@ export class LocalStorageService {
     for await (const [key, value] of directoryHandle.entries()) {
       if (key === fileName)
         return value;
+    }
+    if (create) {
+      const fileHandle = await directoryHandle.getFileHandle(fileName, {create: true,});
+      return fileHandle;
     }
     return null;
   }
