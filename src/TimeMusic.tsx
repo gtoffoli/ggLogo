@@ -2,10 +2,11 @@
 // 260216 - 1st version
 
 import * as Tone from 'tone';
-import path from 'path';
+// import path from 'path';
 import { CellType, Cell } from './CoreDefinitions';
 import { throwError} from './Interpreter';
 import { toLogoCell, nodeToString } from './Parser';
+import { parseLogoPath, localService } from './Storage';
 // import { contesti, liv_contesto } from './LogoControl';
 // import { password } from 'bun';
 
@@ -27,6 +28,53 @@ export async function _WAIT(values: any[]) {
   console.log('_WAIT 1', ms);
   await wait(ms); 
   console.log('_WAIT 2', ms);
+}
+
+// interprets a simple list of notes in Terrapin music notation
+export const _PLAY = async (args: any[]) => {
+  if (args[0].type === CellType.LIST) { // alias of MIDIPLAY ?
+    const noteString = nodeToString(args[0]);
+    await midiPlay(noteString);
+  }
+  else { // file MP3 or ..
+    const path: ParsedPath = parseLogoPath(args[0].val);
+    const fileHandle = await localService.fileGet(path.fileName);
+    console.log('_PLAY - fileHandle:', path.fileName, fileHandle);
+    // 1. Estrai l'oggetto File dall'handle
+    const file = await fileHandle.getFile();
+    await riproduciDaFile(file);
+  }
+};
+
+async function riproduciDaFile(file) { // fileHandle) {
+    // 2. Crea un URL temporaneo per il blob del file
+    const fileURL = URL.createObjectURL(file);
+    // 3. Passalo all'oggetto Audio e avvia la riproduzione
+    const audio = new Audio(fileURL);
+    audio.play();
+    // Opzionale: Libera la memoria quando l'audio finisce
+    audio.onended = () => {
+        URL.revokeObjectURL(fileURL);
+    };
+}
+
+// Inizializza il contesto audio globale
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+async function riproduciAudioAvanzato(file) { // (fileHandle) {
+    // 1. Assicurati che il contesto audio sia attivo (policy dei browser)
+    if (audioCtx.state === 'suspended') {
+        await audioCtx.resume();
+    }
+    // 2. Estrai il file e ottieni l'ArrayBuffer (i dati binari grezzi)
+    // const file = await fileHandle.getFile();
+    const arrayBuffer = await file.arrayBuffer();
+    // 3. Decodifica i dati audio dell'MP3
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    // 4. Crea una sorgente audio, collegala alle casse e avvia
+    const source = audioCtx.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(audioCtx.destination);
+    source.start(0);
 }
 
 // models a MIDI channel

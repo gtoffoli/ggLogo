@@ -19,7 +19,7 @@ import { _SETPOS, _SETX, _SETY, _SETXY, _TOWARDS, _FD, _BK, _LABEL, _RT, _LT, _X
 import { _PENUP, _PENDOWN, _PENDOWNP, _PENCOLOR, _SETPENCOLOR, _FILLCOLOR, _SETFILLCOLOR, _PENSIZE, _SETPENSIZE, _FONT, _SETFONT, _PENMODE, _SHOWTURTLE, _HIDETURTLE, _SHOWNP } from './TurtleGraphics';
 import { _READER, _READFROM, _READPOS, _READAT, _WRITER, _WRITETO, _WRITEPOS, _WRITEAT, _PRINT, _TYPE, _SHOW, _WRITECHAR, _READWORD, _READLIST, _READCHAR, _OPEN, _CREATE_FILE, _CLOSE } from './Communication';
 import { _SELECT_FOLDER, _CURDIR, _SETCURDIR, _CREATE_DIR, _DIRECTORY, _SUBDIR, _SELECT_FILE, _FILEP, _DELETE_FILE, _RENAME_FILE } from './Storage';
-import { _TIME, _SETTIME, _WAIT, _MIDIOPEN, _MIDICLOSE, _MIDILOADINSTRUMENT, _MIDI, _MIDICHANNELS, _MIDIMSG, _MIDIPLAY } from './TimeMusic';
+import { _TIME, _SETTIME, _WAIT, _MIDIOPEN, _MIDICLOSE, _MIDILOADINSTRUMENT, _MIDI, _MIDICHANNELS, _MIDIMSG, _MIDIPLAY, _PLAY } from './TimeMusic';
 import { _BLUEDEVICES, _BLUE } from './NearField';
 
 export const SEPARATORS = {
@@ -1255,6 +1255,11 @@ export const CORE_DEFINITIONS = {
     classes: [FunClass.ASYNC],
     args: [{ name: "notes", type: A_L }],
     ref: _MIDIPLAY,
+  } as CommandDef,
+  PLAY: {
+    classes: [FunClass.ASYNC],
+    args: [{ name: "music", type: A_F_S_L }],
+    ref: _PLAY,
   } as CommandDef,
   BLUEDEVICES: {
     classes: [FunClass.ASYNC],
